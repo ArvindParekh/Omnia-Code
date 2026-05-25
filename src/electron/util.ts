@@ -4,20 +4,15 @@ import { pathToFileURL } from "url";
 import dotenv from "dotenv";
 
 dotenv.config();
-const PORT = process.env.PORT;
-if (!PORT && isDev()) throw new Error("PORT env variable is not set");
 
-// Checks if you are in development mode
 export function isDev(): boolean {
     return process.env.NODE_ENV == "development";
 }
 
-// Making IPC Typesafe
 export function ipcMainHandle<Key extends keyof EventPayloadMapping>(key: Key, handler: () => EventPayloadMapping[Key]) {
     ipcMain.handle(key, (event) => {
-        if (event.senderFrame) validateEventFrame(event.senderFrame);
-
-        return handler()
+        if (event.senderFrame) validateSender(event.senderFrame);
+        return handler();
     });
 }
 
@@ -25,8 +20,8 @@ export function ipcWebContentsSend<Key extends keyof EventPayloadMapping>(key: K
     webContents.send(key, payload);
 }
 
-export function validateEventFrame(frame: WebFrameMain) {
-    if (isDev() && new URL(frame.url).host === `localhost:${PORT}`) return;
-
+function validateSender(frame: WebFrameMain) {
+    const port = process.env.PORT;
+    if (isDev() && new URL(frame.url).host === `localhost:${port}`) return;
     if (frame.url !== pathToFileURL(getUIPath()).toString()) throw new Error("Malicious event");
 }
