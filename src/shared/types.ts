@@ -1,4 +1,4 @@
-type Provider = "google" | "claude" | "codex" | "opencode" | "cursor";
+type Provider = "gemini" | "claude" | "codex" | "opencode" | "cursor";
 
 type SessionStatus = "idle" | "running" | "error";
 
