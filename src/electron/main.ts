@@ -1,6 +1,7 @@
 import { app, BrowserWindow } from "electron";
 import { isDev } from "./util.js";
 import { getPreloadPath, getUIPath, getIconPath } from "./pathResolver.js";
+import "./ipc/ai.js";
 import dotenv from "dotenv";
 
 dotenv.config();
