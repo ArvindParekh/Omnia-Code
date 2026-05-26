@@ -1,17 +1,24 @@
-import electron from "electron";
+import { contextBridge, ipcRenderer } from "electron";
+import type { IpcChannels, IpcEvents } from "../shared/types.js";
 
-electron.contextBridge.exposeInMainWorld("omnia", {} satisfies Window['omnia'])
+const handlers = {
+  ipc: {
+    invoke: <C extends keyof IpcChannels>(
+      channel: C,
+      args: IpcChannels[C]["args"],
+    ) => ipcRenderer.invoke(channel, args),
+  },
+  on: <E extends keyof IpcEvents>(
+    channel: E,
+    callback: (data: IpcEvents[E]) => void,
+  ) => {
+    const handler = (_: Electron.IpcRendererEvent, data: IpcEvents[E]) =>
+      callback(data);
+    ipcRenderer.on(channel, handler);
+    return () => ipcRenderer.removeListener(channel, handler);
+  },
+};
 
-function ipcInvoke<Key extends keyof EventPayloadMapping>(key: Key, payload?: unknown): Promise<EventPayloadMapping[Key]> {
-    return electron.ipcRenderer.invoke(key, payload);
-}
+contextBridge.exposeInMainWorld("omnia", handlers);
 
-function ipcOn<Key extends keyof EventPayloadMapping>(key: Key, callback: (payload: EventPayloadMapping[Key]) => void) {
-    const cb = (_: Electron.IpcRendererEvent, payload: EventPayloadMapping[Key]) => callback(payload)
-    electron.ipcRenderer.on(key, cb);
-    return () => electron.ipcRenderer.off(key, cb)
-}
-
-// suppress unused warnings until channels are wired up
-void ipcInvoke;
-void ipcOn;
+export type Handlers = typeof handlers;
