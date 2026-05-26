@@ -1,4 +1,6 @@
 import { AgentEvent, Provider, Session } from "../../shared/types.js";
+import { AIProvider } from "./base.js";
+import { ClaudeProvider } from "./claude/index.js";
 
 export class ProviderService {
   provider: AIProvider | null;
@@ -7,10 +9,10 @@ export class ProviderService {
     this.provider = null;
   }
 
-  createSession(provider: Provider): Session {
+  async createSession(provider: Provider): Promise<Session> {
     this.setProviderInstance(provider);
     if (!this.provider) throw new Error("No provider set");
-    const session = this.provider.createSession(provider);
+    const session = await this.provider.createSession(provider);
     return session;
   }
 
@@ -53,7 +55,7 @@ export class ProviderService {
     try {
       switch (provider) {
         case "claude":
-          return true;
+          return ClaudeProvider.isAvailable();
         case "gemini":
           return true;
         case "codex":
@@ -85,12 +87,3 @@ export class ProviderService {
 }
 
 export const providerService = new ProviderService();
-
-export interface AIProvider {
-  createSession(provider: Provider): Session;
-  sendMessage(sessionId: string, message: string): AsyncGenerator<AgentEvent>;
-  confirm(sessionId: string, toolCallId: string, approved: boolean): void;
-  getSessions(): Session[];
-  getEvents(sessionId: string): AgentEvent[];
-  detectProviders(): Provider[];
-}

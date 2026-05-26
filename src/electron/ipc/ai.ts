@@ -3,8 +3,8 @@ import { providerService } from "../providers/index.js";
 
 ipcMainHandle<"agent:createSession">(
   "agent:createSession",
-  (event, { provider }) => {
-    const session = providerService.createSession(provider);
+  async (event, { provider }) => {
+    const session = await providerService.createSession(provider);
     return session;
   },
 );
@@ -14,10 +14,10 @@ ipcMainHandle<"agent:sendMessage">(
   async (event, { sessionId, message }) => {
     for await (const chunk of providerService.sendMessage(sessionId, message)) {
       switch (chunk.type) {
-        case "text":
+        case "delta":
           ipcWebContentsSend<"agent:event">("agent:event", event.sender, {
             sessionId,
-            event: chunk.text,
+            event: chunk,
           });
       }
     }

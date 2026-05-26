@@ -7,42 +7,27 @@ type Session = {
   provider: Provider;
   title: string;
   status: SessionStatus;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt: number;
+  updatedAt: number;
 };
 
 type AgentEvent =
-  | { id: string; type: "text"; content: string; streaming: boolean }
+  | { type: "delta"; text: string }
+  | { type: "done" }
   | {
-      id: string;
-      type: "tool_call";
-      tool: string;
-      args: unknown;
-      status: "running" | "done" | "error";
+      type: "error";
+      message: string;
+      retryable?: boolean;
+      correlationId?: string;
     }
-  | {
-      id: string;
-      type: "tool_result";
-      toolCallId: string;
-      content: string;
-      isError: boolean;
-    }
-  | {
-      id: string;
-      type: "confirmation_request";
-      toolCallId: string;
-      tool: string;
-      args: unknown;
-      status: "pending" | "approved" | "rejected";
-    }
-  | { id: string; type: "error"; message: string };
+  | { type: "approval"; id: string; toolName: string; input: unknown };
 
 type IpcChannels = {
   "agent:createSession": {
     args: {
       provider: Provider;
     };
-    result: Session;
+    result: Promise<Session>;
   };
   "agent:sendMessage": {
     args: {
