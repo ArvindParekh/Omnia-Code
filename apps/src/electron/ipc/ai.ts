@@ -31,7 +31,7 @@ ipcMainHandle<"agent:confirm">(
   },
 );
 
-ipcMainHandle<"agent:getSessions">("agent:getSessions", (event, {}) => {
+ipcMainHandle<"agent:getSessions">("agent:getSessions", () => {
   const sessions = providerService.getSessions();
   return sessions;
 });
@@ -41,7 +41,7 @@ ipcMainHandle<"agent:getEvents">("agent:getEvents", (event, { sessionId }) => {
   return events;
 });
 
-ipcMainHandle<"agent:detectProviders">("agent:detectProviders", (event, {}) => {
+ipcMainHandle<"agent:detectProviders">("agent:detectProviders", () => {
   const providers = providerService.detectProviders();
   return providers;
 });

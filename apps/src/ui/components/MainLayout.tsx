@@ -115,7 +115,7 @@ export function MainLayout({ onCreateSession }: MainLayoutProps) {
 
       {/* Premium Main Layout */}
       <div className="flex flex-1 overflow-hidden px-4 pb-4">
-        <ResizablePanelGroup direction="horizontal" className="flex-1">
+        <ResizablePanelGroup orientation="horizontal" className="flex-1">
           {/* Premium Sidebar */}
           <ResizablePanel
             defaultSize={25}
@@ -123,8 +123,7 @@ export function MainLayout({ onCreateSession }: MainLayoutProps) {
             maxSize={40}
             collapsedSize={0}
             collapsible
-            onCollapse={() => setSidebarCollapsed(true)}
-            onExpand={() => setSidebarCollapsed(false)}
+            onResize={(panelSize) => setSidebarCollapsed(panelSize.asPercentage === 0)}
           >
             <div className="premium-shell h-full mr-2">
               <div className="premium-core h-full flex flex-col">
@@ -178,7 +177,7 @@ export function MainLayout({ onCreateSession }: MainLayoutProps) {
 
           {/* Premium Main Content Area */}
           <ResizablePanel defaultSize={75} minSize={50}>
-            <ResizablePanelGroup direction="vertical">
+            <ResizablePanelGroup orientation="vertical">
               {/* Premium Chat Interface */}
               <ResizablePanel defaultSize={60} minSize={40}>
                 <div className="premium-shell h-full ml-2 mr-2">
