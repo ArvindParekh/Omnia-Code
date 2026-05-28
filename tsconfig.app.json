@@ -25,6 +25,9 @@
         "paths": {
             "@/*": [
                 "./apps/desktop/*"
+            ],
+            "@omnia/*": [
+                "packages/*/index.ts"
             ]
         },
         "types": [

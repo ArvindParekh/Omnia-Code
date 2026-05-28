@@ -1,4 +1,4 @@
-import type { Provider, Session, AgentEvent } from "../../shared/types.js";
+import type { Provider, Session, AgentEvent } from "../../../../packages/contracts/types.js";
 
 export interface AIProvider {
   readonly name: string;

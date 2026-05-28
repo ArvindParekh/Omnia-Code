@@ -1,4 +1,4 @@
-import { AgentEvent, Provider, Session } from "../../shared/types.js";
+import { AgentEvent, Provider, Session } from "../../../../packages/contracts/types.js";
 import { AIProvider } from "./base.js";
 import { ClaudeProvider } from "./claude/index.js";
 

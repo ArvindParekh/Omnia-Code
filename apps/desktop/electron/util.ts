@@ -2,7 +2,7 @@ import { ipcMain, WebContents, WebFrameMain } from "electron";
 import { getUIPath } from "./pathResolver.js";
 import { pathToFileURL } from "url";
 import dotenv from "dotenv";
-import type { IpcChannels, IpcEvents } from "../shared/types.js";
+import type { IpcChannels, IpcEvents } from "../../../packages/contracts/types.js";
 
 dotenv.config();
 

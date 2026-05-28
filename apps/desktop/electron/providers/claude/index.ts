@@ -1,6 +1,6 @@
 import { AIProvider } from "../base.js";
 import os from "os";
-import type { AgentEvent, Provider, Session } from "../../../shared/types.js";
+import type { AgentEvent, Provider, Session } from "../../../../../packages/contracts/types.js";
 import { query, startup } from "@anthropic-ai/claude-agent-sdk";
 import path from "path";
 import { existsSync } from "fs";
@@ -34,7 +34,7 @@ export class ClaudeProvider implements AIProvider {
         status: "idle" as const,
         createdAt: now,
         updatedAt: now,
-        cancel: () => {},
+        cancel: () => { },
       });
 
       return {

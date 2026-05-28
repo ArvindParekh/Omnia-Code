@@ -5,5 +5,11 @@
         "module": "NodeNext",
         "outDir": "../../../dist-electron",
         "skipLibCheck": true,
+        "baseUrl": "../../../",
+        "paths": {
+            "@omnia/*": [
+                "packages/*/index.ts"
+            ]
+        }
     }
 }
