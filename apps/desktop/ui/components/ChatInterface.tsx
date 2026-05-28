@@ -19,7 +19,7 @@ import {
    Image,
    Loader2,
 } from "lucide-react";
-import type { Session } from "../../shared/types";
+import type { Session } from "@omnia/contracts";
 
 interface ChatInterfaceProps {
    session: Session;

@@ -13,7 +13,7 @@ import {
    AlertCircle,
    Clock,
 } from "lucide-react";
-import type { Session } from "../../shared/types";
+import type { Session } from "@omnia/contracts";
 
 interface SessionListProps {
    sessions: Session[];

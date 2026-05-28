@@ -4,10 +4,24 @@
   "workspaces": {
     "": {
       "name": "electron-vite-template",
+      "devDependencies": {
+        "@eslint/js": "^9.39.2",
+        "eslint": "^9.39.2",
+        "eslint-plugin-react-hooks": "^7.0.1",
+        "eslint-plugin-react-refresh": "^0.4.26",
+        "globals": "^17.0.0",
+        "oxlint": "^1.66.0",
+        "typescript": "~5.9.3",
+        "typescript-eslint": "^8.52.0",
+      },
+    },
+    "apps/desktop": {
+      "name": "@omnia/desktop",
+      "version": "0.0.0",
       "dependencies": {
         "@anthropic-ai/claude-agent-sdk": "^0.3.150",
+        "@omnia/contracts": "workspace:*",
         "@radix-ui/react-slot": "^1.2.4",
-        "@tailwindcss/vite": "^4.1.18",
         "class-variance-authority": "^0.7.1",
         "clsx": "^2.1.1",
         "dotenv": "^17.2.3",
@@ -16,29 +30,22 @@
         "react": "^19.2.3",
         "react-dom": "^19.2.3",
         "react-resizable-panels": "^4",
-        "shadcn": "^3.6.3",
         "tailwind-merge": "^3.4.0",
-        "tailwindcss": "^4.1.18",
         "tailwindcss-animate": "^1.0.7",
-        "vite-tsconfig-paths": "^6.0.3",
       },
       "devDependencies": {
-        "@eslint/js": "^9.39.2",
+        "@tailwindcss/vite": "^4.1.18",
         "@types/react": "^19.2.7",
         "@types/react-dom": "^19.2.3",
         "@vitejs/plugin-react": "^5.1.2",
         "cross-env": "^10.1.0",
         "electron": "^39.2.7",
         "electron-builder": "^26.4.0",
-        "eslint": "^9.39.2",
-        "eslint-plugin-react-hooks": "^7.0.1",
-        "eslint-plugin-react-refresh": "^0.4.26",
-        "globals": "^17.0.0",
         "npm-run-all": "^4.1.5",
-        "oxlint": "^1.66.0",
-        "typescript": "~5.9.3",
-        "typescript-eslint": "^8.52.0",
+        "shadcn": "^3.6.3",
+        "tailwindcss": "^4.1.18",
         "vite": "^7.3.1",
+        "vite-tsconfig-paths": "^6.0.3",
       },
     },
     "packages/contracts": {
@@ -299,6 +306,8 @@
     "@npmcli/fs": ["@npmcli/fs@4.0.0", "", { "dependencies": { "semver": "^7.3.5" } }, "sha512-/xGlezI6xfGO9NwuJlnwz/K14qD1kCSAGtacBHnGzeAIuJGazcp45KP5NuyARXoKb7cwulAGWVsbeSxdG/cb0Q=="],
 
     "@omnia/contracts": ["@omnia/contracts@workspace:packages/contracts"],
+
+    "@omnia/desktop": ["@omnia/desktop@workspace:apps/desktop"],
 
     "@open-draft/deferred-promise": ["@open-draft/deferred-promise@2.2.0", "", {}, "sha512-CecwLWx3rhxVQF6V4bAgPS5t+So2sTbPgAzafKkVizyi7tlwpcFpdFqq+wqF2OwNBmqFuu6tOyouTuxgpMfzmA=="],
 

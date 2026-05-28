@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer } from "electron";
-import type { IpcChannels, IpcEvents } from "../shared/types.js";
+import type { IpcChannels, IpcEvents } from "@omnia/contracts";
 
 const handlers = {
   ipc: {
