@@ -17,7 +17,7 @@
     "check-all": "bun run lint && bun run typecheck && bun run fmt:check",
     "check-all-fix": "bun run lint:fix && bun run fmt",
     "preview": "vite preview",
-    "transpile:electron": "tsc --project apps/src/electron/tsconfig.json",
+    "transpile:electron": "tsc --project apps/desktop/electron/tsconfig.json",
     "dist:mac": "npm run transpile:electron && npm run build && electron-builder --mac --arm64",
     "dist:win": "npm run transpile:electron && npm run build && electron-builder --win --x64",
     "dist:linux": "npm run transpile:electron && npm run build && electron-builder --linux --x64"

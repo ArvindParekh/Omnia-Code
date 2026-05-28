@@ -24,7 +24,7 @@
         "baseUrl": ".",
         "paths": {
             "@/*": [
-                "./apps/src/*"
+                "./apps/desktop/*"
             ]
         },
         "types": [
@@ -32,9 +32,9 @@
         ]
     },
     "include": [
-        "apps/src"
+        "apps/desktop"
     ],
     "exclude": [
-        "apps/src/electron"
+        "apps/desktop/electron"
     ]
 }
