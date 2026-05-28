@@ -9,6 +9,7 @@ export type CommandEnvelope<TType extends string, TPayload> = {
     requestedBy: "user" | "system";
 }
 
+// All kinds of available commands defined here.
 export type SessionCreateRequested = CommandEnvelope<"session.createRequested", {
     provider: Provider;
     workspacePath: string;
