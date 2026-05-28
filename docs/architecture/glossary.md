@@ -101,4 +101,3 @@ An explicit permission to perform a class of action, such as shell execution, fi
 **Policy**
 
 Rules that decide which capabilities are allowed, denied, or require approval.
-
