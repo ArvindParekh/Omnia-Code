@@ -1,15 +1,13 @@
 {
-    "compilerOptions": {
-        "strict": true,
-        "target": "ESNext",
-        "module": "NodeNext",
-        "outDir": "../../../dist-electron",
-        "skipLibCheck": true,
-        "baseUrl": "../../../",
-        "paths": {
-            "@omnia/*": [
-                "packages/*/index.ts"
-            ]
-        }
-    }
+	"compilerOptions": {
+		"strict": true,
+		"target": "ESNext",
+		"module": "NodeNext",
+		"outDir": "../../../dist-electron",
+		"skipLibCheck": true,
+		"baseUrl": "../../../",
+		"paths": {
+			"@omnia/*": ["packages/*/index.ts"]
+		}
+	}
 }

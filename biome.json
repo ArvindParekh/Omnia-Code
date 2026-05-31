@@ -1,0 +1,27 @@
+{
+	"$schema": "https://biomejs.dev/schemas/2.4.16/schema.json",
+	"files": {
+		"includes": ["**", "!.antigravitycli/**", "!dist*/**", "!*.lock"]
+	},
+	"css": {
+		"parser": {
+			"tailwindDirectives": true
+		},
+		"formatter": {
+			"enabled": true,
+			"indentStyle": "tab"
+		}
+	},
+	"formatter": {
+		"indentStyle": "tab",
+		"lineWidth": 100
+	},
+	"javascript": {
+		"formatter": {
+			"indentStyle": "tab",
+			"lineWidth": 100,
+			"trailingCommas": "all",
+			"quoteStyle": "double"
+		}
+	}
+}

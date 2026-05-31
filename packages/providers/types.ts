@@ -1,76 +1,95 @@
-import type { Provider, ProviderAvailability, ProviderRuntimeEvent, SessionPolicy, ToolRisk, MessageAttachment, Capability } from "@omnia/contracts";
+import type {
+	Provider,
+	ProviderAvailability,
+	ProviderRuntimeEvent,
+	SessionPolicy,
+	ToolRisk,
+	MessageAttachment,
+	Capability,
+} from "@omnia/contracts";
 
 type ProviderAdapter = {
-    readonly provider: Provider;
+	readonly provider: Provider;
 
-    detect(): Promise<ProviderAvailability>;
+	detect(): Promise<ProviderAvailability>;
 
-    createSession(input: CreateProviderSessionInput): Promise<ProviderSessionRef>;
+	createSession(input: CreateProviderSessionInput): Promise<ProviderSessionRef>;
 
-    resumeSession(input: ResumeProviderSessionInput): Promise<void>;
+	resumeSession(input: ResumeProviderSessionInput): Promise<void>;
 
-    sendTurn(input: SendProviderTurnInput): AsyncIterable<ProviderRuntimeEvent>;
+	sendTurn(input: SendProviderTurnInput): AsyncIterable<ProviderRuntimeEvent>;
 
-    cancelTurn(input: CancelProviderTurnInput): Promise<void>;
+	cancelTurn(input: CancelProviderTurnInput): Promise<void>;
 
-    resolveApproval(input: ResolveProviderApprovalInput): Promise<void>;
+	resolveApproval(input: ResolveProviderApprovalInput): Promise<void>;
 
-    disposeSession(input: DisposeProviderSessionInput): Promise<void>;
-}
+	disposeSession(input: DisposeProviderSessionInput): Promise<void>;
+};
 
 type CreateProviderSessionInput = {
-    sessionId: string;
-    workspacePath: string;
-    policy: SessionPolicy;
-}
+	sessionId: string;
+	workspacePath: string;
+	policy: SessionPolicy;
+};
 
 type ProviderSessionRef = {
-    sessionId: string;
-    provider: Provider;
-    externalId?: string;
-    stateJson?: unknown;
+	sessionId: string;
+	provider: Provider;
+	externalId?: string;
+	stateJson?: unknown;
 };
 
 type ResumeProviderSessionInput = {
-    sessionId: string;
-}
+	sessionId: string;
+};
 
 type SendProviderTurnInput = {
-    sessionId: string;
-    providerSessionRef: ProviderSessionRef;
-    turnId: string;
-    text: string;
-    attachments: MessageAttachment[];
-    workspacePath: string;
-    policy: SessionPolicy;
-    signal: AbortSignal;
-}
-
+	sessionId: string;
+	providerSessionRef: ProviderSessionRef;
+	turnId: string;
+	text: string;
+	attachments: MessageAttachment[];
+	workspacePath: string;
+	policy: SessionPolicy;
+	signal: AbortSignal;
+};
 
 type CancelProviderTurnInput = {
-    sessionId: string;
-    providerSessionRef: ProviderSessionRef;
-    turnId: string;
-    workspacePath: string;
-    policy: SessionPolicy;
-    signal: AbortSignal;
+	sessionId: string;
+	providerSessionRef: ProviderSessionRef;
+	turnId: string;
+	workspacePath: string;
+	policy: SessionPolicy;
+	signal: AbortSignal;
 };
 
 type ResolveProviderApprovalInput = {
-    sessionId: string;
-    providerSessionRef: ProviderSessionRef;
-    turnId: string;
-    toolCallId: string;
-    toolName: string;
-    input: unknown;
-    risk: ToolRisk;
-    approved: boolean;
-    note?: unknown;
+	sessionId: string;
+	providerSessionRef: ProviderSessionRef;
+	turnId: string;
+	toolCallId: string;
+	toolName: string;
+	input: unknown;
+	risk: ToolRisk;
+	approved: boolean;
+	note?: unknown;
 };
 
 type DisposeProviderSessionInput = {
-    sessionId: string;
-    providerSessionRef: ProviderSessionRef;
+	sessionId: string;
+	providerSessionRef: ProviderSessionRef;
 };
 
-export type { ProviderAdapter, CreateProviderSessionInput, ProviderSessionRef, ResumeProviderSessionInput, SendProviderTurnInput, SessionPolicy, Capability, MessageAttachment, CancelProviderTurnInput, ResolveProviderApprovalInput, DisposeProviderSessionInput };
+export type {
+	ProviderAdapter,
+	CreateProviderSessionInput,
+	ProviderSessionRef,
+	ResumeProviderSessionInput,
+	SendProviderTurnInput,
+	SessionPolicy,
+	Capability,
+	MessageAttachment,
+	CancelProviderTurnInput,
+	ResolveProviderApprovalInput,
+	DisposeProviderSessionInput,
+};

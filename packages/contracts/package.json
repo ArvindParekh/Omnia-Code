@@ -1,20 +1,21 @@
 {
-  "name": "@omnia/contracts",
-  "type": "module",
-  "exports": {
-    ".": "./index.ts",
-    "./fixtures": "./fixtures.ts"
-  },
-  "scripts": {
-    "build": "tsc",
-    "lint": "biome check .",
-    "lint:fix": "biome check . --fix",
-    "typecheck": "tsc --noEmit"
-  },
-  "devDependencies": {
-    "@types/bun": "latest"
-  },
-  "peerDependencies": {
-    "typescript": "^5"
-  }
+	"name": "@omnia/contracts",
+	"type": "module",
+	"exports": {
+		".": "./index.ts",
+		"./fixtures": "./fixtures.ts"
+	},
+	"scripts": {
+		"build": "tsc",
+		"lint": "biome check .",
+		"lint:fix": "biome check . --fix",
+		"typecheck": "tsc --noEmit"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "2.4.16",
+		"@types/bun": "latest"
+	},
+	"peerDependencies": {
+		"typescript": "^5"
+	}
 }

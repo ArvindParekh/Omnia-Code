@@ -1,7 +1,7 @@
 import type { Handlers } from "../preload/preload.cjs";
 
 declare global {
-  interface Window {
-    omnia: Handlers;
-  }
+	interface Window {
+		omnia: Handlers;
+	}
 }
