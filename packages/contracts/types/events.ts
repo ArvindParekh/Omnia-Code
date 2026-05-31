@@ -80,8 +80,8 @@ export type EventPayloadMap = {
   };
 };
 
-type EventType = keyof EventPayloadMap;
-type EventPayload<T extends EventType> = EventPayloadMap[T];
+export type EventType = keyof EventPayloadMap;
+export type EventPayload<T extends EventType> = EventPayloadMap[T];
 
 export type DomainEvent<TType extends string, TPayload> = {
     id: string;
@@ -118,3 +118,7 @@ export type TurnCompleted = DomainEventFor<"turn.completed">;
 export type TurnFailed = DomainEventFor<"turn.failed">;
 
 export type TurnCanceled = DomainEventFor<"turn.canceled">;
+
+export type AllEvents<T extends EventType> = {
+  [K in T]: DomainEventFor<K>;
+}[T];

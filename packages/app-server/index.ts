@@ -1,4 +1,5 @@
 import { CommandRouter } from "./command-router";
+import { createEvent, EventStore } from "./event-store";
 
 const router = new CommandRouter();
 
@@ -26,6 +27,17 @@ router.use(async (envelope, next) => {
     // await approvalService.resolve(envelope.payload.approvalId, envelope.payload.approved);
   });
 
+// const eventStore = new EventStore();
+// const ev = createEvent("session.created", {
+//   sessionId: "123",
+//   provider: "claude",
+//   workspacePath: "/jaldjf",
+//   title: "new sess",
+//   createdAt: Date.now(),
+// })
+// eventStore.addEvent(ev);
+
 export const appServer = {
-  router
+  router,
+  eventStore: new EventStore(),
 };
