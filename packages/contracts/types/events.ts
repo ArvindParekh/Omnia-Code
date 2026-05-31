@@ -1,5 +1,88 @@
 import type { MessageAttachment, Provider, ToolRisk } from "./provider.ts";
 
+export type EventPayloadMap = {
+  "session.created": {
+    sessionId: string;
+    provider: Provider;
+    workspacePath: string;
+    title: string;
+    createdAt: number;
+  };
+  "turn.started": {
+    sessionId: string;
+    turnId: string;
+    provider: Provider;
+    startedAt: number;
+  };
+  "message.userCreated": {
+    sessionId: string;
+    turnId: string;
+    messageId: string;
+    text: string;
+    attachments: MessageAttachment[];
+  };
+  "message.assistantDeltaReceived": {
+    sessionId: string;
+    turnId: string;
+    messageId: string;
+    text: string;
+  };
+  "message.assistantCompleted": {
+    sessionId: string;
+    turnId: string;
+    messageId: string;
+  };
+  "tool.callStarted": {
+    sessionId: string;
+    turnId: string;
+    toolCallId: string;
+    toolName: string;
+    input: unknown;
+    risk: ToolRisk;
+  };
+  "tool.callCompleted": {
+    sessionId: string;
+    turnId: string;
+    toolCallId: string;
+    output: unknown;
+    isError: boolean;
+  };
+  "approval.requested": {
+    approvalId: string;
+    sessionId: string;
+    turnId: string;
+    toolCallId: string;
+    toolName: string;
+    input: unknown;
+    risk: ToolRisk;
+  };
+  "approval.resolved": {
+    approvalId: string;
+    approved: boolean;
+    note?: string;
+  };
+  "turn.completed": {
+    sessionId: string;
+    turnId: string;
+    completedAt: number;
+  };
+  "turn.failed": {
+    sessionId: string;
+    turnId: string;
+    message: string;
+    retryable: boolean;
+    correlationId?: string;
+  };
+  "turn.canceled": {
+    sessionId: string;
+    turnId: string;
+    canceledAt: number;
+  };
+};
+
+type EventType = keyof EventPayloadMap;
+type EventPayload<T extends EventType> = EventPayloadMap[T];
+
 export type DomainEvent<TType extends string, TPayload> = {
     id: string;
     seq: number;
@@ -10,92 +93,28 @@ export type DomainEvent<TType extends string, TPayload> = {
     causationId?: string;
 }
 
+export type DomainEventFor<T extends EventType> = DomainEvent<T, EventPayload<T>>;
+
 // All kinds of domain events defined here.
-export type SessionCreated = DomainEvent<"session.created", {
-    sessionId: string;
-    provider: Provider;
-    workspacePath: string;
-    title: string;
-    createdAt: number;
-}>;
+export type SessionCreated = DomainEventFor<"session.created">;
+export type TurnStarted = DomainEventFor<"turn.started">;
 
-export type TurnStarted = DomainEvent<"turn.started", {
-    sessionId: string;
-    turnId: string;
-    provider: Provider;
-    startedAt: number;
-}>;
+export type UserMessageCreated = DomainEventFor<"message.userCreated">;
 
-export type UserMessageCreated = DomainEvent<"message.userCreated", {
-    sessionId: string;
-    turnId: string;
-    messageId: string;
-    text: string;
-    attachments: MessageAttachment[];
-}>;
+export type AssistantDeltaReceived = DomainEventFor<"message.assistantDeltaReceived">;
 
-export type AssistantDeltaReceived = DomainEvent<"message.assistantDeltaReceived", {
-    sessionId: string;
-    turnId: string;
-    messageId: string;
-    text: string;
-}>;
+export type AssistantMessageCompleted = DomainEventFor<"message.assistantCompleted">;
 
-export type AssistantMessageCompleted = DomainEvent<"message.assistantCompleted", {
-    sessionId: string;
-    turnId: string;
-    messageId: string;
-}>;
+export type ToolCallStarted = DomainEventFor<"tool.callStarted">;
 
-export type ToolCallStarted = DomainEvent<"tool.callStarted", {
-    sessionId: string;
-    turnId: string;
-    toolCallId: string;
-    toolName: string;
-    input: unknown;
-    risk: ToolRisk;
-}>;
+export type ToolCallCompleted = DomainEventFor<"tool.callCompleted">;
 
-export type ToolCallCompleted = DomainEvent<"tool.callCompleted", {
-    sessionId: string;
-    turnId: string;
-    toolCallId: string;
-    output: unknown;
-    isError: boolean;
-}>;
+export type ApprovalRequested = DomainEventFor<"approval.requested">;
 
-export type ApprovalRequested = DomainEvent<"approval.requested", {
-    approvalId: string;
-    sessionId: string;
-    turnId: string;
-    toolCallId: string;
-    toolName: string;
-    input: unknown;
-    risk: ToolRisk;
-}>;
+export type ApprovalResolved = DomainEventFor<"approval.resolved">;
 
-export type ApprovalResolved = DomainEvent<"approval.resolved", {
-    approvalId: string;
-    approved: boolean;
-    note?: string;
-}>;
+export type TurnCompleted = DomainEventFor<"turn.completed">;
 
-export type TurnCompleted = DomainEvent<"turn.completed", {
-    sessionId: string;
-    turnId: string;
-    completedAt: number;
-}>;
+export type TurnFailed = DomainEventFor<"turn.failed">;
 
-export type TurnFailed = DomainEvent<"turn.failed", {
-    sessionId: string;
-    turnId: string;
-    message: string;
-    retryable: boolean;
-    correlationId?: string;
-}>;
-
-export type TurnCanceled = DomainEvent<"turn.canceled", {
-    sessionId: string;
-    turnId: string;
-    canceledAt: number;
-}>;
+export type TurnCanceled = DomainEventFor<"turn.canceled">;
