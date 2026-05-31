@@ -2,6 +2,8 @@
 
 One window for all your AI coding agents — transparent tool calls, persistent sessions, and safe approvals. No new subscriptions or API keys required.
 
+<img width="1732" height="991" alt="image" src="https://github.com/user-attachments/assets/8a595332-d300-428a-8a07-8aa8d7d6fa3b" />
+
 ---
 
 ## What is Omnia Code?
