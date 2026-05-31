@@ -3,9 +3,18 @@ import type { AllEvents, EventType, EventPayload, DomainEventFor } from "@omnia/
 // a minimal in-memory event store for now
 export class EventStore {
   private events: AllEvents<EventType>[] = [];
+  private listeners: ((event: AllEvents<EventType>) => void)[] = [];
 
   addEvent(event: AllEvents<EventType>): void {
     this.events.push(event);
+    for (const listener of this.listeners) listener(event);
+  }
+
+  subscribe(listener: (event: AllEvents<EventType>) => void): () => void {
+    this.listeners.push(listener);
+    return () => {
+      this.listeners = this.listeners.filter(l => l !== listener); //unsub
+    };
   }
 
   getEvents(): AllEvents<EventType>[] {
