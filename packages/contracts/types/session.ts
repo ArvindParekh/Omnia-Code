@@ -21,12 +21,7 @@ export type Turn = {
   updatedAt: number;
 }
 
-export enum TurnStatus {
-  IN_PROGRESS = "in_progress",
-  COMPLETED = "completed",
-  FAILED = "failed",
-  CANCELLED = "cancelled",
-}
+export type TurnStatus = "in_progress" | "completed" | "failed" | "canceled";
 
 export type AgentEvent =
   | { type: "delta"; text: string }
