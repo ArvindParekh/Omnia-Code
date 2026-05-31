@@ -1,9 +1,16 @@
+import { ProviderRegistry } from "@omnia/providers";
 import { CommandRouter } from "./command-router";
 import { createEvent, EventStore } from "./event-store";
 import { sessionProjector, turnProjector } from "./projections";
+import { SessionService } from "./services/session-service";
+import { TurnService } from "./services/turn-service";
 
 const router = new CommandRouter();
 const eventStore = EventStore.getInstance();
+const registry = new ProviderRegistry();
+const sessionService = new SessionService(registry, eventStore);
+const turnService = new TurnService(sessionService, registry, eventStore);
+
 
 router.use(async (envelope, next) => {
   console.log(`[${envelope.requestedAt}] dispatching ${envelope.type} (id=${envelope.id})`);
@@ -22,11 +29,8 @@ router.use(async (envelope, next) => {
     createdAt: Date.now(),
   })
   eventStore.addEvent(ev);
-  // await sessionService.create({
-  //   provider: envelope.payload.provider,
-  //   workspacePath: envelope.payload.workspacePath,
-  //   title: envelope.payload.title,
-  // })
+  const sessionId = crypto.randomUUID();
+  await sessionService.create({ ...envelope, id: sessionId });
 }).on("turn.startRequested", async (envelope) => {
   const ev = createEvent("turn.started", {
     sessionId: envelope.payload.sessionId,
@@ -35,7 +39,7 @@ router.use(async (envelope, next) => {
     turnId: envelope.id,
   })
   eventStore.addEvent(ev);
-    // await turnService.start(envelope.payload.sessionId, envelope.payload.text);
+  await turnService.start(envelope);
   })
   .on("turn.cancelRequested", async (envelope) => {
     const ev = createEvent("turn.canceled", {
@@ -44,7 +48,7 @@ router.use(async (envelope, next) => {
       canceledAt: Date.now(),
     })
     eventStore.addEvent(ev);
-    // await turnService.cancel(envelope.payload.sessionId, envelope.payload.turnId);
+    await turnService.cancel(envelope);
   })
   .on("approval.resolveRequested", async (envelope) => {
     const ev = createEvent("approval.resolved", {
