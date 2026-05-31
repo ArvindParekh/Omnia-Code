@@ -1,5 +1,5 @@
 import type { ThreadMessageLike } from "@assistant-ui/react";
-import type { ChatMessage } from "../App";
+import type { ApprovalArgs, ChatMessage } from "./types";
 
 type MutableContent = Array<{
 	type: string;
@@ -73,17 +73,17 @@ export function convertToThreadMessages(msgs: ChatMessage[]): ThreadMessageLike[
 			if (msg.status === "running") assemblingAssistant!.isRunning = true;
 		} else if (msg.kind === "approval") {
 			ensureAssistant(`approvalmsg-${msg.id}`, msg.timestamp);
+			const approvalMeta: ApprovalArgs = {
+				__isApproval: true,
+				__approvalId: msg.id,
+				__resolved: msg.resolved,
+				__approved: msg.approved ?? null,
+			};
 			assemblingAssistant!.content.push({
 				type: "tool-call",
 				toolCallId: msg.id,
 				toolName: msg.toolName,
-				args: {
-					...(msg.input as Record<string, unknown>),
-					__isApproval: true,
-					__resolved: msg.resolved,
-					__approved: msg.approved ?? null,
-					__approvalId: msg.id,
-				},
+				args: { ...(msg.input as Record<string, unknown>), ...approvalMeta },
 				result: msg.resolved ? (msg.approved ? "approved" : "denied") : undefined,
 			});
 			if (!msg.resolved) assemblingAssistant!.requiresAction = true;

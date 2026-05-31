@@ -1,4 +1,4 @@
-import type { Provider } from "../App";
+import type { Provider } from "./types";
 
 export function providerColor(provider: Provider): string {
 	const map: Record<Provider, string> = {

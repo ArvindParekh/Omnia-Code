@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import { ArrowUp, FolderSimple, Lightning, Bug, GitBranch, Sparkle } from "@phosphor-icons/react";
-import type { MockSession, Provider } from "../App";
+import type { MockSession, Provider } from "../lib/types";
 import { providerLabel } from "../lib/provider";
 import { cn } from "../lib/utils";
 

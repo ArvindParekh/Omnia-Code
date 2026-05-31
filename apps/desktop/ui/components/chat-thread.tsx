@@ -5,21 +5,12 @@ import {
 	useMessage,
 	useThreadRuntime,
 } from "@assistant-ui/react";
-import type { TextMessagePartProps, ToolCallMessagePartProps } from "@assistant-ui/react";
-import {
-	ArrowUp,
-	Check,
-	X,
-	Terminal,
-	SpinnerGap,
-	ArrowDown,
-	FolderSimple,
-	Warning,
-} from "@phosphor-icons/react";
-import { useApproval } from "../App";
-import type { MockSession } from "../App";
+import type { TextMessagePartProps } from "@assistant-ui/react";
+import { ArrowUp, X, FolderSimple, SpinnerGap, ArrowDown } from "@phosphor-icons/react";
+import type { MockSession } from "../lib/types";
 import { providerLabel } from "../lib/provider";
 import { cn } from "../lib/utils";
+import { ToolCallBlock } from "./tool-call-block";
 
 // ─── Thread shell ─────────────────────────────────────────────────────────────
 
@@ -50,22 +41,19 @@ export function ChatThread({ session }: { session: MockSession }) {
 			{/* Viewport — contains messages + sticky composer */}
 			<ThreadPrimitive.Viewport className="flex-1 overflow-y-auto">
 				<div className="flex flex-col min-h-full">
-					{/* Empty state */}
 					<ThreadPrimitive.Empty>
 						<div className="flex flex-col items-center justify-center flex-1 gap-2 py-20">
 							<p className="text-[13px] text-white/25">Ask {label} anything</p>
 						</div>
 					</ThreadPrimitive.Empty>
 
-					{/* Messages */}
 					<div className="flex flex-col px-5 py-6 gap-6 max-w-[700px] mx-auto w-full">
 						<ThreadPrimitive.Messages components={{ UserMessage, AssistantMessage }} />
 					</div>
 
-					{/* Sticky footer: scroll button + composer */}
+					{/* Sticky footer — scroll button + composer */}
 					<ThreadPrimitive.ViewportFooter className="sticky bottom-0 mt-auto bg-[var(--background)]">
 						<div className="max-w-[700px] mx-auto w-full px-5 pb-5 pt-2 relative">
-							{/* Scroll to bottom button */}
 							<ThreadPrimitive.ScrollToBottom asChild>
 								<button
 									className="absolute -top-10 left-1/2 -translate-x-1/2 flex items-center gap-1.5
@@ -100,7 +88,6 @@ function Composer({ label, workspacePath }: { label: string; workspacePath: stri
 			className="rounded-2xl border border-white/[9%] bg-white/[3%] overflow-hidden
 				focus-within:border-white/[16%] focus-within:bg-white/[4%] transition-all"
 		>
-			{/* Textarea */}
 			<div className="px-4 pt-3.5 pb-2">
 				<ComposerPrimitive.Input
 					placeholder={`Ask ${label}...`}
@@ -110,22 +97,14 @@ function Composer({ label, workspacePath }: { label: string; workspacePath: stri
 				/>
 			</div>
 
-			{/* Action bar */}
 			<div className="flex items-center gap-2 px-3.5 pb-3 pt-1 border-t border-white/[5%]">
-				{/* Provider badge */}
-				<div className="flex items-center gap-1.5">
-					<span className="text-[11px] px-2 py-0.5 rounded-md bg-white/[6%] text-white/40 font-mono">
-						{label}
-					</span>
-				</div>
-
-				{/* Workspace */}
+				<span className="text-[11px] px-2 py-0.5 rounded-md bg-white/[6%] text-white/40 font-mono">
+					{label}
+				</span>
 				<div className="flex items-center gap-1 text-white/25">
 					<FolderSimple size={12} weight="light" />
 					<span className="text-[11px] font-mono">{workspaceBase}</span>
 				</div>
-
-				{/* Send / Cancel */}
 				<div className="ml-auto">
 					{isRunning ? (
 						<ComposerPrimitive.Cancel asChild>
@@ -190,7 +169,7 @@ function AssistantMessage() {
 				<MessagePrimitive.Parts
 					components={{
 						Text: AssistantTextPart,
-						tools: { Override: ToolCallPart },
+						tools: { Override: ToolCallBlock },
 					}}
 				/>
 			</div>
@@ -209,150 +188,5 @@ function AssistantTextPart({ text, status }: TextMessagePartProps) {
 		>
 			{text}
 		</p>
-	);
-}
-
-// ─── Tool call part ───────────────────────────────────────────────────────────
-
-function ToolCallPart({ toolName, args, result, status }: ToolCallMessagePartProps) {
-	const isApproval =
-		typeof args === "object" &&
-		args !== null &&
-		(args as Record<string, unknown>).__isApproval === true;
-
-	if (isApproval) {
-		const a = args as Record<string, unknown>;
-		return (
-			<ApprovalCard
-				approvalId={a.__approvalId as string}
-				toolName={toolName}
-				command={(a.command as string) ?? (a.path as string) ?? JSON.stringify(args)}
-				resolved={a.__resolved as boolean}
-				approved={a.__approved as boolean | null}
-			/>
-		);
-	}
-
-	const primaryArg =
-		typeof args === "object" && args !== null
-			? (((args as Record<string, unknown>).path as string) ??
-				((args as Record<string, unknown>).command as string) ??
-				JSON.stringify(args))
-			: String(args);
-
-	const output =
-		typeof result === "object" && result !== null && "output" in (result as object)
-			? (result as { output: string }).output
-			: result != null
-				? String(result)
-				: undefined;
-
-	const isRunning = status?.type === "running";
-
-	return (
-		<div className="rounded-xl border border-white/[8%] bg-white/[2%] overflow-hidden text-[12px]">
-			<div className="flex items-center justify-between px-3.5 py-2 border-b border-white/[5%]">
-				<div className="flex items-center gap-2">
-					<Terminal size={11} weight="light" className="text-white/28 shrink-0" />
-					<span className="font-mono text-white/38">{toolName}</span>
-				</div>
-				<div className="flex items-center gap-1.5">
-					{isRunning ? (
-						<SpinnerGap size={10} weight="bold" className="text-white/25 animate-spin" />
-					) : (
-						output && <span className="font-mono text-white/28 text-[11px]">{output}</span>
-					)}
-				</div>
-			</div>
-			<div className="px-3.5 py-2.5">
-				<span className="font-mono text-white/48 break-all">{primaryArg}</span>
-			</div>
-		</div>
-	);
-}
-
-// ─── Approval card ────────────────────────────────────────────────────────────
-
-function ApprovalCard({
-	approvalId,
-	toolName,
-	command,
-	resolved,
-	approved,
-}: {
-	approvalId: string;
-	toolName: string;
-	command: string;
-	resolved: boolean;
-	approved: boolean | null;
-}) {
-	const { onApprove } = useApproval();
-
-	if (resolved) {
-		return (
-			<div className="rounded-xl border border-white/[8%] bg-white/[2%] px-3.5 py-2.5 flex items-center gap-2.5">
-				{approved ? (
-					<Check size={12} weight="bold" className="text-white/30 shrink-0" />
-				) : (
-					<X size={12} weight="bold" className="text-white/30 shrink-0" />
-				)}
-				<span className="text-[12px] font-mono text-white/28">{toolName}</span>
-				<span className="text-[11px] font-mono text-white/22 truncate flex-1">{command}</span>
-				<span className="text-[11px] text-white/22 shrink-0">
-					{approved ? "approved" : "denied"}
-				</span>
-			</div>
-		);
-	}
-
-	return (
-		<div
-			className="rounded-xl overflow-hidden border"
-			style={{ borderColor: "var(--warn-border)", backgroundColor: "var(--warn-bg)" }}
-		>
-			<div
-				className="flex items-center justify-between px-3.5 py-2 border-b"
-				style={{ borderColor: "var(--warn-border)" }}
-			>
-				<div className="flex items-center gap-2">
-					<Warning size={12} weight="fill" style={{ color: "var(--warn)" }} />
-					<span className="text-[11px] font-medium" style={{ color: "var(--warn)" }}>
-						Approval required
-					</span>
-				</div>
-				<span
-					className="text-[10px] font-mono uppercase tracking-wider"
-					style={{ color: "var(--warn)", opacity: 0.6 }}
-				>
-					{toolName}
-				</span>
-			</div>
-
-			<div className="px-3.5 py-3">
-				<code className="text-[12px] font-mono text-white/60 select-text block break-all">
-					{command}
-				</code>
-			</div>
-
-			<div
-				className="flex items-center justify-end gap-2 px-3.5 py-2.5 border-t"
-				style={{ borderColor: "var(--warn-border)" }}
-			>
-				<button
-					onClick={() => onApprove(approvalId, false)}
-					className="px-3 py-1.5 text-[12px] rounded-lg border border-white/[10%] text-white/45
-						hover:bg-white/[5%] hover:text-white/65 transition-colors"
-				>
-					Deny
-				</button>
-				<button
-					onClick={() => onApprove(approvalId, true)}
-					className="px-3 py-1.5 text-[12px] rounded-lg bg-white/88 text-[#171717] font-medium
-						hover:bg-white transition-colors"
-				>
-					Approve
-				</button>
-			</div>
-		</div>
 	);
 }

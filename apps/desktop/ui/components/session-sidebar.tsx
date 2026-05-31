@@ -7,7 +7,7 @@ import {
 	GearSix,
 	ChatTeardropText,
 } from "@phosphor-icons/react";
-import type { MockSession } from "../App";
+import type { MockSession } from "../lib/types";
 import { providerLabel } from "../lib/provider";
 import { timeAgo } from "../lib/time";
 import { cn } from "../lib/utils";
