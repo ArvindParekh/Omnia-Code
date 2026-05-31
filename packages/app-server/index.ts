@@ -57,5 +57,5 @@ router.use(async (envelope, next) => {
 
 export const appServer = {
   router,
-  eventStore: new EventStore(),
+  eventStore,
 };
