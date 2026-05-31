@@ -10,6 +10,9 @@
     "lint:fix": "biome check . --fix",
     "typecheck": "tsc --noEmit"
   },
+  "dependencies": {
+    "@omnia/contracts": "workspace:*"
+  },
   "devDependencies": {
     "@types/bun": "latest"
   },
