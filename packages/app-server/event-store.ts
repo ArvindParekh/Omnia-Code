@@ -4,6 +4,12 @@ import type { AllEvents, EventType, EventPayload, DomainEventFor } from "@omnia/
 export class EventStore {
   private events: AllEvents<EventType>[] = [];
   private listeners: ((event: AllEvents<EventType>) => void)[] = [];
+  private static instance: EventStore;
+
+  static getInstance(): EventStore {
+    if (!EventStore.instance) EventStore.instance = new EventStore();
+    return EventStore.instance;
+  }
 
   addEvent(event: AllEvents<EventType>): void {
     this.events.push(event);
