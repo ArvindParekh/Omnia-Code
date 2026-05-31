@@ -15,6 +15,7 @@ export type MockSession = {
 export type ChatMessage =
 	| { kind: "user"; id: string; text: string; timestamp: Date }
 	| { kind: "assistant"; id: string; text: string; streaming?: boolean; timestamp: Date }
+	| { kind: "reasoning"; id: string; text: string; timestamp: Date }
 	| {
 			kind: "tool";
 			id: string;

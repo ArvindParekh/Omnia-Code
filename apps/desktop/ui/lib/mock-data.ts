@@ -99,7 +99,7 @@ export const MESSAGES: Record<string, ChatMessage[]> = {
 		{
 			kind: "assistant",
 			id: "m8",
-			text: "Done. Key changes:\n\n- `verifyToken` is now async — update call sites that weren't already awaiting it\n- Removed `jsonwebtoken`, added `jose@4.15.4`\n- Token shape unchanged — existing tokens continue to work",
+			text: "Done. Key changes:\n\n- `verifyToken` is now async — update call sites that weren't already awaiting it\n- Removed `jsonwebtoken`, added `jose@4.15.4`\n- Token shape unchanged — existing tokens continue to work\n\nUpdated interface:\n\n```typescript\nimport { jwtVerify, SignJWT } from 'jose';\n\nconst SECRET = new TextEncoder().encode(process.env.JWT_SECRET);\n\nexport async function verifyToken(token: string) {\n  const { payload } = await jwtVerify(token, SECRET);\n  return payload as TokenPayload;\n}\n\nexport async function signToken(payload: TokenPayload): Promise<string> {\n  return new SignJWT({ ...payload })\n    .setProtectedHeader({ alg: 'HS256' })\n    .setExpirationTime('7d')\n    .sign(SECRET);\n}\n```",
 			timestamp: T(14),
 		},
 	],
@@ -138,9 +138,15 @@ export const MESSAGES: Record<string, ChatMessage[]> = {
 			timestamp: T(6),
 		},
 		{
+			kind: "reasoning",
+			id: "m4r",
+			text: "~50MB/hour growth is classic listener accumulation. Let me trace `processQueue` — it's called on a 30s interval via `setInterval`. The key question: is there a corresponding cleanup?\n\nLooking at background.ts line 89-97: `subscribe(onMessage)` is called with a fresh arrow function on every invocation. Arrow functions create new closures each time, so the event emitter accumulates one handler per tick, each holding queue state in closure. No `unsubscribe` anywhere.\n\n50MB / (2 handlers/min * 60 min) ≈ ~400KB per handler — plausible for a closure over the full request queue. This is the bug.",
+			timestamp: T(3),
+		},
+		{
 			kind: "assistant",
 			id: "m5",
-			text: "Found it. In `background.ts` line 94, the `onMessage` listener is added inside `processQueue`, which runs every 30 seconds. Each call adds a new listener without removing the previous one — classic unbounded accumulation.\n\nFixing it now...",
+			text: "Found it. In `background.ts` line 94, `onMessage` is re-subscribed inside `processQueue`, which runs every 30 seconds — no corresponding unsubscribe. Each invocation adds a new closure over the queue state, which accumulates unboundedly.\n\nThe fix:\n\n```typescript\n// Before (leaks)\nconst processQueue = () => {\n  queue.subscribe(onMessage); // new listener every 30s\n  // ...\n};\n\n// After (fixed)\nqueue.subscribe(onMessage); // subscribe once, outside the interval\nconst processQueue = () => {\n  // ...\n};\n```\n\nMoving `subscribe` outside the interval stops the accumulation. Process memory should stabilise within one GC cycle (~2 minutes).",
 			streaming: true,
 			timestamp: T(1),
 		},

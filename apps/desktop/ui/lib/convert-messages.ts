@@ -56,6 +56,9 @@ export function convertToThreadMessages(msgs: ChatMessage[]): ThreadMessageLike[
 				createdAt: msg.timestamp,
 				content: [{ type: "text", text: msg.text }],
 			});
+		} else if (msg.kind === "reasoning") {
+			ensureAssistant(`reasoning-${msg.id}`, msg.timestamp);
+			assemblingAssistant!.content.push({ type: "reasoning", text: msg.text });
 		} else if (msg.kind === "assistant") {
 			ensureAssistant(`asmsg-${msg.id}`, msg.timestamp);
 			assemblingAssistant!.content.push({ type: "text", text: msg.text });

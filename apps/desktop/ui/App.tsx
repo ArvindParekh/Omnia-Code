@@ -1,5 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
-import { AssistantRuntimeProvider, useExternalStoreRuntime } from "@assistant-ui/react";
+import {
+	AssistantRuntimeProvider,
+	useExternalStoreRuntime,
+	SimpleTextAttachmentAdapter,
+} from "@assistant-ui/react";
 import type { AppendMessage, ThreadMessageLike } from "@assistant-ui/react";
 import type { ChatMessage, MockSession, Provider, TurnGroup } from "./lib/types";
 import { MESSAGES, SESSIONS, TURNS } from "./lib/mock-data";
@@ -42,6 +46,9 @@ function SessionChat({
 		onNew: async (msg: AppendMessage) => {
 			const first = msg.content[0];
 			if (first && first.type === "text") onSend(first.text);
+		},
+		adapters: {
+			attachments: new SimpleTextAttachmentAdapter(),
 		},
 	});
 

@@ -1,16 +1,33 @@
 import {
+	ActionBarPrimitive,
+	BranchPickerPrimitive,
 	ComposerPrimitive,
 	MessagePrimitive,
+	SelectionToolbarPrimitive,
 	ThreadPrimitive,
 	useMessage,
 	useThreadRuntime,
 } from "@assistant-ui/react";
-import type { TextMessagePartProps } from "@assistant-ui/react";
-import { ArrowUp, X, FolderSimple, SpinnerGap, ArrowDown } from "@phosphor-icons/react";
-import type { MockSession } from "../lib/types";
+import type { ReasoningMessagePartProps, TextMessagePartProps } from "@assistant-ui/react";
+import {
+	ArrowUp,
+	X,
+	FolderSimple,
+	SpinnerGap,
+	ArrowDown,
+	Copy,
+	ArrowClockwise,
+	Paperclip,
+	Quotes,
+	CaretLeft,
+	CaretRight,
+} from "@phosphor-icons/react";
+import type { MockSession, Provider } from "../lib/types";
 import { providerLabel } from "../lib/provider";
 import { cn } from "../lib/utils";
 import { ToolCallBlock } from "./tool-call-block";
+import { MarkdownText } from "./assistant-ui/markdown-text";
+import { Reasoning, ReasoningTrigger, ReasoningContent } from "./prompt-kit/reasoning";
 
 // ─── Thread shell ─────────────────────────────────────────────────────────────
 
@@ -38,7 +55,7 @@ export function ChatThread({ session }: { session: MockSession }) {
 				)}
 			</div>
 
-			{/* Viewport — contains messages + sticky composer */}
+			{/* Viewport — messages + sticky composer */}
 			<ThreadPrimitive.Viewport className="flex-1 overflow-y-auto">
 				<div className="flex flex-col min-h-full">
 					<ThreadPrimitive.Empty>
@@ -47,7 +64,7 @@ export function ChatThread({ session }: { session: MockSession }) {
 						</div>
 					</ThreadPrimitive.Empty>
 
-					<div className="flex flex-col px-5 py-6 gap-6 max-w-[700px] mx-auto w-full">
+					<div className="flex flex-col px-5 py-6 gap-7 max-w-[700px] mx-auto w-full">
 						<ThreadPrimitive.Messages components={{ UserMessage, AssistantMessage }} />
 					</div>
 
@@ -67,18 +84,40 @@ export function ChatThread({ session }: { session: MockSession }) {
 								</button>
 							</ThreadPrimitive.ScrollToBottom>
 
-							<Composer label={label} workspacePath={session.workspacePath} />
+							<Composer
+								label={label}
+								workspacePath={session.workspacePath}
+								provider={session.provider}
+							/>
 						</div>
 					</ThreadPrimitive.ViewportFooter>
 				</div>
 			</ThreadPrimitive.Viewport>
+
+			{/* Selection toolbar — must be inside Root but outside Viewport */}
+			<SelectionToolbarPrimitive.Root className="z-50 flex items-center gap-1 rounded-lg border border-white/[10%] bg-[var(--surface-raised)] px-2 py-1.5 shadow-xl">
+				<SelectionToolbarPrimitive.Quote asChild>
+					<button className="flex items-center gap-1.5 px-2 py-1 rounded-md text-[11px] text-white/50 hover:text-white/75 hover:bg-white/[5%] transition-colors">
+						<Quotes size={12} weight="light" />
+						Quote
+					</button>
+				</SelectionToolbarPrimitive.Quote>
+			</SelectionToolbarPrimitive.Root>
 		</ThreadPrimitive.Root>
 	);
 }
 
 // ─── Composer ─────────────────────────────────────────────────────────────────
 
-function Composer({ label, workspacePath }: { label: string; workspacePath: string }) {
+function Composer({
+	label,
+	workspacePath,
+	provider,
+}: {
+	label: string;
+	workspacePath: string;
+	provider: Provider;
+}) {
 	const threadRuntime = useThreadRuntime();
 	const isRunning = threadRuntime.getState().isRunning;
 	const workspaceBase = workspacePath.replace(/^.*\//, "");
@@ -88,6 +127,32 @@ function Composer({ label, workspacePath }: { label: string; workspacePath: stri
 			className="rounded-2xl border border-white/[9%] bg-white/[3%] overflow-hidden
 				focus-within:border-white/[16%] focus-within:bg-white/[4%] transition-all"
 		>
+			{/* Quote preview — only renders when a quote is set */}
+			<ComposerPrimitive.Quote className="flex items-start gap-2 px-4 pt-3 pb-0">
+				<div className="flex-1 flex items-start gap-2 rounded-lg border border-white/[8%] bg-white/[3%] px-3 py-2">
+					<Quotes size={11} weight="fill" className="text-white/30 shrink-0 mt-0.5" />
+					<ComposerPrimitive.QuoteText className="flex-1 text-[12px] text-white/45 font-mono leading-relaxed line-clamp-2" />
+				</div>
+				<ComposerPrimitive.QuoteDismiss asChild>
+					<button className="mt-2 p-0.5 text-white/30 hover:text-white/55 transition-colors shrink-0">
+						<X size={11} weight="bold" />
+					</button>
+				</ComposerPrimitive.QuoteDismiss>
+			</ComposerPrimitive.Quote>
+
+			{/* Attachment previews */}
+			<ComposerPrimitive.Attachments>
+				{({ attachment }) => (
+					<div className="flex items-center gap-2 px-4 pt-2">
+						<div className="flex items-center gap-1.5 px-2 py-1 rounded-md border border-white/[8%] bg-white/[3%] text-[11px] text-white/45">
+							<Paperclip size={10} weight="light" />
+							<span className="max-w-[120px] truncate">{attachment.name}</span>
+						</div>
+					</div>
+				)}
+			</ComposerPrimitive.Attachments>
+
+			{/* Textarea */}
 			<div className="px-4 pt-3.5 pb-2">
 				<ComposerPrimitive.Input
 					placeholder={`Ask ${label}...`}
@@ -97,30 +162,37 @@ function Composer({ label, workspacePath }: { label: string; workspacePath: stri
 				/>
 			</div>
 
-			<div className="flex items-center gap-2 px-3.5 pb-3 pt-1 border-t border-white/[5%]">
+			{/* Action bar */}
+			<div className="flex items-center gap-2 px-3 pb-3 pt-1 border-t border-white/[5%]">
+				{/* Attachment button */}
+				<ComposerPrimitive.AddAttachment asChild>
+					<button className="p-1.5 rounded-lg text-white/28 hover:text-white/55 hover:bg-white/[5%] transition-colors">
+						<Paperclip size={13} weight="light" />
+					</button>
+				</ComposerPrimitive.AddAttachment>
+
+				{/* Provider badge */}
 				<span className="text-[11px] px-2 py-0.5 rounded-md bg-white/[6%] text-white/40 font-mono">
-					{label}
+					{providerLabel(provider)}
 				</span>
-				<div className="flex items-center gap-1 text-white/25">
+
+				{/* Workspace */}
+				<div className="flex items-center gap-1 text-white/22">
 					<FolderSimple size={12} weight="light" />
 					<span className="text-[11px] font-mono">{workspaceBase}</span>
 				</div>
+
+				{/* Send / Cancel */}
 				<div className="ml-auto">
 					{isRunning ? (
 						<ComposerPrimitive.Cancel asChild>
-							<button
-								className="w-8 h-8 rounded-full bg-white/[8%] border border-white/[12%]
-									flex items-center justify-center hover:bg-white/[14%] transition-colors"
-							>
+							<button className="w-8 h-8 rounded-full bg-white/[8%] border border-white/[12%] flex items-center justify-center hover:bg-white/[14%] transition-colors">
 								<X size={13} weight="bold" className="text-white/60" />
 							</button>
 						</ComposerPrimitive.Cancel>
 					) : (
 						<ComposerPrimitive.Send asChild>
-							<button
-								className="w-8 h-8 rounded-full bg-white/88 flex items-center justify-center
-									disabled:opacity-20 disabled:cursor-not-allowed hover:bg-white transition-colors"
-							>
+							<button className="w-8 h-8 rounded-full bg-white/88 flex items-center justify-center disabled:opacity-20 disabled:cursor-not-allowed hover:bg-white transition-colors">
 								<ArrowUp size={14} weight="bold" className="text-[#171717]" />
 							</button>
 						</ComposerPrimitive.Send>
@@ -135,11 +207,22 @@ function Composer({ label, workspacePath }: { label: string; workspacePath: stri
 
 function UserMessage() {
 	return (
-		<MessagePrimitive.Root className="flex flex-col items-end gap-1.5">
+		<MessagePrimitive.Root className="group flex flex-col items-end gap-1.5">
 			<span className="text-[11px] font-medium text-white/30 px-1">You</span>
 			<div className="max-w-[85%] rounded-2xl bg-white/[5%] border border-white/[9%] px-4 py-2.5">
 				<MessagePrimitive.Parts components={{ Text: UserTextPart }} />
 			</div>
+			<ActionBarPrimitive.Root
+				hideWhenRunning
+				autohide="always"
+				className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity"
+			>
+				<ActionBarPrimitive.Copy asChild>
+					<ActionButton tooltip="Copy">
+						<Copy size={11} weight="regular" />
+					</ActionButton>
+				</ActionBarPrimitive.Copy>
+			</ActionBarPrimitive.Root>
 		</MessagePrimitive.Root>
 	);
 }
@@ -162,33 +245,93 @@ function AssistantMessage() {
 		(message.status as { reason: string }).reason === "error";
 
 	return (
-		<MessagePrimitive.Root className={cn("flex flex-col gap-2", isError && "opacity-70")}>
+		<MessagePrimitive.Root className={cn("group flex flex-col gap-2", isError && "opacity-70")}>
 			<div className="flex items-center gap-2">
 				<span className="text-[11px] font-medium text-white/30">assistant</span>
 				{isRunning && <SpinnerGap size={11} weight="bold" className="text-white/25 animate-spin" />}
 			</div>
+
 			<div className="flex flex-col gap-2.5">
 				<MessagePrimitive.Parts
 					components={{
-						Text: AssistantTextPart,
+						Text: MarkdownText,
+						Reasoning: ReasoningPart,
 						tools: { Override: ToolCallBlock },
 					}}
 				/>
 			</div>
+
+			{/* Branch picker — hidden when only one branch */}
+			<BranchPickerPrimitive.Root
+				hideWhenSingleBranch
+				className="flex items-center gap-1 text-[11px] text-white/28"
+			>
+				<BranchPickerPrimitive.Previous asChild>
+					<button className="p-0.5 hover:text-white/55 transition-colors disabled:opacity-25">
+						<CaretLeft size={11} weight="bold" />
+					</button>
+				</BranchPickerPrimitive.Previous>
+				<span className="tabular-nums">
+					<BranchPickerPrimitive.Number /> / <BranchPickerPrimitive.Count />
+				</span>
+				<BranchPickerPrimitive.Next asChild>
+					<button className="p-0.5 hover:text-white/55 transition-colors disabled:opacity-25">
+						<CaretRight size={11} weight="bold" />
+					</button>
+				</BranchPickerPrimitive.Next>
+			</BranchPickerPrimitive.Root>
+
+			{/* Action bar */}
+			<ActionBarPrimitive.Root
+				hideWhenRunning
+				autohide="not-last"
+				className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity data-[state=visible]:opacity-100"
+			>
+				<ActionBarPrimitive.Copy asChild>
+					<ActionButton tooltip="Copy">
+						<Copy size={11} weight="regular" />
+					</ActionButton>
+				</ActionBarPrimitive.Copy>
+				<ActionBarPrimitive.Reload asChild>
+					<ActionButton tooltip="Regenerate">
+						<ArrowClockwise size={11} weight="regular" />
+					</ActionButton>
+				</ActionBarPrimitive.Reload>
+			</ActionBarPrimitive.Root>
 		</MessagePrimitive.Root>
 	);
 }
 
-function AssistantTextPart({ text, status }: TextMessagePartProps) {
-	const isRunning = status?.type === "running";
+// ─── Reasoning part ───────────────────────────────────────────────────────────
+
+function ReasoningPart({ text, status }: ReasoningMessagePartProps) {
+	const isStreaming = status?.type === "running";
+
 	return (
-		<p
+		<Reasoning isStreaming={isStreaming} defaultOpen={false}>
+			<ReasoningTrigger isStreaming={isStreaming} />
+			<ReasoningContent>{text}</ReasoningContent>
+		</Reasoning>
+	);
+}
+
+// ─── Shared action button ─────────────────────────────────────────────────────
+
+function ActionButton({
+	children,
+	tooltip: _tooltip,
+	className,
+	...props
+}: React.ButtonHTMLAttributes<HTMLButtonElement> & { tooltip?: string }) {
+	return (
+		<button
 			className={cn(
-				"text-[13px] leading-[1.65] text-white/72 select-text whitespace-pre-wrap",
-				isRunning && "streaming-cursor",
+				"p-1.5 rounded-lg text-white/28 hover:text-white/55 hover:bg-white/[5%] transition-colors",
+				className,
 			)}
+			{...props}
 		>
-			{text}
-		</p>
+			{children}
+		</button>
 	);
 }

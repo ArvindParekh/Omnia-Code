@@ -177,3 +177,36 @@
 .status-running {
 	animation: fade-pulse 2.5s ease-in-out infinite;
 }
+
+/* Radix collapsible slide animations */
+@keyframes collapsible-down {
+	from {
+		height: 0;
+	}
+	to {
+		height: var(--radix-collapsible-content-height);
+	}
+}
+
+@keyframes collapsible-up {
+	from {
+		height: var(--radix-collapsible-content-height);
+	}
+	to {
+		height: 0;
+	}
+}
+
+[data-state="open"] > .collapsible-animate {
+	animation: collapsible-down 200ms ease-out;
+}
+
+[data-state="closed"] > .collapsible-animate {
+	animation: collapsible-up 200ms ease-out;
+}
+
+/* Override dot.css colour for our dark background */
+.aui-md-dot,
+.aui-md > p:last-of-type::after {
+	color: rgba(255, 255, 255, 0.3);
+}
