@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useAutoAnimate } from "@formkit/auto-animate/react";
 import {
 	MagnifyingGlass,
 	PlusCircle,
@@ -26,6 +27,7 @@ export function SessionSidebar({
 	onSelectSession,
 }: SessionSidebarProps) {
 	const [query, setQuery] = useState("");
+	const [listRef] = useAutoAnimate<HTMLDivElement>();
 
 	const filtered = query
 		? sessions.filter((s) => s.title.toLowerCase().includes(query.toLowerCase()))
@@ -82,7 +84,7 @@ export function SessionSidebar({
 			{/* Session list */}
 			<div className="flex-1 overflow-y-auto px-2 pb-2">
 				{query ? (
-					<div className="flex flex-col gap-px">
+					<div ref={listRef} className="flex flex-col gap-px">
 						{filtered.length === 0 ? (
 							<p className="text-[12px] text-white/25 px-2 py-3 text-center">No results</p>
 						) : (
@@ -98,7 +100,7 @@ export function SessionSidebar({
 						)}
 					</div>
 				) : (
-					<div className="flex flex-col gap-1 pt-1">
+					<div ref={listRef} className="flex flex-col gap-1 pt-1">
 						{/* Projects section header */}
 						<div className="flex items-center justify-between px-2 pb-1">
 							<span className="text-[10px] font-semibold uppercase tracking-[0.1em] text-white/22">
@@ -150,6 +152,7 @@ function WorkspaceGroup({
 	defaultOpen?: boolean;
 }) {
 	const [open, setOpen] = useState(defaultOpen ?? false);
+	const [sessionListRef] = useAutoAnimate<HTMLDivElement>();
 	const hasActive = sessions.some((s) => s.id === activeSessionId);
 
 	return (
@@ -175,7 +178,10 @@ function WorkspaceGroup({
 				</button>
 			</CollapsibleTrigger>
 			<CollapsibleContent>
-				<div className="flex flex-col gap-px ml-3 pl-3 border-l border-white/[6%] mb-1">
+				<div
+					ref={sessionListRef}
+					className="flex flex-col gap-px ml-3 pl-3 border-l border-white/[6%] mb-1"
+				>
 					{sessions.map((s) => (
 						<SessionItem
 							key={s.id}

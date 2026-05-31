@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { AssistantRuntimeProvider, useExternalStoreRuntime } from "@assistant-ui/react";
 import type { AppendMessage, ThreadMessageLike } from "@assistant-ui/react";
 import type { ChatMessage, MockSession, Provider, QuoteRef, TurnGroup } from "./lib/types";
@@ -82,6 +83,14 @@ export default function App() {
 	const [showInspector, setShowInspector] = useState(true);
 
 	const [isDark, setIsDark] = useState(true);
+	const [contentRef] = useAutoAnimate<HTMLDivElement>((el, action) => {
+		if (action === "remain") return new KeyframeEffect(el, [], { duration: 0 });
+		return new KeyframeEffect(
+			el,
+			action === "add" ? [{ opacity: 0 }, { opacity: 1 }] : [{ opacity: 1 }, { opacity: 0 }],
+			{ duration: 120, easing: "ease-in-out" },
+		);
+	});
 
 	useEffect(() => {
 		const root = document.documentElement;
@@ -150,19 +159,21 @@ export default function App() {
 				<div className="shrink-0 self-stretch py-3 flex">
 					<div className="w-px bg-white/[7%] rounded-full" />
 				</div>
-				{activeSession ? (
-					<SessionChat
-						key={activeId}
-						session={activeSession}
-						messages={activeMessages}
-						turns={activeTurns}
-						showInspector={showInspector}
-						onApprove={handleApprove}
-						onSend={handleSend}
-					/>
-				) : (
-					<NewChat onStart={handleNewSession} recentSessions={sessions} />
-				)}
+				<div ref={contentRef} className="flex flex-1 overflow-hidden">
+					{activeSession ? (
+						<SessionChat
+							key={activeId}
+							session={activeSession}
+							messages={activeMessages}
+							turns={activeTurns}
+							showInspector={showInspector}
+							onApprove={handleApprove}
+							onSend={handleSend}
+						/>
+					) : (
+						<NewChat onStart={handleNewSession} recentSessions={sessions} />
+					)}
+				</div>
 			</div>
 		</div>
 	);

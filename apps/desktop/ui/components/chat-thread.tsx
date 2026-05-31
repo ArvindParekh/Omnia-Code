@@ -10,6 +10,7 @@ import {
 } from "@assistant-ui/react";
 import type { ReasoningMessagePartProps, TextMessagePartProps } from "@assistant-ui/react";
 import { useState } from "react";
+import { useAutoAnimate } from "@formkit/auto-animate/react";
 import {
 	ArrowUp,
 	X,
@@ -37,6 +38,7 @@ import { copyText } from "../lib/clipboard";
 export function ChatThread({ session }: { session: MockSession }) {
 	const label = providerLabel(session.provider);
 	const workspaceBase = session.workspacePath.replace(/^.*\//, "");
+	const [messagesRef] = useAutoAnimate<HTMLDivElement>();
 
 	return (
 		<ThreadPrimitive.Root className="flex flex-col flex-1 overflow-hidden">
@@ -67,7 +69,10 @@ export function ChatThread({ session }: { session: MockSession }) {
 						</div>
 					</ThreadPrimitive.Empty>
 
-					<div className="flex flex-col px-5 py-6 gap-7 max-w-[700px] mx-auto w-full">
+					<div
+						ref={messagesRef}
+						className="flex flex-col px-5 py-6 gap-7 max-w-[700px] mx-auto w-full"
+					>
 						<ThreadPrimitive.Messages components={{ UserMessage, AssistantMessage }} />
 					</div>
 
