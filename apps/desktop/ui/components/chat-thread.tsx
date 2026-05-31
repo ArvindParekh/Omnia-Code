@@ -135,16 +135,18 @@ function Composer({ label, workspacePath }: { label: string; workspacePath: stri
 
 function UserMessage() {
 	return (
-		<MessagePrimitive.Root className="flex flex-col gap-1.5">
-			<span className="text-[11px] font-medium text-white/30">You</span>
-			<MessagePrimitive.Parts components={{ Text: UserTextPart }} />
+		<MessagePrimitive.Root className="flex flex-col items-end gap-1.5">
+			<span className="text-[11px] font-medium text-white/30 px-1">You</span>
+			<div className="max-w-[85%] rounded-2xl bg-white/[5%] border border-white/[9%] px-4 py-2.5">
+				<MessagePrimitive.Parts components={{ Text: UserTextPart }} />
+			</div>
 		</MessagePrimitive.Root>
 	);
 }
 
 function UserTextPart({ text }: TextMessagePartProps) {
 	return (
-		<p className="text-[13px] leading-[1.65] text-white/75 select-text whitespace-pre-wrap">
+		<p className="text-[13px] leading-[1.65] text-white/80 select-text whitespace-pre-wrap">
 			{text}
 		</p>
 	);
