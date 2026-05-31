@@ -9,6 +9,7 @@ import {
 	useThreadRuntime,
 } from "@assistant-ui/react";
 import type { ReasoningMessagePartProps, TextMessagePartProps } from "@assistant-ui/react";
+import { useState } from "react";
 import {
 	ArrowUp,
 	X,
@@ -16,6 +17,7 @@ import {
 	SpinnerGap,
 	ArrowDown,
 	Copy,
+	Check,
 	ArrowClockwise,
 	Paperclip,
 	Quotes,
@@ -36,7 +38,7 @@ export function ChatThread({ session }: { session: MockSession }) {
 	const workspaceBase = session.workspacePath.replace(/^.*\//, "");
 
 	return (
-		<ThreadPrimitive.Root className="flex flex-col flex-1 overflow-hidden border-r border-white/[7%]">
+		<ThreadPrimitive.Root className="flex flex-col flex-1 overflow-hidden">
 			{/* Session header */}
 			<div className="flex items-center gap-3 px-5 py-3 border-b border-white/[6%] shrink-0">
 				<span className="text-[13px] font-medium text-white/80 truncate">{session.title}</span>
@@ -140,17 +142,17 @@ function Composer({
 				</ComposerPrimitive.QuoteDismiss>
 			</ComposerPrimitive.Quote>
 
-			{/* Attachment previews */}
-			<ComposerPrimitive.Attachments>
-				{({ attachment }) => (
-					<div className="flex items-center gap-2 px-4 pt-2">
-						<div className="flex items-center gap-1.5 px-2 py-1 rounded-md border border-white/[8%] bg-white/[3%] text-[11px] text-white/45">
+			{/* Attachment chips — rendered in a flex-wrap row, hidden when empty */}
+			<div className="flex flex-wrap gap-1.5 px-4 pt-2 empty:hidden">
+				<ComposerPrimitive.Attachments>
+					{({ attachment }) => (
+						<div className="flex items-center gap-1.5 px-2 py-1 rounded-full border border-white/[8%] bg-white/[3%] text-[11px] text-white/45">
 							<Paperclip size={10} weight="light" />
 							<span className="max-w-[120px] truncate">{attachment.name}</span>
 						</div>
-					</div>
-				)}
-			</ComposerPrimitive.Attachments>
+					)}
+				</ComposerPrimitive.Attachments>
+			</div>
 
 			{/* Textarea */}
 			<div className="px-4 pt-3.5 pb-2">
@@ -192,8 +194,8 @@ function Composer({
 						</ComposerPrimitive.Cancel>
 					) : (
 						<ComposerPrimitive.Send asChild>
-							<button className="w-8 h-8 rounded-full bg-white/88 flex items-center justify-center disabled:opacity-20 disabled:cursor-not-allowed hover:bg-white transition-colors">
-								<ArrowUp size={14} weight="bold" className="text-[#171717]" />
+							<button className="w-8 h-8 rounded-full bg-primary flex items-center justify-center disabled:opacity-20 disabled:cursor-not-allowed hover:opacity-85 transition-all">
+								<ArrowUp size={14} weight="bold" className="text-primary-foreground" />
 							</button>
 						</ComposerPrimitive.Send>
 					)}
@@ -217,11 +219,7 @@ function UserMessage() {
 				autohide="always"
 				className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity"
 			>
-				<ActionBarPrimitive.Copy asChild>
-					<ActionButton tooltip="Copy">
-						<Copy size={11} weight="regular" />
-					</ActionButton>
-				</ActionBarPrimitive.Copy>
+				<CopyMessageButton />
 			</ActionBarPrimitive.Root>
 		</MessagePrimitive.Root>
 	);
@@ -287,11 +285,7 @@ function AssistantMessage() {
 				autohide="not-last"
 				className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity data-[state=visible]:opacity-100"
 			>
-				<ActionBarPrimitive.Copy asChild>
-					<ActionButton tooltip="Copy">
-						<Copy size={11} weight="regular" />
-					</ActionButton>
-				</ActionBarPrimitive.Copy>
+				<CopyMessageButton />
 				<ActionBarPrimitive.Reload asChild>
 					<ActionButton tooltip="Regenerate">
 						<ArrowClockwise size={11} weight="regular" />
@@ -333,5 +327,55 @@ function ActionButton({
 		>
 			{children}
 		</button>
+	);
+}
+
+// ─── Copy button with feedback + Electron-safe fallback ───────────────────────
+
+function CopyMessageButton() {
+	const [copied, setCopied] = useState(false);
+	const message = useMessage();
+
+	const handleCopy = () => {
+		const text = message.content
+			.filter((p) => p.type === "text")
+			.map((p) => (p as { type: "text"; text: string }).text)
+			.join("\n\n");
+		if (!text) return;
+
+		const finish = () => {
+			setCopied(true);
+			setTimeout(() => setCopied(false), 2000);
+		};
+
+		navigator.clipboard
+			.writeText(text)
+			.then(finish)
+			.catch(() => {
+				// Fallback for Electron renderer context
+				const el = document.createElement("textarea");
+				el.value = text;
+				el.style.cssText = "position:fixed;opacity:0;pointer-events:none";
+				document.body.appendChild(el);
+				el.focus();
+				el.select();
+				try {
+					document.execCommand("copy");
+				} catch {
+					/* ignore */
+				}
+				document.body.removeChild(el);
+				finish();
+			});
+	};
+
+	return (
+		<ActionButton onClick={handleCopy} tooltip="Copy">
+			{copied ? (
+				<Check size={11} weight="bold" className="text-white/55" />
+			) : (
+				<Copy size={11} weight="regular" />
+			)}
+		</ActionButton>
 	);
 }

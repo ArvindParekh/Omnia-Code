@@ -1,12 +1,19 @@
-import { SidebarSimple } from "@phosphor-icons/react";
+import { SidebarSimple, Sun, Moon } from "@phosphor-icons/react";
 import { cn } from "../lib/utils";
 
 type TitlebarProps = {
 	showInspector: boolean;
 	onToggleInspector: () => void;
+	isDark: boolean;
+	onToggleTheme: () => void;
 };
 
-export function Titlebar({ showInspector, onToggleInspector }: TitlebarProps) {
+export function Titlebar({
+	showInspector,
+	onToggleInspector,
+	isDark,
+	onToggleTheme,
+}: TitlebarProps) {
 	return (
 		<div
 			className="flex items-center h-[38px] px-4 shrink-0 border-b border-white/[6%]"
@@ -29,6 +36,13 @@ export function Titlebar({ showInspector, onToggleInspector }: TitlebarProps) {
 				className="flex items-center gap-1"
 				style={{ WebkitAppRegion: "no-drag" } as React.CSSProperties}
 			>
+				<button
+					onClick={onToggleTheme}
+					className="p-1.5 rounded-md text-white/25 hover:text-white/45 hover:bg-white/[4%] transition-colors"
+					title={isDark ? "Switch to light mode" : "Switch to dark mode"}
+				>
+					{isDark ? <Sun size={14} weight="light" /> : <Moon size={14} weight="light" />}
+				</button>
 				<button
 					onClick={onToggleInspector}
 					className={cn(

@@ -116,8 +116,8 @@ function EventRow({ event, isLast }: { event: InspectorEvent; isLast: boolean })
 				</span>
 
 				<span
-					className="text-[11px] font-mono truncate flex-1 min-w-0"
-					style={{ color: `rgba(255,255,255,${opacity})` }}
+					className="text-[11px] font-mono truncate flex-1 min-w-0 text-foreground"
+					style={{ opacity }}
 				>
 					{event.summary}
 				</span>

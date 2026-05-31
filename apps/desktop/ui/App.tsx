@@ -57,7 +57,15 @@ function SessionChat({
 			<AssistantRuntimeProvider runtime={runtime}>
 				<div className="flex flex-1 overflow-hidden">
 					<ChatThread session={session} />
-					{showInspector && <EventInspector session={session} turns={turns} />}
+					{showInspector && (
+						<>
+							{/* Rounded pill separator between chat and inspector */}
+							<div className="shrink-0 self-stretch py-3 flex">
+								<div className="w-px bg-white/[7%] rounded-full" />
+							</div>
+							<EventInspector session={session} turns={turns} />
+						</>
+					)}
 				</div>
 			</AssistantRuntimeProvider>
 		</ApprovalContext.Provider>
@@ -72,9 +80,13 @@ export default function App() {
 	const [messages, setMessages] = useState<Record<string, ChatMessage[]>>(MESSAGES);
 	const [showInspector, setShowInspector] = useState(true);
 
+	const [isDark, setIsDark] = useState(true);
+
 	useEffect(() => {
-		document.documentElement.classList.add("dark");
-	}, []);
+		const root = document.documentElement;
+		root.classList.toggle("dark", isDark);
+		root.classList.toggle("light", !isDark);
+	}, [isDark]);
 
 	const activeSession = sessions.find((s) => s.id === activeId) ?? null;
 	const activeMessages = activeId ? (messages[activeId] ?? []) : [];
@@ -120,10 +132,12 @@ export default function App() {
 	};
 
 	return (
-		<div className="flex flex-col h-full bg-background text-foreground overflow-hidden dark">
+		<div className="flex flex-col h-full bg-background text-foreground overflow-hidden">
 			<Titlebar
 				showInspector={showInspector}
 				onToggleInspector={() => setShowInspector((v) => !v)}
+				isDark={isDark}
+				onToggleTheme={() => setIsDark((v) => !v)}
 			/>
 			<div className="flex flex-1 overflow-hidden">
 				<SessionSidebar
@@ -131,6 +145,10 @@ export default function App() {
 					activeSessionId={activeId}
 					onSelectSession={setActiveId}
 				/>
+				{/* Rounded pill separator between sidebar and main content */}
+				<div className="shrink-0 self-stretch py-3 flex">
+					<div className="w-px bg-white/[7%] rounded-full" />
+				</div>
 				{activeSession ? (
 					<SessionChat
 						key={activeId}

@@ -34,7 +34,7 @@ export function SessionSidebar({
 	const workspaces = Array.from(new Set(sessions.map((s) => s.workspacePath)));
 
 	return (
-		<div className="flex flex-col w-[240px] shrink-0 border-r border-white/[7%] overflow-hidden">
+		<div className="flex flex-col w-[240px] shrink-0 overflow-hidden">
 			{/* Top actions */}
 			<div className="px-3 pt-3 pb-2 flex flex-col gap-0.5">
 				<button

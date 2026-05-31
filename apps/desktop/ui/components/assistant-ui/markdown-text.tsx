@@ -6,6 +6,8 @@ import {
 } from "@assistant-ui/react-markdown";
 import remarkGfm from "remark-gfm";
 import { memo, useState } from "react";
+import React from "react";
+import ShikiHighlighter from "react-shiki";
 import { Copy, Check } from "@phosphor-icons/react";
 import { cn } from "../../lib/utils";
 
@@ -32,6 +34,38 @@ function CodeHeader({ language, code }: CodeHeaderProps) {
 				{copied ? <Check size={11} weight="bold" /> : <Copy size={11} weight="regular" />}
 				{copied ? "Copied" : "Copy"}
 			</button>
+		</div>
+	);
+}
+
+// ─── Syntax-highlighted code block ────────────────────────────────────────────
+
+function SyntaxCodeBlock({ children }: { children: React.ReactNode }) {
+	let language = "text";
+	let code = "";
+
+	React.Children.forEach(children, (child) => {
+		if (!React.isValidElement(child)) return;
+		const el = child as React.ReactElement<{ className?: string; children?: unknown }>;
+		if (el.type !== "code") return;
+		const cls = el.props.className ?? "";
+		language = cls.replace(/^language-/, "") || "text";
+		const c = el.props.children;
+		code = typeof c === "string" ? c : "";
+	});
+
+	return (
+		<div className="mb-3 last:mb-0 overflow-hidden">
+			<ShikiHighlighter
+				language={language}
+				theme={{ light: "github-light", dark: "github-dark-dimmed" }}
+				showLanguage={false}
+				addDefaultStyles={false}
+				style={{ background: "transparent", margin: 0 }}
+				className="overflow-x-auto rounded-b-lg border border-t-0 border-white/[8%] p-4 text-[12px] font-mono leading-relaxed"
+			>
+				{code.trimEnd() || " "}
+			</ShikiHighlighter>
 		</div>
 	);
 }
@@ -119,15 +153,7 @@ const components = memoizeMarkdownComponents({
 			{...p}
 		/>
 	),
-	pre: ({ className, ...p }) => (
-		<pre
-			className={cn(
-				"mb-3 overflow-x-auto rounded-b-lg border border-white/[8%] bg-white/[2%] p-4 font-mono text-[12px] last:mb-0",
-				className,
-			)}
-			{...p}
-		/>
-	),
+	pre: SyntaxCodeBlock,
 	table: ({ className, ...p }) => (
 		<div className="mb-3 overflow-x-auto last:mb-0">
 			<table className={cn("w-full text-[13px] border-collapse", className)} {...p} />
@@ -155,7 +181,11 @@ const components = memoizeMarkdownComponents({
 // ─── Export ───────────────────────────────────────────────────────────────────
 
 const MarkdownTextImpl = () => (
-	<MarkdownTextPrimitive remarkPlugins={[remarkGfm]} className="aui-md" components={components} />
+	<MarkdownTextPrimitive
+		remarkPlugins={[remarkGfm]}
+		className="aui-md select-text cursor-text"
+		components={components}
+	/>
 );
 
 export const MarkdownText = memo(MarkdownTextImpl);
