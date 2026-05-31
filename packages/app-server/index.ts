@@ -1,8 +1,12 @@
 import { CommandRouter } from "./command-router";
 import { createEvent, EventStore } from "./event-store";
+import { ProjectionPipeline } from "./projection-pipeline";
+import { SessionProjector } from "./projectors/session-projector";
 
 const router = new CommandRouter();
 const eventStore = new EventStore();
+const projectionPipeline = new ProjectionPipeline(eventStore);
+export const sessions = projectionPipeline.register(new SessionProjector());
 
 router.use(async (envelope, next) => {
   console.log(`[${envelope.requestedAt}] dispatching ${envelope.type} (id=${envelope.id})`);
