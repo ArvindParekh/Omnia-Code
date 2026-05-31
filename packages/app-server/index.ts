@@ -12,7 +12,7 @@ router.use(async (envelope, next) => {
   if (envelope.requestedBy === "user") {
         // auth check, rate limiting, etc.
       }
-      await next();
+  await next();
 }).on("session.createRequested", async (envelope) => {
   const ev = createEvent("session.created", {
     sessionId: envelope.id,

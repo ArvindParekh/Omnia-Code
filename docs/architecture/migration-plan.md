@@ -209,4 +209,3 @@ Pause and simplify if:
 - app-server imports Electron
 - persistence schema is designed before event contracts
 - packages exist with no external consumer
-

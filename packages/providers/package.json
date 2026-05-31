@@ -1,5 +1,5 @@
 {
-  "name": "providers",
+  "name": "@omnia/providers",
   "module": "index.ts",
   "type": "module",
   "private": true,
