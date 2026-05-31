@@ -1,23 +1,23 @@
 {
-  "name": "@omnia/app-server",
-  "type":"module",
-  "exports": {
-    ".": "./index.ts"
-  },
-  "scripts": {
-    "build": "tsc",
-    "lint": "biome check .",
-    "lint:fix": "biome check . --fix",
-    "typecheck": "tsc --noEmit"
-  },
-  "dependencies": {
-    "@omnia/contracts": "workspace:*",
-    "@omnia/providers": "workspace:*"
-  },
-  "devDependencies": {
-    "@types/bun": "latest"
-  },
-  "peerDependencies": {
-    "typescript": "^5"
-  }
+	"name": "@omnia/app-server",
+	"type": "module",
+	"exports": {
+		".": "./index.ts"
+	},
+	"scripts": {
+		"build": "tsc",
+		"lint": "biome check .",
+		"lint:fix": "biome check . --fix",
+		"typecheck": "tsc --noEmit"
+	},
+	"dependencies": {
+		"@omnia/contracts": "workspace:*",
+		"@omnia/providers": "workspace:*"
+	},
+	"devDependencies": {
+		"@types/bun": "latest"
+	},
+	"peerDependencies": {
+		"typescript": "^5"
+	}
 }

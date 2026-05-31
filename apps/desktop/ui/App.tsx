@@ -1,11 +1,14 @@
-import { useState, useEffect } from "react";
+import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { AssistantRuntimeProvider, useExternalStoreRuntime } from "@assistant-ui/react";
+import type { AppendMessage, ThreadMessageLike } from "@assistant-ui/react";
 import { Titlebar } from "./components/titlebar";
 import { SessionSidebar } from "./components/session-sidebar";
-import { ChatView } from "./components/chat-view";
+import { ChatThread } from "./components/chat-thread";
 import { EventInspector } from "./components/event-inspector";
-import { Robot, Plus } from "@phosphor-icons/react";
+import { NewChat } from "./components/new-chat";
+import { convertToThreadMessages } from "./lib/convert-messages";
 
-// ─── Domain types ────────────────────────────────────────────────────────────
+// ─── Domain types ─────────────────────────────────────────────────────────────
 
 export type Provider = "claude" | "gemini" | "codex" | "opencode" | "cursor" | "fake";
 
@@ -20,13 +23,7 @@ export type MockSession = {
 
 export type ChatMessage =
 	| { kind: "user"; id: string; text: string; timestamp: Date }
-	| {
-			kind: "assistant";
-			id: string;
-			text: string;
-			streaming?: boolean;
-			timestamp: Date;
-	  }
+	| { kind: "assistant"; id: string; text: string; streaming?: boolean; timestamp: Date }
 	| {
 			kind: "tool";
 			id: string;
@@ -63,7 +60,21 @@ export type TurnGroup = {
 	events: InspectorEvent[];
 };
 
-// ─── Mock data ────────────────────────────────────────────────────────────────
+// ─── Contexts ─────────────────────────────────────────────────────────────────
+
+type ApprovalContextValue = {
+	onApprove: (id: string, approved: boolean) => void;
+};
+
+const ApprovalContext = createContext<ApprovalContextValue | null>(null);
+
+export function useApproval() {
+	const ctx = useContext(ApprovalContext);
+	if (!ctx) throw new Error("useApproval must be inside ApprovalContext.Provider");
+	return ctx;
+}
+
+// ─── Mock data ─────────────────────────────────────────────────────────────────
 
 const T = (offsetMinutes: number): Date => new Date(Date.now() - offsetMinutes * 60 * 1000);
 
@@ -273,7 +284,7 @@ const TURNS: Record<string, TurnGroup[]> = {
 					id: "e2",
 					type: "delta",
 					summary: "message.assistantDelta",
-					detail: "I'll start by reading the current middleware...",
+					detail: "I'll start by reading...",
 				},
 				{
 					id: "e3",
@@ -303,11 +314,7 @@ const TURNS: Record<string, TurnGroup[]> = {
 					detail: '{ "isError": false }',
 					status: "done",
 				},
-				{
-					id: "e7",
-					type: "delta",
-					summary: "message.assistantDelta",
-				},
+				{ id: "e7", type: "delta", summary: "message.assistantDelta" },
 				{
 					id: "e8",
 					type: "tool.done",
@@ -329,18 +336,8 @@ const TURNS: Record<string, TurnGroup[]> = {
 					detail: '{ "path": "package.json" }',
 					status: "done",
 				},
-				{
-					id: "e11",
-					type: "completed",
-					summary: "message.assistantCompleted",
-					status: "done",
-				},
-				{
-					id: "e12",
-					type: "turn.end",
-					summary: "turn.completed",
-					status: "done",
-				},
+				{ id: "e11", type: "completed", summary: "message.assistantCompleted", status: "done" },
+				{ id: "e12", type: "turn.end", summary: "turn.completed", status: "done" },
 			],
 		},
 	],
@@ -354,7 +351,7 @@ const TURNS: Record<string, TurnGroup[]> = {
 					id: "e1",
 					type: "user",
 					summary: "message.userCreated",
-					detail: "Find and fix memory leak in background worker...",
+					detail: "Find and fix memory leak...",
 				},
 				{
 					id: "e2",
@@ -391,12 +388,7 @@ const TURNS: Record<string, TurnGroup[]> = {
 					detail: '{ "path": "src/workers/queue-processor.ts" }',
 					status: "done",
 				},
-				{
-					id: "e7",
-					type: "delta",
-					summary: "message.assistantDelta",
-					status: "running",
-				},
+				{ id: "e7", type: "delta", summary: "message.assistantDelta", status: "running" },
 			],
 		},
 	],
@@ -406,11 +398,7 @@ const TURNS: Record<string, TurnGroup[]> = {
 			index: 1,
 			status: "running",
 			events: [
-				{
-					id: "e1",
-					type: "user",
-					summary: "message.userCreated",
-				},
+				{ id: "e1", type: "user", summary: "message.userCreated" },
 				{
 					id: "e2",
 					type: "tool.done",
@@ -441,11 +429,7 @@ const TURNS: Record<string, TurnGroup[]> = {
 			index: 1,
 			status: "failed",
 			events: [
-				{
-					id: "e1",
-					type: "user",
-					summary: "message.userCreated",
-				},
+				{ id: "e1", type: "user", summary: "message.userCreated" },
 				{
 					id: "e2",
 					type: "error",
@@ -458,38 +442,74 @@ const TURNS: Record<string, TurnGroup[]> = {
 	],
 };
 
+// ─── Session runtime bridge ───────────────────────────────────────────────────
+
+function SessionChat({
+	session,
+	messages,
+	turns,
+	showInspector,
+	onApprove,
+	onSend,
+}: {
+	session: MockSession;
+	messages: ChatMessage[];
+	turns: TurnGroup[];
+	showInspector: boolean;
+	onApprove: (id: string, approved: boolean) => void;
+	onSend: (text: string) => void;
+}) {
+	const threadMessages = useMemo(() => convertToThreadMessages(messages), [messages]);
+
+	const runtime = useExternalStoreRuntime({
+		messages: threadMessages as ThreadMessageLike[],
+		convertMessage: (msg: ThreadMessageLike) => msg,
+		isRunning: session.status === "running",
+		onNew: async (msg: AppendMessage) => {
+			const first = msg.content[0];
+			if (first && first.type === "text") {
+				onSend(first.text);
+			}
+		},
+	});
+
+	return (
+		<ApprovalContext.Provider value={{ onApprove }}>
+			<AssistantRuntimeProvider runtime={runtime}>
+				<div className="flex flex-1 overflow-hidden">
+					<ChatThread session={session} />
+					{showInspector && <EventInspector session={session} turns={turns} />}
+				</div>
+			</AssistantRuntimeProvider>
+		</ApprovalContext.Provider>
+	);
+}
+
 // ─── App ──────────────────────────────────────────────────────────────────────
 
 export default function App() {
-	const [sessions] = useState<MockSession[]>(SESSIONS);
-	const [activeId, setActiveId] = useState<string | null>(SESSIONS[0]?.id ?? null);
+	const [sessions, setSessions] = useState<MockSession[]>(SESSIONS);
+	const [activeId, setActiveId] = useState<string | null>(null);
 	const [messages, setMessages] = useState<Record<string, ChatMessage[]>>(MESSAGES);
 	const [showInspector, setShowInspector] = useState(true);
-	const [inputValue, setInputValue] = useState("");
 
-	// Force dark mode
 	useEffect(() => {
 		document.documentElement.classList.add("dark");
-		document.body.classList.add("dark");
 	}, []);
 
 	const activeSession = sessions.find((s) => s.id === activeId) ?? null;
 	const activeMessages = activeId ? (messages[activeId] ?? []) : [];
 	const activeTurns = activeId ? (TURNS[activeId] ?? []) : [];
 
-	const handleSend = () => {
-		if (!activeId || !inputValue.trim()) return;
-		const newMsg: ChatMessage = {
-			kind: "user",
-			id: `msg-${Date.now()}`,
-			text: inputValue.trim(),
-			timestamp: new Date(),
-		};
+	const handleSend = (text: string) => {
+		if (!activeId || !text.trim()) return;
 		setMessages((prev) => ({
 			...prev,
-			[activeId]: [...(prev[activeId] ?? []), newMsg],
+			[activeId]: [
+				...(prev[activeId] ?? []),
+				{ kind: "user", id: `msg-${Date.now()}`, text: text.trim(), timestamp: new Date() },
+			],
 		}));
-		setInputValue("");
 	};
 
 	const handleApprove = (msgId: string, approved: boolean) => {
@@ -502,71 +522,53 @@ export default function App() {
 		}));
 	};
 
+	const handleNewSession = (text: string, provider: Provider, workspacePath: string) => {
+		const id = `session-${Date.now()}`;
+		const newSession: MockSession = {
+			id,
+			title: text.length > 40 ? `${text.slice(0, 40)}…` : text,
+			provider,
+			status: "idle",
+			workspacePath,
+			updatedAt: new Date(),
+		};
+		const firstMessage: ChatMessage = {
+			kind: "user",
+			id: `msg-${Date.now()}`,
+			text,
+			timestamp: new Date(),
+		};
+		setSessions((prev) => [newSession, ...prev]);
+		setMessages((prev) => ({ ...prev, [id]: [firstMessage] }));
+		setActiveId(id);
+	};
+
 	return (
 		<div className="flex flex-col h-full bg-background text-foreground overflow-hidden dark">
 			<Titlebar
 				showInspector={showInspector}
 				onToggleInspector={() => setShowInspector((v) => !v)}
 			/>
-
 			<div className="flex flex-1 overflow-hidden">
-				{/* Session sidebar */}
 				<SessionSidebar
 					sessions={sessions}
 					activeSessionId={activeId}
 					onSelectSession={setActiveId}
-					onNewSession={() => {}}
+					onNewSession={() => setActiveId(null)}
 				/>
-
-				{/* Main content */}
-				<div className="flex flex-1 overflow-hidden">
-					{activeSession ? (
-						<ChatView
-							session={activeSession}
-							messages={activeMessages}
-							inputValue={inputValue}
-							onInputChange={setInputValue}
-							onSend={handleSend}
-							onApprove={handleApprove}
-						/>
-					) : (
-						<NoSession />
-					)}
-
-					{/* Event inspector - right panel */}
-					{showInspector && activeSession && (
-						<EventInspector session={activeSession} turns={activeTurns} />
-					)}
-				</div>
-			</div>
-		</div>
-	);
-}
-
-function NoSession() {
-	return (
-		<div className="flex-1 flex flex-col items-center justify-center gap-4">
-			<div className="flex flex-col items-center gap-3 text-center">
-				<div
-					className="w-12 h-12 rounded-2xl flex items-center justify-center
-            bg-white/[4%] border border-white/[7%]"
-				>
-					<Robot size={22} className="text-white/25" weight="thin" />
-				</div>
-				<div>
-					<p className="text-[13px] font-medium text-white/50">No session selected</p>
-					<p className="text-[12px] text-white/25 mt-1">
-						Select a session from the sidebar or start a new one
-					</p>
-				</div>
-				<button
-					className="mt-2 flex items-center gap-1.5 px-3 py-1.5 rounded-md
-            border border-white/[10%] text-[12px] text-white/50
-            hover:bg-white/[4%] hover:text-white/70 transition-colors"
-				>
-					<Plus size={12} />
-					New session
-				</button>
+				{activeSession ? (
+					<SessionChat
+						key={activeId}
+						session={activeSession}
+						messages={activeMessages}
+						turns={activeTurns}
+						showInspector={showInspector}
+						onApprove={handleApprove}
+						onSend={handleSend}
+					/>
+				) : (
+					<NewChat onStart={handleNewSession} recentSessions={sessions} />
+				)}
 			</div>
 		</div>
 	);

@@ -1,21 +1,29 @@
 import { useState } from "react";
-import { MagnifyingGlass } from "@phosphor-icons/react";
+import {
+	MagnifyingGlass,
+	PlusCircle,
+	FolderSimple,
+	CaretRight,
+	GearSix,
+	ChatTeardropText,
+} from "@phosphor-icons/react";
 import type { MockSession } from "../App";
 import { providerLabel } from "../lib/provider";
 import { timeAgo } from "../lib/time";
+import { cn } from "../lib/utils";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "./ui/collapsible";
 
 type SessionSidebarProps = {
 	sessions: MockSession[];
 	activeSessionId: string | null;
-	onSelectSession: (id: string) => void;
-	onNewSession: () => void;
+	onSelectSession: (id: string | null) => void;
+	onNewSession?: () => void;
 };
 
 export function SessionSidebar({
 	sessions,
 	activeSessionId,
 	onSelectSession,
-	onNewSession,
 }: SessionSidebarProps) {
 	const [query, setQuery] = useState("");
 
@@ -23,57 +31,163 @@ export function SessionSidebar({
 		? sessions.filter((s) => s.title.toLowerCase().includes(query.toLowerCase()))
 		: sessions;
 
+	const workspaces = Array.from(new Set(sessions.map((s) => s.workspacePath)));
+
 	return (
-		<div className="flex flex-col w-[240px] shrink-0 border-r border-white/[6%] overflow-hidden">
-			{/* Top nav actions */}
+		<div className="flex flex-col w-[240px] shrink-0 border-r border-white/[7%] overflow-hidden">
+			{/* Top actions */}
 			<div className="px-3 pt-3 pb-2 flex flex-col gap-0.5">
 				<button
-					onClick={onNewSession}
-					className="flex items-center gap-2 px-2 py-1.5 rounded-md w-full text-left
-						text-white/40 hover:text-white/65 hover:bg-white/[4%] transition-colors"
+					onClick={() => onSelectSession(null)}
+					className={cn(
+						"flex items-center gap-2.5 px-2.5 py-2 rounded-lg w-full text-left transition-colors group",
+						activeSessionId === null
+							? "bg-white/[7%] text-white/80"
+							: "text-white/45 hover:text-white/70 hover:bg-white/[4%]",
+					)}
 				>
-					<span className="text-[13px]">New session</span>
+					<PlusCircle
+						size={15}
+						weight="light"
+						className={cn(
+							"shrink-0 transition-colors",
+							activeSessionId === null
+								? "text-white/60"
+								: "text-white/35 group-hover:text-white/55",
+						)}
+					/>
+					<span className="text-[13px] font-medium">New chat</span>
 				</button>
 
-				<div className="flex items-center gap-2 px-2 py-1.5 rounded-md text-white/35 hover:bg-white/[4%] transition-colors">
-					<MagnifyingGlass size={13} className="shrink-0" />
+				<button className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-white/40 hover:text-white/65 hover:bg-white/[4%] transition-colors w-full text-left">
+					<MagnifyingGlass size={15} weight="light" className="shrink-0" />
+					<span className="text-[13px]">Search</span>
+				</button>
+			</div>
+
+			{/* Search input */}
+			<div className="px-3 pb-2">
+				<div className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-white/[4%] border border-transparent focus-within:border-white/[10%] transition-colors">
+					<MagnifyingGlass size={12} weight="light" className="text-white/25 shrink-0" />
 					<input
 						type="text"
 						value={query}
 						onChange={(e) => setQuery(e.target.value)}
-						placeholder="Search"
-						className="flex-1 bg-transparent text-[13px] text-white/60 outline-none placeholder:text-white/28 min-w-0"
-						style={{ userSelect: "text" }}
+						placeholder="Search sessions..."
+						className="flex-1 bg-transparent text-[12px] text-white/60 outline-none placeholder:text-white/22 min-w-0 select-text"
 					/>
 				</div>
 			</div>
 
-			{/* Section label */}
-			<div className="px-4 pt-2 pb-1">
-				<span className="text-[10px] font-medium text-white/22 uppercase tracking-[0.09em]">
-					Sessions
-				</span>
-			</div>
-
 			{/* Session list */}
 			<div className="flex-1 overflow-y-auto px-2 pb-2">
-				<div className="flex flex-col gap-px">
-					{filtered.map((session) => (
-						<SessionItem
-							key={session.id}
-							session={session}
-							isActive={session.id === activeSessionId}
-							onClick={() => onSelectSession(session.id)}
-						/>
-					))}
-				</div>
+				{query ? (
+					<div className="flex flex-col gap-px">
+						{filtered.length === 0 ? (
+							<p className="text-[12px] text-white/25 px-2 py-3 text-center">No results</p>
+						) : (
+							filtered.map((s) => (
+								<SessionItem
+									key={s.id}
+									session={s}
+									isActive={s.id === activeSessionId}
+									onClick={() => onSelectSession(s.id)}
+									indented={false}
+								/>
+							))
+						)}
+					</div>
+				) : (
+					<div className="flex flex-col gap-1 pt-1">
+						{/* Projects section header */}
+						<div className="flex items-center justify-between px-2 pb-1">
+							<span className="text-[10px] font-semibold uppercase tracking-[0.1em] text-white/22">
+								Projects
+							</span>
+						</div>
+
+						{/* Workspace groups */}
+						{workspaces.map((ws) => {
+							const wsSessions = sessions.filter((s) => s.workspacePath === ws);
+							const wsBase = ws.replace(/^.*\//, "");
+							return (
+								<WorkspaceGroup
+									key={ws}
+									name={wsBase}
+									sessions={wsSessions}
+									activeSessionId={activeSessionId}
+									onSelect={onSelectSession}
+									defaultOpen
+								/>
+							);
+						})}
+					</div>
+				)}
 			</div>
 
 			{/* Bottom */}
-			<div className="px-4 py-3 border-t border-white/[6%]">
-				<span className="text-[11px] text-white/20">Settings</span>
+			<div className="px-3 py-3 border-t border-white/[6%] flex items-center">
+				<button className="flex items-center gap-2 text-[12px] text-white/28 hover:text-white/50 transition-colors">
+					<GearSix size={14} weight="light" />
+					Settings
+				</button>
 			</div>
 		</div>
+	);
+}
+
+function WorkspaceGroup({
+	name,
+	sessions,
+	activeSessionId,
+	onSelect,
+	defaultOpen,
+}: {
+	name: string;
+	sessions: MockSession[];
+	activeSessionId: string | null;
+	onSelect: (id: string | null) => void;
+	defaultOpen?: boolean;
+}) {
+	const [open, setOpen] = useState(defaultOpen ?? false);
+	const hasActive = sessions.some((s) => s.id === activeSessionId);
+
+	return (
+		<Collapsible open={open} onOpenChange={setOpen}>
+			<CollapsibleTrigger asChild>
+				<button
+					className={cn(
+						"flex items-center gap-1.5 w-full px-2 py-1.5 rounded-lg text-left transition-colors group",
+						hasActive ? "text-white/65" : "text-white/38 hover:text-white/58 hover:bg-white/[3%]",
+					)}
+				>
+					<CaretRight
+						size={10}
+						weight="bold"
+						className={cn("shrink-0 transition-transform text-white/22", open && "rotate-90")}
+					/>
+					<FolderSimple
+						size={14}
+						weight={open ? "fill" : "regular"}
+						className={cn("shrink-0", open ? "text-white/40" : "text-white/28")}
+					/>
+					<span className="text-[13px] font-medium truncate">{name}</span>
+				</button>
+			</CollapsibleTrigger>
+			<CollapsibleContent>
+				<div className="flex flex-col gap-px ml-3 pl-3 border-l border-white/[6%] mb-1">
+					{sessions.map((s) => (
+						<SessionItem
+							key={s.id}
+							session={s}
+							isActive={s.id === activeSessionId}
+							onClick={() => onSelect(s.id)}
+							indented
+						/>
+					))}
+				</div>
+			</CollapsibleContent>
+		</Collapsible>
 	);
 }
 
@@ -81,42 +195,55 @@ function SessionItem({
 	session,
 	isActive,
 	onClick,
+	indented,
 }: {
 	session: MockSession;
 	isActive: boolean;
 	onClick: () => void;
+	indented: boolean;
 }) {
 	const label = providerLabel(session.provider);
-	const workspace = session.workspacePath.replace(/^.*\//, "");
 
 	return (
 		<button
 			onClick={onClick}
-			className={`w-full text-left rounded-[5px] px-2.5 py-[7px] transition-colors group
-				${isActive ? "bg-white/[7%]" : "hover:bg-white/[4%]"}`}
+			className={cn(
+				"w-full text-left rounded-lg px-2.5 py-[7px] transition-colors group",
+				isActive ? "bg-white/[7%]" : "hover:bg-white/[4%]",
+				indented && "text-[12px]",
+			)}
 		>
-			{/* Title row */}
 			<div className="flex items-center gap-1.5 min-w-0">
-				{session.status === "running" && (
-					<span className="w-[5px] h-[5px] rounded-full bg-white/28 shrink-0 status-running" />
-				)}
+				<StatusDot status={session.status} />
 				<span
-					className={`text-[13px] truncate min-w-0 leading-[1.4] transition-colors
-						${isActive ? "text-white/88" : "text-white/55 group-hover:text-white/72"}`}
+					className={cn(
+						"truncate min-w-0 leading-[1.4] transition-colors font-medium",
+						indented ? "text-[12px]" : "text-[13px]",
+						isActive ? "text-white/85" : "text-white/50 group-hover:text-white/70",
+					)}
 				>
 					{session.title}
 				</span>
-			</div>
-
-			{/* Meta row */}
-			<div className="flex items-center gap-1 mt-px min-w-0 pl-[13px]">
-				<span className="text-[11px] text-white/22 truncate flex-1 font-normal">
-					{label} &middot; {workspace}
-				</span>
-				<span className="text-[10px] text-white/18 shrink-0 tabular-nums">
+				<span className="ml-auto text-[10px] text-white/18 shrink-0 tabular-nums">
 					{timeAgo(session.updatedAt)}
 				</span>
 			</div>
+			{!indented && (
+				<div className="flex items-center gap-1 mt-0.5 pl-[13px]">
+					<ChatTeardropText size={10} weight="light" className="text-white/18 shrink-0" />
+					<span className="text-[11px] text-white/22 truncate">{label}</span>
+				</div>
+			)}
 		</button>
 	);
+}
+
+function StatusDot({ status }: { status: MockSession["status"] }) {
+	if (status === "running") {
+		return <span className="w-[5px] h-[5px] rounded-full bg-white/35 shrink-0 status-running" />;
+	}
+	if (status === "error") {
+		return <span className="w-[5px] h-[5px] rounded-full bg-red-400/55 shrink-0" />;
+	}
+	return <span className="w-[5px] h-[5px] rounded-full bg-transparent shrink-0" />;
 }

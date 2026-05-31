@@ -1,97 +1,97 @@
 import type { MessageAttachment, Provider, ToolRisk } from "./provider.ts";
 
 export type EventPayloadMap = {
-  "session.created": {
-    sessionId: string;
-    provider: Provider;
-    workspacePath: string;
-    title: string;
-    createdAt: number;
-  };
-  "turn.started": {
-    sessionId: string;
-    turnId: string;
-    provider: Provider;
-    startedAt: number;
-  };
-  "message.userCreated": {
-    sessionId: string;
-    turnId: string;
-    messageId: string;
-    text: string;
-    attachments: MessageAttachment[];
-  };
-  "message.assistantDeltaReceived": {
-    sessionId: string;
-    turnId: string;
-    messageId: string;
-    text: string;
-  };
-  "message.assistantCompleted": {
-    sessionId: string;
-    turnId: string;
-    messageId: string;
-  };
-  "tool.callStarted": {
-    sessionId: string;
-    turnId: string;
-    toolCallId: string;
-    toolName: string;
-    input: unknown;
-    risk: ToolRisk;
-  };
-  "tool.callCompleted": {
-    sessionId: string;
-    turnId: string;
-    toolCallId: string;
-    output: unknown;
-    isError: boolean;
-  };
-  "approval.requested": {
-    approvalId: string;
-    sessionId: string;
-    turnId: string;
-    toolCallId: string;
-    toolName: string;
-    input: unknown;
-    risk: ToolRisk;
-  };
-  "approval.resolved": {
-    approvalId: string;
-    approved: boolean;
-    note?: string;
-  };
-  "turn.completed": {
-    sessionId: string;
-    turnId: string;
-    completedAt: number;
-  };
-  "turn.failed": {
-    sessionId: string;
-    turnId: string;
-    message: string;
-    retryable: boolean;
-    correlationId?: string;
-  };
-  "turn.canceled": {
-    sessionId: string;
-    turnId: string;
-    canceledAt: number;
-  };
+	"session.created": {
+		sessionId: string;
+		provider: Provider;
+		workspacePath: string;
+		title: string;
+		createdAt: number;
+	};
+	"turn.started": {
+		sessionId: string;
+		turnId: string;
+		provider: Provider;
+		startedAt: number;
+	};
+	"message.userCreated": {
+		sessionId: string;
+		turnId: string;
+		messageId: string;
+		text: string;
+		attachments: MessageAttachment[];
+	};
+	"message.assistantDeltaReceived": {
+		sessionId: string;
+		turnId: string;
+		messageId: string;
+		text: string;
+	};
+	"message.assistantCompleted": {
+		sessionId: string;
+		turnId: string;
+		messageId: string;
+	};
+	"tool.callStarted": {
+		sessionId: string;
+		turnId: string;
+		toolCallId: string;
+		toolName: string;
+		input: unknown;
+		risk: ToolRisk;
+	};
+	"tool.callCompleted": {
+		sessionId: string;
+		turnId: string;
+		toolCallId: string;
+		output: unknown;
+		isError: boolean;
+	};
+	"approval.requested": {
+		approvalId: string;
+		sessionId: string;
+		turnId: string;
+		toolCallId: string;
+		toolName: string;
+		input: unknown;
+		risk: ToolRisk;
+	};
+	"approval.resolved": {
+		approvalId: string;
+		approved: boolean;
+		note?: string;
+	};
+	"turn.completed": {
+		sessionId: string;
+		turnId: string;
+		completedAt: number;
+	};
+	"turn.failed": {
+		sessionId: string;
+		turnId: string;
+		message: string;
+		retryable: boolean;
+		correlationId?: string;
+	};
+	"turn.canceled": {
+		sessionId: string;
+		turnId: string;
+		canceledAt: number;
+	};
 };
 
 export type EventType = keyof EventPayloadMap;
 export type EventPayload<T extends EventType> = EventPayloadMap[T];
 
 export type DomainEvent<TType extends string, TPayload> = {
-    id: string;
-    seq: number;
-    type: TType;
-    payload: TPayload;
-    occurredAt: number;
-    correlationId?: string;
-    causationId?: string;
-}
+	id: string;
+	seq: number;
+	type: TType;
+	payload: TPayload;
+	occurredAt: number;
+	correlationId?: string;
+	causationId?: string;
+};
 
 export type DomainEventFor<T extends EventType> = DomainEvent<T, EventPayload<T>>;
 
@@ -120,5 +120,5 @@ export type TurnFailed = DomainEventFor<"turn.failed">;
 export type TurnCanceled = DomainEventFor<"turn.canceled">;
 
 export type AllEvents<T extends EventType> = {
-  [K in T]: DomainEventFor<K>;
+	[K in T]: DomainEventFor<K>;
 }[T];

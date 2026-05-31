@@ -2,6 +2,7 @@ import { useState } from "react";
 import { CaretRight } from "@phosphor-icons/react";
 import type { MockSession, TurnGroup, InspectorEvent } from "../App";
 import { providerLabel } from "../lib/provider";
+import { cn } from "../lib/utils";
 
 type EventInspectorProps = {
 	session: MockSession;
@@ -13,11 +14,11 @@ export function EventInspector({ session, turns }: EventInspectorProps) {
 	const totalEvents = turns.reduce((n, t) => n + t.events.length, 0);
 
 	return (
-		<div className="flex flex-col w-[260px] shrink-0 overflow-hidden">
+		<div className="flex flex-col w-[256px] shrink-0 overflow-hidden bg-background">
 			{/* Header */}
 			<div className="flex items-center justify-between px-4 py-3 border-b border-white/[6%] shrink-0">
-				<span className="text-[10px] font-medium uppercase tracking-[0.09em] text-white/22">
-					Events
+				<span className="text-[10px] font-semibold uppercase tracking-[0.1em] text-white/25">
+					Inspector
 				</span>
 				<span className="text-[10px] font-mono text-white/18">{label}</span>
 			</div>
@@ -34,9 +35,9 @@ export function EventInspector({ session, turns }: EventInspectorProps) {
 			</div>
 
 			{/* Footer */}
-			<div className="border-t border-white/[6%] px-4 py-2 shrink-0 flex items-center gap-3">
+			<div className="border-t border-white/[5%] px-4 py-2 shrink-0">
 				<span className="text-[10px] font-mono text-white/18">
-					{turns.length}t &middot; {totalEvents}e
+					{turns.length}t · {totalEvents}e
 				</span>
 			</div>
 		</div>
@@ -46,28 +47,35 @@ export function EventInspector({ session, turns }: EventInspectorProps) {
 function TurnSection({ turn }: { turn: TurnGroup }) {
 	const [collapsed, setCollapsed] = useState(false);
 
-	const statusGlyph =
-		turn.status === "done"
-			? "✓"
-			: turn.status === "running"
-				? "…"
-				: turn.status === "failed"
-					? "✗"
-					: "–";
+	const statusColors: Record<TurnGroup["status"], string> = {
+		done: "text-white/30",
+		running: "text-white/45 status-running",
+		failed: "text-red-400/50",
+		canceled: "text-white/20",
+	};
+
+	const statusGlyph: Record<TurnGroup["status"], string> = {
+		done: "✓",
+		running: "…",
+		failed: "✗",
+		canceled: "–",
+	};
 
 	return (
 		<div>
-			{/* Turn header */}
 			<button
 				onClick={() => setCollapsed((v) => !v)}
 				className="w-full flex items-center gap-1.5 px-4 py-1.5 hover:bg-white/[3%] transition-colors"
 			>
 				<CaretRight
 					size={9}
-					className={`text-white/22 transition-transform shrink-0 ${collapsed ? "" : "rotate-90"}`}
+					weight="bold"
+					className={cn("text-white/22 transition-transform shrink-0", !collapsed && "rotate-90")}
 				/>
 				<span className="text-[11px] font-medium text-white/40">Turn {turn.index}</span>
-				<span className="text-[10px] font-mono text-white/22 ml-1">{statusGlyph}</span>
+				<span className={cn("text-[10px] font-mono ml-1", statusColors[turn.status])}>
+					{statusGlyph[turn.status]}
+				</span>
 				{turn.durationMs != null && (
 					<span className="text-[10px] font-mono text-white/18 ml-auto">
 						{formatDuration(turn.durationMs)}
@@ -75,7 +83,6 @@ function TurnSection({ turn }: { turn: TurnGroup }) {
 				)}
 			</button>
 
-			{/* Events */}
 			{!collapsed && (
 				<div className="pb-0.5">
 					{turn.events.map((event, i) => (
@@ -89,28 +96,28 @@ function TurnSection({ turn }: { turn: TurnGroup }) {
 
 function EventRow({ event, isLast }: { event: InspectorEvent; isLast: boolean }) {
 	const [expanded, setExpanded] = useState(false);
-	const dim = getEventOpacity(event.type, event.status);
+	const opacity = getEventOpacity(event.type, event.status);
 
 	return (
 		<div>
 			<button
 				onClick={() => event.detail && setExpanded((v) => !v)}
-				className={`w-full flex items-center gap-2 pl-8 pr-4 py-[3px]
-					transition-colors text-left
-					${event.detail ? "hover:bg-white/[3%] cursor-pointer" : "cursor-default"}`}
+				className={cn(
+					"w-full flex items-center gap-2 pl-8 pr-4 py-[3px] transition-colors text-left",
+					event.detail ? "hover:bg-white/[3%] cursor-pointer" : "cursor-default",
+				)}
 			>
 				{/* Tree line */}
 				<span className="shrink-0 w-3 flex flex-col items-center relative" aria-hidden="true">
-					<span
-						className="absolute left-1/2 -translate-x-1/2 top-0 bottom-0 w-px bg-white/[6%]"
-						style={{ display: isLast ? "none" : undefined }}
-					/>
-					<span className="w-1 h-1 rounded-full bg-white/[14%] relative z-10 mt-[5px]" />
+					{!isLast && (
+						<span className="absolute left-1/2 -translate-x-1/2 top-0 bottom-0 w-px bg-white/[5%]" />
+					)}
+					<span className="w-[5px] h-[5px] rounded-full bg-white/[12%] relative z-10 mt-[5px]" />
 				</span>
 
 				<span
 					className="text-[11px] font-mono truncate flex-1 min-w-0"
-					style={{ color: `rgba(255,255,255,${dim})` }}
+					style={{ color: `rgba(255,255,255,${opacity})` }}
 				>
 					{event.summary}
 				</span>
@@ -118,14 +125,15 @@ function EventRow({ event, isLast }: { event: InspectorEvent; isLast: boolean })
 				{event.detail && (
 					<CaretRight
 						size={8}
-						className={`text-white/18 transition-transform shrink-0 ${expanded ? "rotate-90" : ""}`}
+						weight="bold"
+						className={cn("text-white/18 transition-transform shrink-0", expanded && "rotate-90")}
 					/>
 				)}
 			</button>
 
 			{expanded && event.detail && (
 				<div className="pl-14 pr-4 py-1.5">
-					<code className="block text-[10px] font-mono text-white/22 leading-relaxed whitespace-pre-wrap break-all selectable">
+					<code className="block text-[10px] font-mono text-white/22 leading-relaxed whitespace-pre-wrap break-all select-text">
 						{event.detail}
 					</code>
 				</div>
@@ -135,12 +143,12 @@ function EventRow({ event, isLast }: { event: InspectorEvent; isLast: boolean })
 }
 
 function getEventOpacity(type: string, status?: InspectorEvent["status"]): number {
-	if (type === "error" || status === "error") return 0.4;
+	if (type === "error" || status === "error") return 0.45;
 	if (type === "approval" || status === "pending") return 0.5;
 	if (status === "running") return 0.45;
-	if (type === "turn.end") return 0.38;
+	if (type === "turn.end") return 0.32;
 	if (type === "user") return 0.5;
-	return 0.32;
+	return 0.3;
 }
 
 function formatDuration(ms: number): string {
