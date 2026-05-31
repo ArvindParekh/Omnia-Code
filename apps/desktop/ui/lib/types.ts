@@ -12,8 +12,16 @@ export type MockSession = {
 	updatedAt: Date;
 };
 
+// A quote carried on a user message — the snippet the user selected from a
+// prior assistant response before sending. Mirrors assistant-ui's QuoteInfo,
+// which lives at message.metadata.custom.quote.
+export type QuoteRef = {
+	text: string;
+	messageId: string;
+};
+
 export type ChatMessage =
-	| { kind: "user"; id: string; text: string; timestamp: Date }
+	| { kind: "user"; id: string; text: string; quote?: QuoteRef; timestamp: Date }
 	| { kind: "assistant"; id: string; text: string; streaming?: boolean; timestamp: Date }
 	| { kind: "reasoning"; id: string; text: string; timestamp: Date }
 	| {

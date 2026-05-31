@@ -1,11 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
-import {
-	AssistantRuntimeProvider,
-	useExternalStoreRuntime,
-	SimpleTextAttachmentAdapter,
-} from "@assistant-ui/react";
+import { AssistantRuntimeProvider, useExternalStoreRuntime } from "@assistant-ui/react";
 import type { AppendMessage, ThreadMessageLike } from "@assistant-ui/react";
-import type { ChatMessage, MockSession, Provider, TurnGroup } from "./lib/types";
+import type { ChatMessage, MockSession, Provider, QuoteRef, TurnGroup } from "./lib/types";
+import { AnyFileAttachmentAdapter } from "./lib/attachment-adapter";
 import { MESSAGES, SESSIONS, TURNS } from "./lib/mock-data";
 import { convertToThreadMessages } from "./lib/convert-messages";
 import { ApprovalContext } from "./components/approval-card";
@@ -26,7 +23,7 @@ type SessionChatProps = {
 	turns: TurnGroup[];
 	showInspector: boolean;
 	onApprove: (id: string, approved: boolean) => void;
-	onSend: (text: string) => void;
+	onSend: (text: string, quote?: QuoteRef) => void;
 };
 
 function SessionChat({
@@ -45,10 +42,14 @@ function SessionChat({
 		isRunning: session.status === "running",
 		onNew: async (msg: AppendMessage) => {
 			const first = msg.content[0];
-			if (first && first.type === "text") onSend(first.text);
+			// The composer stores the selected snippet at metadata.custom.quote
+			// (assistant-ui's QuoteInfo). Carry it onto our user message so it
+			// persists as a quote chip after sending.
+			const quote = msg.metadata?.custom?.quote as QuoteRef | undefined;
+			if (first && first.type === "text") onSend(first.text, quote);
 		},
 		adapters: {
-			attachments: new SimpleTextAttachmentAdapter(),
+			attachments: new AnyFileAttachmentAdapter(),
 		},
 	});
 
@@ -92,13 +93,13 @@ export default function App() {
 	const activeMessages = activeId ? (messages[activeId] ?? []) : [];
 	const activeTurns = activeId ? (TURNS[activeId] ?? []) : [];
 
-	const handleSend = (text: string) => {
+	const handleSend = (text: string, quote?: QuoteRef) => {
 		if (!activeId || !text.trim()) return;
 		setMessages((prev) => ({
 			...prev,
 			[activeId]: [
 				...(prev[activeId] ?? []),
-				{ kind: "user", id: `msg-${Date.now()}`, text: text.trim(), timestamp: new Date() },
+				{ kind: "user", id: `msg-${Date.now()}`, text: text.trim(), quote, timestamp: new Date() },
 			],
 		}));
 	};

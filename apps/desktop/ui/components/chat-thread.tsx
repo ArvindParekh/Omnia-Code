@@ -30,6 +30,7 @@ import { cn } from "../lib/utils";
 import { ToolCallBlock } from "./tool-call-block";
 import { MarkdownText } from "./assistant-ui/markdown-text";
 import { Reasoning, ReasoningTrigger, ReasoningContent } from "./prompt-kit/reasoning";
+import { copyText } from "../lib/clipboard";
 
 // ─── Thread shell ─────────────────────────────────────────────────────────────
 
@@ -211,6 +212,17 @@ function UserMessage() {
 	return (
 		<MessagePrimitive.Root className="group flex flex-col items-end gap-1.5">
 			<span className="text-[11px] font-medium text-white/30 px-1">You</span>
+			{/* Quoted snippet the user carried over from a prior response */}
+			<MessagePrimitive.Quote>
+				{({ text }) => (
+					<div className="max-w-[85%] flex items-start gap-2 rounded-xl border border-white/[8%] bg-white/[3%] px-3 py-2">
+						<Quotes size={11} weight="fill" className="text-white/30 shrink-0 mt-0.5" />
+						<span className="flex-1 text-[12px] text-white/45 font-mono leading-relaxed line-clamp-4 whitespace-pre-wrap select-text">
+							{text}
+						</span>
+					</div>
+				)}
+			</MessagePrimitive.Quote>
 			<div className="max-w-[85%] rounded-2xl bg-white/[5%] border border-white/[9%] px-4 py-2.5">
 				<MessagePrimitive.Parts components={{ Text: UserTextPart }} />
 			</div>
@@ -336,37 +348,15 @@ function CopyMessageButton() {
 	const [copied, setCopied] = useState(false);
 	const message = useMessage();
 
-	const handleCopy = () => {
+	const handleCopy = async () => {
 		const text = message.content
 			.filter((p) => p.type === "text")
 			.map((p) => (p as { type: "text"; text: string }).text)
 			.join("\n\n");
-		if (!text) return;
-
-		const finish = () => {
+		if (await copyText(text)) {
 			setCopied(true);
 			setTimeout(() => setCopied(false), 2000);
-		};
-
-		navigator.clipboard
-			.writeText(text)
-			.then(finish)
-			.catch(() => {
-				// Fallback for Electron renderer context
-				const el = document.createElement("textarea");
-				el.value = text;
-				el.style.cssText = "position:fixed;opacity:0;pointer-events:none";
-				document.body.appendChild(el);
-				el.focus();
-				el.select();
-				try {
-					document.execCommand("copy");
-				} catch {
-					/* ignore */
-				}
-				document.body.removeChild(el);
-				finish();
-			});
+		}
 	};
 
 	return (

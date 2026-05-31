@@ -93,8 +93,8 @@ export function ApprovalCard({
 				</button>
 				<button
 					onClick={() => onApprove(__approvalId, true)}
-					className="px-3 py-1.5 text-[12px] rounded-lg bg-white/88 text-[#171717] font-medium
-						hover:bg-white transition-colors"
+					className="px-3 py-1.5 text-[12px] rounded-lg bg-primary text-primary-foreground font-medium
+						hover:opacity-85 transition-all"
 				>
 					Approve
 				</button>

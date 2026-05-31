@@ -101,11 +101,11 @@ export function NewChat({ onStart, recentSessions }: NewChatProps) {
 						<button
 							onClick={handleSubmit}
 							disabled={!text.trim()}
-							className="ml-1 w-8 h-8 rounded-full bg-white/88 flex items-center justify-center
+							className="ml-1 w-8 h-8 rounded-full bg-primary flex items-center justify-center
 								disabled:opacity-20 disabled:cursor-not-allowed
-								hover:bg-white transition-colors shrink-0"
+								hover:opacity-85 transition-all shrink-0"
 						>
-							<ArrowUp size={14} weight="bold" className="text-[#171717]" />
+							<ArrowUp size={14} weight="bold" className="text-primary-foreground" />
 						</button>
 					</div>
 				</div>

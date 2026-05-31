@@ -214,9 +214,16 @@
 }
 
 /* ─── Light mode ────────────────────────────────────────────────────────────── */
-
+/*
+ * The UI is monochrome: every surface, text, and border is a white-at-opacity
+ * value (text-white/45, bg-white/[3%], border-white/[8%], …). Tailwind v4
+ * compiles those to color-mix(in oklab, var(--color-white) X%, transparent), so
+ * redefining a single variable flips the whole palette — including placeholder,
+ * hover, and group-hover variants — without per-utility overrides.
+ */
 .light {
 	color-scheme: light;
+	--color-white: #000;
 
 	--background: #f5f5f4;
 	--surface: #ffffff;
@@ -259,186 +266,7 @@
 	--sidebar-ring: var(--ring);
 }
 
-/* Flip white-opacity utilities to black-opacity in light mode */
-.light .text-white\/18 {
-	color: rgb(0 0 0 / 0.18);
-}
-.light .text-white\/20 {
-	color: rgb(0 0 0 / 0.2);
-}
-.light .text-white\/22 {
-	color: rgb(0 0 0 / 0.22);
-}
-.light .text-white\/25 {
-	color: rgb(0 0 0 / 0.25);
-}
-.light .text-white\/28 {
-	color: rgb(0 0 0 / 0.28);
-}
-.light .text-white\/30 {
-	color: rgb(0 0 0 / 0.3);
-}
-.light .text-white\/35 {
-	color: rgb(0 0 0 / 0.35);
-}
-.light .text-white\/38 {
-	color: rgb(0 0 0 / 0.38);
-}
-.light .text-white\/40 {
-	color: rgb(0 0 0 / 0.4);
-}
-.light .text-white\/45 {
-	color: rgb(0 0 0 / 0.45);
-}
-.light .text-white\/50 {
-	color: rgb(0 0 0 / 0.5);
-}
-.light .text-white\/55 {
-	color: rgb(0 0 0 / 0.55);
-}
-.light .text-white\/58 {
-	color: rgb(0 0 0 / 0.58);
-}
-.light .text-white\/60 {
-	color: rgb(0 0 0 / 0.6);
-}
-.light .text-white\/65 {
-	color: rgb(0 0 0 / 0.65);
-}
-.light .text-white\/70 {
-	color: rgb(0 0 0 / 0.7);
-}
-.light .text-white\/72 {
-	color: rgb(0 0 0 / 0.72);
-}
-.light .text-white\/75 {
-	color: rgb(0 0 0 / 0.75);
-}
-.light .text-white\/80 {
-	color: rgb(0 0 0 / 0.8);
-}
-.light .text-white\/82 {
-	color: rgb(0 0 0 / 0.82);
-}
-.light .text-white\/85 {
-	color: rgb(0 0 0 / 0.85);
-}
-.light .text-white\/88 {
-	color: rgb(0 0 0 / 0.88);
-}
-
-.light .hover\:text-white\/45:hover {
-	color: rgb(0 0 0 / 0.45);
-}
-.light .hover\:text-white\/50:hover {
-	color: rgb(0 0 0 / 0.5);
-}
-.light .hover\:text-white\/55:hover {
-	color: rgb(0 0 0 / 0.55);
-}
-.light .hover\:text-white\/58:hover {
-	color: rgb(0 0 0 / 0.58);
-}
-.light .hover\:text-white\/65:hover {
-	color: rgb(0 0 0 / 0.65);
-}
-.light .hover\:text-white\/70:hover {
-	color: rgb(0 0 0 / 0.7);
-}
-.light .hover\:text-white\/75:hover {
-	color: rgb(0 0 0 / 0.75);
-}
-.light .group:hover .group-hover\:text-white\/55 {
-	color: rgb(0 0 0 / 0.55);
-}
-.light .group:hover .group-hover\:text-white\/70 {
-	color: rgb(0 0 0 / 0.7);
-}
-
-.light .bg-white\/\[2\%\] {
-	background-color: rgb(0 0 0 / 0.02);
-}
-.light .bg-white\/\[3\%\] {
-	background-color: rgb(0 0 0 / 0.03);
-}
-.light .bg-white\/\[4\%\] {
-	background-color: rgb(0 0 0 / 0.04);
-}
-.light .bg-white\/\[5\%\] {
-	background-color: rgb(0 0 0 / 0.05);
-}
-.light .bg-white\/\[6\%\] {
-	background-color: rgb(0 0 0 / 0.06);
-}
-.light .bg-white\/\[7\%\] {
-	background-color: rgb(0 0 0 / 0.07);
-}
-.light .bg-white\/\[8\%\] {
-	background-color: rgb(0 0 0 / 0.08);
-}
-.light .bg-white\/\[9\%\] {
-	background-color: rgb(0 0 0 / 0.09);
-}
-.light .bg-white\/\[10\%\] {
-	background-color: rgb(0 0 0 / 0.1);
-}
-.light .bg-white\/\[12\%\] {
-	background-color: rgb(0 0 0 / 0.12);
-}
-.light .bg-white\/\[14\%\] {
-	background-color: rgb(0 0 0 / 0.14);
-}
-.light .hover\:bg-white\/\[3\%\]:hover {
-	background-color: rgb(0 0 0 / 0.03);
-}
-.light .hover\:bg-white\/\[4\%\]:hover {
-	background-color: rgb(0 0 0 / 0.04);
-}
-.light .hover\:bg-white\/\[5\%\]:hover {
-	background-color: rgb(0 0 0 / 0.05);
-}
-.light .hover\:bg-white\/\[14\%\]:hover {
-	background-color: rgb(0 0 0 / 0.14);
-}
-.light .hover\:bg-white:hover {
-	background-color: rgb(0 0 0 / 1);
-}
-
-.light .border-white\/\[5\%\] {
-	border-color: rgb(0 0 0 / 0.05);
-}
-.light .border-white\/\[6\%\] {
-	border-color: rgb(0 0 0 / 0.06);
-}
-.light .border-white\/\[7\%\] {
-	border-color: rgb(0 0 0 / 0.07);
-}
-.light .border-white\/\[8\%\] {
-	border-color: rgb(0 0 0 / 0.08);
-}
-.light .border-white\/\[9\%\] {
-	border-color: rgb(0 0 0 / 0.09);
-}
-.light .border-white\/\[10\%\] {
-	border-color: rgb(0 0 0 / 0.1);
-}
-.light .border-white\/\[12\%\] {
-	border-color: rgb(0 0 0 / 0.12);
-}
-.light .border-white\/\[16\%\] {
-	border-color: rgb(0 0 0 / 0.16);
-}
-.light .border-white\/20 {
-	border-color: rgb(0 0 0 / 0.2);
-}
-.light .focus-within\:border-white\/\[10\%\]:focus-within {
-	border-color: rgb(0 0 0 / 0.1);
-}
-.light .focus-within\:border-white\/\[16\%\]:focus-within {
-	border-color: rgb(0 0 0 / 0.16);
-}
-
-/* Light mode scrollbars */
+/* Raw rgba() values that don't flow through --color-white */
 .light ::-webkit-scrollbar-thumb {
 	background: rgba(0, 0, 0, 0.08);
 }
@@ -448,8 +276,6 @@
 .light * {
 	scrollbar-color: rgba(0, 0, 0, 0.08) transparent;
 }
-
-/* Light mode cursors */
 .light .streaming-cursor::after {
 	color: rgba(0, 0, 0, 0.3);
 }
@@ -458,7 +284,18 @@
 	color: rgba(0, 0, 0, 0.3);
 }
 
-/* Text[#171717] hardcoded — needs to flip in light mode for send button */
-.light .text-\[\#171717\] {
-	color: var(--primary-foreground);
+/* ─── Syntax highlighting (shiki) ────────────────────────────────────────────── */
+/*
+ * Code blocks render via react-shiki with a dual theme and defaultColor="dark",
+ * which paints the dark theme inline and exposes the light theme as --shiki-*
+ * CSS variables. We keep the block background transparent so it sits on the
+ * app surface (the bordered container is styled in markdown-text), and swap
+ * each token to its light value when the .light theme is active.
+ */
+.shiki {
+	background-color: transparent !important;
+}
+.light .shiki,
+.light .shiki span {
+	color: var(--shiki-light) !important;
 }

@@ -5,23 +5,30 @@ import {
 	useIsMarkdownCodeBlock,
 } from "@assistant-ui/react-markdown";
 import remarkGfm from "remark-gfm";
-import { memo, useState } from "react";
-import React from "react";
+import {
+	Children,
+	isValidElement,
+	memo,
+	useState,
+	type ComponentPropsWithoutRef,
+	type ReactNode,
+} from "react";
 import ShikiHighlighter from "react-shiki";
 import { Copy, Check } from "@phosphor-icons/react";
 import { cn } from "../../lib/utils";
+import { copyText } from "../../lib/clipboard";
 
 // ─── Code header (language label + copy button) ────────────────────────────────
 
 function CodeHeader({ language, code }: CodeHeaderProps) {
 	const [copied, setCopied] = useState(false);
 
-	const onCopy = () => {
+	const onCopy = async () => {
 		if (!code || copied) return;
-		navigator.clipboard.writeText(code).then(() => {
+		if (await copyText(code)) {
 			setCopied(true);
 			setTimeout(() => setCopied(false), 2000);
-		});
+		}
 	};
 
 	return (
@@ -40,31 +47,45 @@ function CodeHeader({ language, code }: CodeHeaderProps) {
 
 // ─── Syntax-highlighted code block ────────────────────────────────────────────
 
-function SyntaxCodeBlock({ children }: { children: React.ReactNode }) {
+// Flatten a markdown code node's children down to its raw text. react-markdown
+// passes the fenced code as a nested <code> element whose children are text.
+function extractCodeText(node: ReactNode): string {
+	if (typeof node === "string") return node;
+	if (Array.isArray(node)) return node.map(extractCodeText).join("");
+	if (isValidElement(node)) {
+		return extractCodeText((node.props as { children?: ReactNode }).children);
+	}
+	return "";
+}
+
+// Overrides the `pre` element. react-markdown nests the code inside a <code>
+// child; we read the language + raw text straight off that child's props and
+// hand them to shiki rather than rendering the child (the `code` override only
+// handles inline code). The bordered container is styled here so it joins the
+// CodeHeader above it; shiki's own background is forced transparent in App.css.
+function CodeBlock({ children }: ComponentPropsWithoutRef<"pre">) {
+	const child = Children.toArray(children)[0];
 	let language = "text";
 	let code = "";
-
-	React.Children.forEach(children, (child) => {
-		if (!React.isValidElement(child)) return;
-		const el = child as React.ReactElement<{ className?: string; children?: unknown }>;
-		if (el.type !== "code") return;
-		const cls = el.props.className ?? "";
-		language = cls.replace(/^language-/, "") || "text";
-		const c = el.props.children;
-		code = typeof c === "string" ? c : "";
-	});
+	if (isValidElement(child)) {
+		const props = child.props as { className?: string; children?: ReactNode };
+		language = /language-(\w+)/.exec(props.className ?? "")?.[1] ?? "text";
+		code = extractCodeText(props.children).replace(/\n$/, "");
+	} else {
+		code = extractCodeText(children).replace(/\n$/, "");
+	}
 
 	return (
-		<div className="mb-3 last:mb-0 overflow-hidden">
+		<div className="mb-3 last:mb-0">
 			<ShikiHighlighter
 				language={language}
 				theme={{ light: "github-light", dark: "github-dark-dimmed" }}
-				showLanguage={false}
+				defaultColor="dark"
 				addDefaultStyles={false}
-				style={{ background: "transparent", margin: 0 }}
-				className="overflow-x-auto rounded-b-lg border border-t-0 border-white/[8%] p-4 text-[12px] font-mono leading-relaxed"
+				showLanguage={false}
+				className="overflow-x-auto rounded-b-lg border border-t-0 border-white/[8%] p-4 text-[12px] leading-relaxed"
 			>
-				{code.trimEnd() || " "}
+				{code || " "}
 			</ShikiHighlighter>
 		</div>
 	);
@@ -72,7 +93,7 @@ function SyntaxCodeBlock({ children }: { children: React.ReactNode }) {
 
 // ─── Inline code ──────────────────────────────────────────────────────────────
 
-function InlineCode({ className, ...props }: React.ComponentPropsWithoutRef<"code">) {
+function InlineCode({ className, ...props }: ComponentPropsWithoutRef<"code">) {
 	const isCodeBlock = useIsMarkdownCodeBlock();
 	if (isCodeBlock) return <code className={className} {...props} />;
 	return (
@@ -153,7 +174,7 @@ const components = memoizeMarkdownComponents({
 			{...p}
 		/>
 	),
-	pre: SyntaxCodeBlock,
+	pre: CodeBlock,
 	table: ({ className, ...p }) => (
 		<div className="mb-3 overflow-x-auto last:mb-0">
 			<table className={cn("w-full text-[13px] border-collapse", className)} {...p} />
