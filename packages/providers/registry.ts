@@ -1,5 +1,5 @@
 import type { Provider, ProviderAvailability } from "@omnia/contracts";
-import type { ProviderAdapter } from "./types";
+import type { ProviderAdapter } from "./types.js";
 
 export class ProviderRegistry {
 	private adapters: Map<Provider, ProviderAdapter> = new Map();

@@ -1,8 +1,8 @@
 import type { CommandEnvelopeFor, MessageAttachment, ProviderRuntimeEvent } from "@omnia/contracts";
-import type { SessionService } from "./session-service";
+import type { SessionService } from "./session-service.js";
 import type { ProviderAdapter, ProviderRegistry, ProviderSessionRef } from "@omnia/providers";
-import { createEvent } from "../event-store";
-import type { EventStore } from "../event-store";
+import { createEvent } from "../event-store.js";
+import type { EventStore } from "../event-store.js";
 
 export class TurnService {
 	private activeAbortControllers = new Map<string, AbortController>();
@@ -93,7 +93,7 @@ export class TurnService {
 					sessionId: opts.sessionId,
 					turnId: opts.turnId,
 					message: `Turn failed. Ref: ${correlationId}`,
-					retryable: isTransientError(error), //todo
+					retryable: true, //todo: implement isTransientError
 					correlationId,
 				}),
 			);

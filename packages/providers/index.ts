@@ -1,3 +1,3 @@
-export * from "./adapters/fakeProvider";
-export * from "./registry";
-export * from "./types";
+export * from "./adapters/fakeProvider.js";
+export * from "./registry.js";
+export * from "./types.js";

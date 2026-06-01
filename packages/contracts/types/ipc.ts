@@ -1,5 +1,6 @@
-import type { Provider } from "./provider.ts";
-import type { AgentEvent, Session } from "./session.ts";
+import type { AllEvents, EventType } from "./events.js";
+import type { Provider } from "./provider.js";
+import type { Session } from "./session.js";
 
 export type IpcChannels = {
 	"agent:createSession": {
@@ -31,7 +32,7 @@ export type IpcChannels = {
 		args: {
 			sessionId: string;
 		};
-		result: AgentEvent[];
+		result: AllEvents<EventType>[];
 	};
 	"agent:detectProviders": {
 		args: Record<string, never>;
@@ -52,6 +53,6 @@ export type IpcChannels = {
 };
 
 export type IpcEvents = {
-	"agent:event": { sessionId: string; event: AgentEvent };
+	"agent:event": { sessionId: string; event: AllEvents<EventType> };
 	"agent:sessionUpdated": { session: Session };
 };

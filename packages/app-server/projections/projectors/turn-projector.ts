@@ -1,5 +1,5 @@
 import type { AllEvents, EventType, Turn } from "@omnia/contracts";
-import type { Projector } from "./types";
+import type { Projector } from "./types.js";
 
 export class TurnProjector implements Projector<Map<string, Turn>> {
 	state: Map<string, Turn> = new Map();

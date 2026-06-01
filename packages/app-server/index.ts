@@ -1,9 +1,9 @@
 import { ProviderRegistry } from "@omnia/providers";
-import { CommandRouter } from "./command-router";
-import { createEvent, EventStore } from "./event-store";
-import { sessionProjector, turnProjector } from "./projections";
-import { SessionService } from "./services/session-service";
-import { TurnService } from "./services/turn-service";
+import { CommandRouter } from "./command-router.js";
+import { createEvent, EventStore } from "./event-store.js";
+import { sessionProjector, turnProjector } from "./projections/index.js";
+import { SessionService } from "./services/session-service.js";
+import { TurnService } from "./services/turn-service.js";
 
 const router = new CommandRouter();
 const eventStore = EventStore.getInstance();
@@ -31,8 +31,7 @@ router
 			createdAt: Date.now(),
 		});
 		eventStore.addEvent(ev);
-		const sessionId = crypto.randomUUID();
-		await sessionService.create({ ...envelope, id: sessionId });
+		await sessionService.create({ ...envelope, id: envelope.id });
 	})
 	.on("turn.startRequested", async (envelope) => {
 		const ev = createEvent("turn.started", {
@@ -68,4 +67,5 @@ export const appServer = {
 	eventStore,
 	sessionProjector,
 	turnProjector,
+	registry,
 };

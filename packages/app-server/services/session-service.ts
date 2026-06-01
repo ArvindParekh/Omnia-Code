@@ -1,5 +1,5 @@
 import { ProviderRegistry, type ProviderSessionRef } from "@omnia/providers";
-import type { EventStore } from "../event-store";
+import type { EventStore } from "../event-store.js";
 import type { CommandEnvelopeFor } from "@omnia/contracts";
 
 export class SessionService {

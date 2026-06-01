@@ -1,5 +1,5 @@
-import type { EventStore } from "../event-store";
-import type { Projector } from "./projectors/types";
+import type { EventStore } from "../event-store.js";
+import type { Projector } from "./projectors/types.js";
 
 export class ProjectionPipeline {
 	private projectors: Projector<unknown>[] = [];
