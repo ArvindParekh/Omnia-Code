@@ -156,9 +156,9 @@ export default function App() {
 					onSelectSession={setActiveId}
 				/>
 				{/* Rounded pill separator between sidebar and main content */}
-				<div className="shrink-0 self-stretch py-3 flex">
+				{/*<div className="shrink-0 self-stretch flex">
 					<div className="w-px bg-white/[7%] rounded-full" />
-				</div>
+				</div>*/}
 				<div ref={contentRef} className="flex flex-1 overflow-hidden">
 					{activeSession ? (
 						<SessionChat

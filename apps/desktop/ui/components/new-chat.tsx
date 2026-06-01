@@ -47,7 +47,7 @@ export function NewChat({ onStart, recentSessions }: NewChatProps) {
 	const workspaces = Array.from(new Set(recentSessions.map((s) => s.workspacePath)));
 
 	return (
-		<div className="flex-1 flex flex-col items-center justify-center px-6 overflow-y-auto">
+		<div className="flex-1 border-l border-l-white/10 rounded-l-lg flex flex-col items-center justify-center px-6 overflow-y-auto">
 			<div className="w-full max-w-[640px] flex flex-col gap-5">
 				{/* Heading */}
 				<div className="text-center mb-2">
