@@ -2,7 +2,7 @@
 
 One window for all your AI coding agents — transparent tool calls, persistent sessions, and safe approvals. No new subscriptions or API keys required.
 
-<img width="1732" height="991" alt="image" src="https://github.com/user-attachments/assets/8a595332-d300-428a-8a07-8aa8d7d6fa3b" />
+<img width="1655" height="1065" alt="image" src="https://github.com/user-attachments/assets/9de49a24-d7a3-4dd9-90c8-279e364c9836" />
 
 ---
 
