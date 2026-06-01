@@ -174,7 +174,7 @@ function WorkspaceGroup({
 						weight={open ? "fill" : "regular"}
 						className={cn("shrink-0", open ? "text-white/40" : "text-white/28")}
 					/>
-					<span className="text-[13px] font-medium truncate">{name}</span>
+					<span className="text-xs font-medium truncate">{name}</span>
 				</button>
 			</CollapsibleTrigger>
 			<CollapsibleContent>
