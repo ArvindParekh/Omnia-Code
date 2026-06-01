@@ -1,4 +1,4 @@
-import { app, BrowserWindow } from "electron";
+import { app, BrowserWindow, Menu } from "electron";
 import { isDev } from "./util.js";
 import { getPreloadPath, getUIPath, getIconPath } from "./pathResolver.js";
 import "./ipc/ai.js";
@@ -31,5 +31,6 @@ const createWindow = () => {
 };
 
 app.on("ready", () => {
+	Menu.setApplicationMenu(null);
 	createWindow();
 });

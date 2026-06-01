@@ -3,7 +3,7 @@
 	"private": true,
 	"version": "0.0.0",
 	"type": "module",
-	"main": "dist-electron/main.js",
+	"main": "dist-electron/apps/desktop/electron/main.js",
 	"workspaces": [
 		"apps/*",
 		"packages/*"
