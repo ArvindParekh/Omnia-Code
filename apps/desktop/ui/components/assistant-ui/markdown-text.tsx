@@ -68,8 +68,49 @@ function CodeBlock({ children }: ComponentPropsWithoutRef<"pre">) {
 	let language = "text";
 	let code = "";
 	if (isValidElement(child)) {
-		const props = child.props as { className?: string; children?: ReactNode };
-		language = /language-(\w+)/.exec(props.className ?? "")?.[1] ?? "text";
+		const props = child.props as { className?: string; children?: ReactNode; lang?: string; meta?: string };
+		const cls = String(props.className ?? "");
+		// Attempt multiple places for language info
+		const checks = [
+			cls,
+			String(props.lang ?? ""),
+			String(props.meta ?? ""),
+			String((props as any)["data-language"] ?? ""),
+		].join(" ");
+
+		let detected: string | undefined = undefined;
+		const m = /(?:language|lang)[-:=\s]*([^\s;,:]+)/i.exec(checks);
+		if (m) detected = m[1];
+		if (!detected) {
+			const token = checks.split(/\s+/).find((t) => /^(?:language|lang)[-:=]?/i.test(t));
+			if (token) detected = token.replace(/^(?:language|lang)[-:=]?/i, "");
+		}
+
+		const aliasMap: Record<string, string> = {
+			ts: "typescript",
+			tsx: "tsx",
+			js: "javascript",
+			jsx: "jsx",
+			py: "python",
+			sh: "bash",
+			bash: "bash",
+			ps1: "powershell",
+		};
+
+		if (detected) {
+			const key = detected.toLowerCase().replace(/[^a-z0-9\-]/g, "");
+			language = aliasMap[key] ?? key;
+		} else {
+			// fall back to heuristics
+			const sample = extractCodeText(props.children);
+			if (/\b(import|export|interface|type|readonly|from|=>|const|let|function)\b/.test(sample)) {
+				language = "typescript";
+			} else if (/\b(def |import |print\()/.test(sample)) {
+				language = "python";
+			} else {
+				language = "text";
+			}
+		}
 		code = extractCodeText(props.children).replace(/\n$/, "");
 	} else {
 		code = extractCodeText(children).replace(/\n$/, "");
@@ -81,7 +122,7 @@ function CodeBlock({ children }: ComponentPropsWithoutRef<"pre">) {
 				language={language}
 				theme={{ light: "github-light", dark: "github-dark-dimmed" }}
 				defaultColor="dark"
-				addDefaultStyles={false}
+				addDefaultStyles={true}
 				showLanguage={false}
 				className="overflow-x-auto rounded-b-lg border border-t-0 border-white/[8%] p-4 text-[12px] leading-relaxed"
 			>

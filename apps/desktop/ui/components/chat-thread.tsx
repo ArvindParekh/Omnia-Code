@@ -228,6 +228,17 @@ function UserMessage() {
 					</div>
 				)}
 			</MessagePrimitive.Quote>
+			{/* Attachment chips persisted on the sent message */}
+			<div className="max-w-[85%] flex flex-wrap gap-1.5 empty:hidden">
+				<MessagePrimitive.Attachments>
+					{({ attachment }) => (
+						<div className="flex items-center gap-1.5 px-2 py-1 rounded-full border border-white/[8%] bg-white/[3%] text-[11px] text-white/45">
+							<Paperclip size={10} weight="light" />
+							<span className="max-w-[120px] truncate">{attachment.name}</span>
+						</div>
+					)}
+				</MessagePrimitive.Attachments>
+			</div>
 			<div className="max-w-[85%] rounded-2xl bg-white/[5%] border border-white/[9%] px-4 py-2.5">
 				<MessagePrimitive.Parts components={{ Text: UserTextPart }} />
 			</div>

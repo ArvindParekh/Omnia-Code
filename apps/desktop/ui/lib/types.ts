@@ -1,6 +1,9 @@
 // Domain types for the Omnia desktop UI.
 // All components and lib modules import types from here — never from App.tsx.
 
+import type { CompleteAttachment } from "@assistant-ui/react";
+export type { CompleteAttachment };
+
 export type Provider = "claude" | "gemini" | "codex" | "opencode" | "cursor" | "fake";
 
 export type MockSession = {
@@ -21,7 +24,14 @@ export type QuoteRef = {
 };
 
 export type ChatMessage =
-	| { kind: "user"; id: string; text: string; quote?: QuoteRef; timestamp: Date }
+	| {
+			kind: "user";
+			id: string;
+			text: string;
+			quote?: QuoteRef;
+			attachments?: CompleteAttachment[];
+			timestamp: Date;
+	  }
 	| { kind: "assistant"; id: string; text: string; streaming?: boolean; timestamp: Date }
 	| { kind: "reasoning"; id: string; text: string; timestamp: Date }
 	| {

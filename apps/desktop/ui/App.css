@@ -295,7 +295,4 @@
 .shiki {
 	background-color: transparent !important;
 }
-.light .shiki,
-.light .shiki span {
-	color: var(--shiki-light) !important;
-}
+/* Do not override token colors; let shiki inline styles apply. */

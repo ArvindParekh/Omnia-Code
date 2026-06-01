@@ -58,6 +58,9 @@ export function convertToThreadMessages(msgs: ChatMessage[]): ThreadMessageLike[
 				// MessagePrimitive.Quote reads metadata.custom.quote to render the
 				// quoted snippet on the message bubble. Only set it when present.
 				...(msg.quote ? { metadata: { custom: { quote: msg.quote } } } : {}),
+				// MessagePrimitive.Attachments reads message.attachments to render
+				// attachment chips on the sent message bubble.
+				...(msg.attachments?.length ? { attachments: msg.attachments } : {}),
 			});
 		} else if (msg.kind === "reasoning") {
 			ensureAssistant(`reasoning-${msg.id}`, msg.timestamp);

@@ -2,7 +2,14 @@ import { useEffect, useMemo, useState } from "react";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { AssistantRuntimeProvider, useExternalStoreRuntime } from "@assistant-ui/react";
 import type { AppendMessage, ThreadMessageLike } from "@assistant-ui/react";
-import type { ChatMessage, MockSession, Provider, QuoteRef, TurnGroup } from "./lib/types";
+import type {
+	ChatMessage,
+	CompleteAttachment,
+	MockSession,
+	Provider,
+	QuoteRef,
+	TurnGroup,
+} from "./lib/types";
 import { AnyFileAttachmentAdapter } from "./lib/attachment-adapter";
 import { MESSAGES, SESSIONS, TURNS } from "./lib/mock-data";
 import { convertToThreadMessages } from "./lib/convert-messages";
@@ -24,7 +31,7 @@ type SessionChatProps = {
 	turns: TurnGroup[];
 	showInspector: boolean;
 	onApprove: (id: string, approved: boolean) => void;
-	onSend: (text: string, quote?: QuoteRef) => void;
+	onSend: (text: string, quote?: QuoteRef, attachments?: CompleteAttachment[]) => void;
 };
 
 function SessionChat({
@@ -47,7 +54,8 @@ function SessionChat({
 			// (assistant-ui's QuoteInfo). Carry it onto our user message so it
 			// persists as a quote chip after sending.
 			const quote = msg.metadata?.custom?.quote as QuoteRef | undefined;
-			if (first && first.type === "text") onSend(first.text, quote);
+			const attachments = msg.attachments?.length ? [...msg.attachments] : undefined;
+			if (first && first.type === "text") onSend(first.text, quote, attachments);
 		},
 		adapters: {
 			attachments: new AnyFileAttachmentAdapter(),
@@ -102,13 +110,20 @@ export default function App() {
 	const activeMessages = activeId ? (messages[activeId] ?? []) : [];
 	const activeTurns = activeId ? (TURNS[activeId] ?? []) : [];
 
-	const handleSend = (text: string, quote?: QuoteRef) => {
+	const handleSend = (text: string, quote?: QuoteRef, attachments?: CompleteAttachment[]) => {
 		if (!activeId || !text.trim()) return;
 		setMessages((prev) => ({
 			...prev,
 			[activeId]: [
 				...(prev[activeId] ?? []),
-				{ kind: "user", id: `msg-${Date.now()}`, text: text.trim(), quote, timestamp: new Date() },
+				{
+					kind: "user",
+					id: `msg-${Date.now()}`,
+					text: text.trim(),
+					quote,
+					attachments,
+					timestamp: new Date(),
+				},
 			],
 		}));
 	};
