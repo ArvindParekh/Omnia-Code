@@ -68,7 +68,12 @@ function CodeBlock({ children }: ComponentPropsWithoutRef<"pre">) {
 	let language = "text";
 	let code = "";
 	if (isValidElement(child)) {
-		const props = child.props as { className?: string; children?: ReactNode; lang?: string; meta?: string };
+		const props = child.props as {
+			className?: string;
+			children?: ReactNode;
+			lang?: string;
+			meta?: string;
+		};
 		const cls = String(props.className ?? "");
 		// Attempt multiple places for language info
 		const checks = [

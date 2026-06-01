@@ -170,22 +170,11 @@ function WorkspaceGroup({
 						weight="bold"
 						className={cn("shrink-0 transition-transform text-white/22", open && "rotate-90")}
 					/>
-          {
-            open ? (
-
-              <FolderOpenIcon
-						size={14}
-						weight="fill"
-						className={cn("shrink-0", "text-white/40")}
-					/>
-            ) : (
-                <FolderSimple
-					size={14}
-					weight="regular"
-					className={cn("shrink-0", "text-white/28")}
-				/>
-            )
-					}
+					{open ? (
+						<FolderOpenIcon size={14} weight="fill" className={cn("shrink-0", "text-white/40")} />
+					) : (
+						<FolderSimple size={14} weight="regular" className={cn("shrink-0", "text-white/28")} />
+					)}
 					<span className="text-xs font-medium truncate">{name}</span>
 				</button>
 			</CollapsibleTrigger>

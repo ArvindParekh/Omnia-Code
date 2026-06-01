@@ -51,9 +51,7 @@ export function NewChat({ onStart, recentSessions }: NewChatProps) {
 			<div className="w-full max-w-[640px] flex flex-col gap-5">
 				{/* Heading */}
 				<div className="text-center mb-2">
-					<h1 className="text-[26px] font-semibold text-white/85 tracking-tight">
-						What should we work on?
-					</h1>
+					<h1 className="text-2xl font-medium text-white/85">What should we work on?</h1>
 				</div>
 
 				{/* Composer card */}
@@ -134,15 +132,17 @@ export function NewChat({ onStart, recentSessions }: NewChatProps) {
 
 				{/* Suggestions */}
 				<div className="flex flex-col gap-px">
-					{SUGGESTIONS.map(({ icon: Icon, label }) => (
+					{SUGGESTIONS.map(({ icon: Icon, label }, index) => (
 						<button
 							key={label}
 							onClick={() => {
 								setText(label);
 								textareaRef.current?.focus();
 							}}
-							className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-white/35
-								hover:text-white/60 hover:bg-white/[3%] transition-colors text-left w-full group"
+							className={cn(
+								"flex items-center gap-3 px-3 py-2.5 rounded-xl text-white/35", index !== SUGGESTIONS.length -1 ? "border-b" : "",
+								"hover:text-white/60 hover:bg-white/[3%] transition-colors text-left w-full group",
+							)}
 						>
 							<Icon
 								size={14}
