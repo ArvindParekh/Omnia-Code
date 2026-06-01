@@ -25,7 +25,7 @@ import {
 	CaretLeft,
 	CaretRight,
 } from "@phosphor-icons/react";
-import type { MockSession, Provider } from "../lib/types";
+import type { Session, Provider } from "../lib/types";
 import { providerLabel } from "../lib/provider";
 import { cn } from "../lib/utils";
 import { ToolCallBlock } from "./tool-call-block";
@@ -35,9 +35,9 @@ import { copyText } from "../lib/clipboard";
 
 // ─── Thread shell ─────────────────────────────────────────────────────────────
 
-export function ChatThread({ session }: { session: MockSession }) {
+export function ChatThread({ session }: { session: Session }) {
 	const label = providerLabel(session.provider);
-	const workspaceBase = session.workspacePath.replace(/^.*\//, "");
+	const workspaceBase = session.workspaceId.replace(/^.*\//, "") || session.workspaceId;
 	const [messagesRef] = useAutoAnimate<HTMLDivElement>();
 
 	return (
@@ -94,7 +94,7 @@ export function ChatThread({ session }: { session: MockSession }) {
 
 							<Composer
 								label={label}
-								workspacePath={session.workspacePath}
+								workspaceId={session.workspaceId}
 								provider={session.provider}
 							/>
 						</div>
@@ -119,16 +119,16 @@ export function ChatThread({ session }: { session: MockSession }) {
 
 function Composer({
 	label,
-	workspacePath,
+	workspaceId,
 	provider,
 }: {
 	label: string;
-	workspacePath: string;
+	workspaceId: string;
 	provider: Provider;
 }) {
 	const threadRuntime = useThreadRuntime();
 	const isRunning = threadRuntime.getState().isRunning;
-	const workspaceBase = workspacePath.replace(/^.*\//, "");
+	const workspaceBase = workspaceId.replace(/^.*\//, "") || workspaceId;
 
 	return (
 		<ComposerPrimitive.Root
@@ -341,12 +341,13 @@ function ReasoningPart({ text, status }: ReasoningMessagePartProps) {
 
 function ActionButton({
 	children,
-	tooltip: _tooltip,
+	tooltip,
 	className,
 	...props
 }: React.ButtonHTMLAttributes<HTMLButtonElement> & { tooltip?: string }) {
 	return (
 		<button
+			title={tooltip}
 			className={cn(
 				"p-1.5 rounded-lg text-white/28 hover:text-white/55 hover:bg-white/[5%] transition-colors",
 				className,

@@ -1,17 +1,9 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { AssistantRuntimeProvider, useExternalStoreRuntime } from "@assistant-ui/react";
 import type { AppendMessage, ThreadMessageLike } from "@assistant-ui/react";
-import type {
-	ChatMessage,
-	CompleteAttachment,
-	MockSession,
-	Provider,
-	QuoteRef,
-	TurnGroup,
-} from "./lib/types";
+import type { CompleteAttachment, Provider, QuoteRef, Session } from "./lib/types";
 import { AnyFileAttachmentAdapter } from "./lib/attachment-adapter";
-import { MESSAGES, SESSIONS, TURNS } from "./lib/mock-data";
 import { convertToThreadMessages } from "./lib/convert-messages";
 import { ApprovalContext } from "./components/approval-card";
 import { Titlebar } from "./components/titlebar";
@@ -19,57 +11,58 @@ import { SessionSidebar } from "./components/session-sidebar";
 import { ChatThread } from "./components/chat-thread";
 import { EventInspector } from "./components/event-inspector";
 import { NewChat } from "./components/new-chat";
+import { useSessions } from "./hooks/use-sessions";
+import { useMessages } from "./hooks/use-messages";
+import { useProviders } from "./hooks/use-providers";
 
 // ─── Session runtime bridge ───────────────────────────────────────────────────
-// Converts our ChatMessage[] into the format @assistant-ui/react expects and
-// wraps the thread in the runtime context. Keyed on session ID so each session
-// gets a fresh runtime instance when switching.
+// Mounts once per active session (keyed by id). Owns message state via
+// useMessages, wires the @assistant-ui runtime, and sends the initial message
+// if one was queued when the session was created.
 
 type SessionChatProps = {
-	session: MockSession;
-	messages: ChatMessage[];
-	turns: TurnGroup[];
+	session: Session;
 	showInspector: boolean;
-	onApprove: (id: string, approved: boolean) => void;
-	onSend: (text: string, quote?: QuoteRef, attachments?: CompleteAttachment[]) => void;
+	initialMessage?: string;
 };
 
-function SessionChat({
-	session,
-	messages,
-	turns,
-	showInspector,
-	onApprove,
-	onSend,
-}: SessionChatProps) {
+function SessionChat({ session, showInspector, initialMessage }: SessionChatProps) {
+	const { messages, turns, send, approve, isRunning } = useMessages(session.id);
+
+	// Fire the initial message once on mount (only when creating a new session
+	// from the NewChat screen — the ref guards against double-sends on StrictMode).
+	const initialSent = useRef(false);
+	useEffect(() => {
+		if (initialMessage?.trim() && !initialSent.current) {
+			initialSent.current = true;
+			send(initialMessage.trim());
+		}
+	}, []); // eslint-disable-line react-hooks/exhaustive-deps
+
 	const threadMessages = useMemo(() => convertToThreadMessages(messages), [messages]);
 
 	const runtime = useExternalStoreRuntime({
 		messages: threadMessages as ThreadMessageLike[],
 		convertMessage: (msg: ThreadMessageLike) => msg,
-		isRunning: session.status === "running",
+		isRunning,
 		onNew: async (msg: AppendMessage) => {
 			const first = msg.content[0];
-			// The composer stores the selected snippet at metadata.custom.quote
-			// (assistant-ui's QuoteInfo). Carry it onto our user message so it
-			// persists as a quote chip after sending.
 			const quote = msg.metadata?.custom?.quote as QuoteRef | undefined;
-			const attachments = msg.attachments?.length ? [...msg.attachments] : undefined;
-			if (first && first.type === "text") onSend(first.text, quote, attachments);
+			const attachments = msg.attachments?.length
+				? ([...msg.attachments] as CompleteAttachment[])
+				: undefined;
+			if (first?.type === "text") send(first.text, quote, attachments);
 		},
-		adapters: {
-			attachments: new AnyFileAttachmentAdapter(),
-		},
+		adapters: { attachments: new AnyFileAttachmentAdapter() },
 	});
 
 	return (
-		<ApprovalContext.Provider value={{ onApprove }}>
+		<ApprovalContext.Provider value={{ onApprove: approve }}>
 			<AssistantRuntimeProvider runtime={runtime}>
-				<div className="flex flex-1 border-l border-l-white/10 rounded-l-lg  shadow-2xl overflow-hidden">
+				<div className="flex flex-1 border-l border-l-white/10 rounded-l-lg shadow-2xl overflow-hidden">
 					<ChatThread session={session} />
 					{showInspector && (
 						<>
-							{/* Rounded pill separator between chat and inspector */}
 							<div className="shrink-0 self-stretch py-3 flex">
 								<div className="w-px bg-white/[7%] rounded-full" />
 							</div>
@@ -85,12 +78,17 @@ function SessionChat({
 // ─── App ──────────────────────────────────────────────────────────────────────
 
 export default function App() {
-	const [sessions, setSessions] = useState<MockSession[]>(SESSIONS);
+	const { sessions, createSession } = useSessions();
+	const { providers } = useProviders();
 	const [activeId, setActiveId] = useState<string | null>(null);
-	const [messages, setMessages] = useState<Record<string, ChatMessage[]>>(MESSAGES);
 	const [showInspector, setShowInspector] = useState(true);
-
 	const [isDark, setIsDark] = useState(true);
+
+	// Tracks the initial message to send when a new session is created from
+	// NewChat. Keyed by session ID so switching to an existing session never
+	// accidentally fires the wrong pending message.
+	const [sessionInitials, setSessionInitials] = useState<Record<string, string>>({});
+
 	const [contentRef] = useAutoAnimate<HTMLDivElement>((el, action) => {
 		if (action === "remain") return new KeyframeEffect(el, [], { duration: 0 });
 		return new KeyframeEffect(
@@ -107,78 +105,19 @@ export default function App() {
 	}, [isDark]);
 
 	const activeSession = sessions.find((s) => s.id === activeId) ?? null;
-	const activeMessages = activeId ? (messages[activeId] ?? []) : [];
-	const activeTurns = activeId ? (TURNS[activeId] ?? []) : [];
 
-	const handleSend = (text: string, quote?: QuoteRef, attachments?: CompleteAttachment[]) => {
-		if (!activeId || !text.trim()) return;
-		setMessages((prev) => ({
-			...prev,
-			[activeId]: [
-				...(prev[activeId] ?? []),
-				{
-					kind: "user",
-					id: `msg-${Date.now()}`,
-					text: text.trim(),
-					quote,
-					attachments,
-					timestamp: new Date(),
-				},
-			],
-		}));
+	const handleNewSession = async (text: string, provider: Provider, workspacePath: string) => {
+		const title = text.length > 40 ? `${text.slice(0, 40)}…` : text;
+		const session = await createSession(provider, workspacePath, title);
+		setSessionInitials((prev) => ({ ...prev, [session.id]: text }));
+		setActiveId(session.id);
 	};
 
-	const createSession = (
-		title: string,
-		provider: Provider,
-		workspacePath: string,
-		text?: string,
-	) => {
-		const id = `session-${Date.now()}`;
-		const now = new Date();
-		const newSession: MockSession = {
-			id,
-			title,
-			provider,
-			status: "idle",
-			workspacePath,
-			updatedAt: now,
-		};
-		setSessions((prev) => [newSession, ...prev]);
-		setMessages((prev) => ({
-			...prev,
-			[id]: text
-				? [
-						{
-							kind: "user",
-							id: `msg-${Date.now()}`,
-							text,
-							timestamp: now,
-						},
-					]
-				: [],
-		}));
-		setActiveId(id);
-	};
-
-	const handleApprove = (msgId: string, approved: boolean) => {
-		if (!activeId) return;
-		setMessages((prev) => ({
-			...prev,
-			[activeId]: (prev[activeId] ?? []).map((m) =>
-				m.kind === "approval" && m.id === msgId ? { ...m, resolved: true, approved } : m,
-			),
-		}));
-	};
-
-	const handleNewSession = (text: string, provider: Provider, workspacePath: string) => {
-		createSession(text.length > 40 ? `${text.slice(0, 40)}…` : text, provider, workspacePath, text);
-	};
-
-	const handleCreateWorkspaceSession = (workspacePath: string) => {
-		const workspaceSessions = sessions.filter((session) => session.workspacePath === workspacePath);
-		const provider = workspaceSessions[0]?.provider ?? "claude";
-		createSession("Untitled chat", provider, workspacePath);
+	const handleCreateWorkspaceSession = async (workspaceId: string) => {
+		const wsSessions = sessions.filter((s) => s.workspaceId === workspaceId);
+		const provider = wsSessions[0]?.provider ?? "claude";
+		const session = await createSession(provider, workspaceId);
+		setActiveId(session.id);
 	};
 
 	return (
@@ -196,23 +135,16 @@ export default function App() {
 					onSelectSession={setActiveId}
 					onCreateWorkspaceSession={handleCreateWorkspaceSession}
 				/>
-				{/* Rounded pill separator between sidebar and main content */}
-				{/*<div className="shrink-0 self-stretch flex">
-					<div className="w-px bg-white/[7%] rounded-full" />
-				</div>*/}
 				<div ref={contentRef} className="flex flex-1 overflow-hidden">
 					{activeSession ? (
 						<SessionChat
 							key={activeId}
 							session={activeSession}
-							messages={activeMessages}
-							turns={activeTurns}
 							showInspector={showInspector}
-							onApprove={handleApprove}
-							onSend={handleSend}
+							initialMessage={activeId ? sessionInitials[activeId] : undefined}
 						/>
 					) : (
-						<NewChat onStart={handleNewSession} recentSessions={sessions} />
+						<NewChat onStart={handleNewSession} recentSessions={sessions} providers={providers} />
 					)}
 				</div>
 			</div>

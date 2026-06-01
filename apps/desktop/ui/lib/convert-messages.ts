@@ -24,7 +24,7 @@ export function convertToThreadMessages(msgs: ChatMessage[]): ThreadMessageLike[
 				role: "assistant",
 				id: assemblingAssistant.id,
 				createdAt: assemblingAssistant.createdAt,
-				content: assemblingAssistant.content as ThreadMessageLike["content"],
+				content: assemblingAssistant.content as unknown as ThreadMessageLike["content"],
 				status: assemblingAssistant.requiresAction
 					? { type: "requires-action", reason: "tool-calls" }
 					: assemblingAssistant.isRunning

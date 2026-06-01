@@ -4,16 +4,9 @@
 import type { CompleteAttachment } from "@assistant-ui/react";
 export type { CompleteAttachment };
 
-export type Provider = "claude" | "gemini" | "codex" | "opencode" | "cursor" | "fake";
-
-export type MockSession = {
-	id: string;
-	title: string;
-	provider: Provider;
-	status: "idle" | "running" | "error";
-	workspacePath: string;
-	updatedAt: Date;
-};
+// Re-export shared contract types so component imports stay stable if the
+// contracts package structure changes — update this file, not every component.
+export type { Provider, Session, SessionStatus } from "@omnia/contracts";
 
 // A quote carried on a user message — the snippet the user selected from a
 // prior assistant response before sending. Mirrors assistant-ui's QuoteInfo,

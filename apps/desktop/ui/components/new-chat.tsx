@@ -1,10 +1,8 @@
 import { useRef, useState } from "react";
 import { ArrowUp, FolderSimple, Lightning, Bug, GitBranch, Sparkle } from "@phosphor-icons/react";
-import type { MockSession, Provider } from "../lib/types";
+import type { Provider, Session } from "../lib/types";
 import { providerLabel } from "../lib/provider";
 import { cn } from "../lib/utils";
-
-const PROVIDERS: Provider[] = ["claude", "gemini", "codex", "opencode", "fake"];
 
 const SUGGESTIONS = [
 	{ icon: Bug, label: "Debug an issue in the codebase" },
@@ -15,13 +13,14 @@ const SUGGESTIONS = [
 
 type NewChatProps = {
 	onStart: (text: string, provider: Provider, workspacePath: string) => void;
-	recentSessions: MockSession[];
+	recentSessions: Session[];
+	providers: Provider[];
 };
 
-export function NewChat({ onStart, recentSessions }: NewChatProps) {
+export function NewChat({ onStart, recentSessions, providers }: NewChatProps) {
 	const [text, setText] = useState("");
-	const [provider, setProvider] = useState<Provider>("claude");
-	const [workspace, setWorkspace] = useState("~/projects/webapp");
+	const [provider, setProvider] = useState<Provider>(providers[0] ?? "claude");
+	const [workspace, setWorkspace] = useState(recentSessions[0]?.workspaceId ?? "~/projects");
 	const textareaRef = useRef<HTMLTextAreaElement>(null);
 
 	const handleSubmit = () => {
@@ -44,7 +43,7 @@ export function NewChat({ onStart, recentSessions }: NewChatProps) {
 		el.style.height = `${Math.min(el.scrollHeight, 200)}px`;
 	};
 
-	const workspaces = Array.from(new Set(recentSessions.map((s) => s.workspacePath)));
+	const workspaces = Array.from(new Set(recentSessions.map((s) => s.workspaceId)));
 
 	return (
 		<div className="flex-1 border-l border-l-white/10 rounded-l-lg flex flex-col items-center justify-center px-6 overflow-y-auto">
@@ -73,7 +72,7 @@ export function NewChat({ onStart, recentSessions }: NewChatProps) {
 					<div className="flex items-center gap-2 px-3.5 pb-3 pt-1">
 						{/* Provider picker */}
 						<div className="flex items-center gap-1">
-							{PROVIDERS.map((p) => (
+							{providers.map((p) => (
 								<button
 									key={p}
 									onClick={() => setProvider(p)}
@@ -92,7 +91,7 @@ export function NewChat({ onStart, recentSessions }: NewChatProps) {
 						{/* Workspace picker */}
 						<div className="ml-auto flex items-center gap-1.5 text-white/30 hover:text-white/50 transition-colors cursor-pointer">
 							<FolderSimple size={13} weight="light" />
-							<span className="text-[11px]">{workspace.replace(/^.*\//, "")}</span>
+							<span className="text-[11px]">{workspace.replace(/^.*\//, "") || workspace}</span>
 						</div>
 
 						{/* Send button */}
@@ -124,7 +123,7 @@ export function NewChat({ onStart, recentSessions }: NewChatProps) {
 								)}
 							>
 								<FolderSimple size={11} weight="light" />
-								{ws.replace(/^.*\//, "")}
+								{ws.replace(/^.*\//, "") || ws}
 							</button>
 						))}
 					</div>

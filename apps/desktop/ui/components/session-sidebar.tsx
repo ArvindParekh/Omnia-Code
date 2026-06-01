@@ -10,17 +10,17 @@ import {
 	ChatTeardropText,
 } from "@phosphor-icons/react";
 import { IconEdit } from "@tabler/icons-react";
-import type { MockSession } from "../lib/types";
+import type { Session } from "../lib/types";
 import { providerLabel } from "../lib/provider";
 import { timeAgo } from "../lib/time";
 import { cn } from "../lib/utils";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "./ui/collapsible";
 
 type SessionSidebarProps = {
-	sessions: MockSession[];
+	sessions: Session[];
 	activeSessionId: string | null;
 	onSelectSession: (id: string | null) => void;
-	onCreateWorkspaceSession: (workspacePath: string) => void;
+	onCreateWorkspaceSession: (workspaceId: string) => void;
 };
 
 export function SessionSidebar({
@@ -36,7 +36,7 @@ export function SessionSidebar({
 		? sessions.filter((s) => s.title.toLowerCase().includes(query.toLowerCase()))
 		: sessions;
 
-	const workspaces = Array.from(new Set(sessions.map((s) => s.workspacePath)));
+	const workspaces = Array.from(new Set(sessions.map((s) => s.workspaceId)));
 
 	return (
 		<div className="flex flex-col w-[240px] shrink-0 overflow-hidden">
@@ -113,13 +113,13 @@ export function SessionSidebar({
 
 						{/* Workspace groups */}
 						{workspaces.map((ws) => {
-							const wsSessions = sessions.filter((s) => s.workspacePath === ws);
-							const wsBase = ws.replace(/^.*\//, "");
+							const wsSessions = sessions.filter((s) => s.workspaceId === ws);
+							const wsName = ws.replace(/^.*\//, "") || ws;
 							return (
 								<WorkspaceGroup
 									key={ws}
-									name={wsBase}
-									workspacePath={ws}
+									name={wsName}
+									workspaceId={ws}
 									sessions={wsSessions}
 									activeSessionId={activeSessionId}
 									onSelect={onSelectSession}
@@ -145,7 +145,7 @@ export function SessionSidebar({
 
 function WorkspaceGroup({
 	name,
-	workspacePath,
+	workspaceId,
 	sessions,
 	activeSessionId,
 	onSelect,
@@ -153,11 +153,11 @@ function WorkspaceGroup({
 	defaultOpen,
 }: {
 	name: string;
-	workspacePath: string;
-	sessions: MockSession[];
+	workspaceId: string;
+	sessions: Session[];
 	activeSessionId: string | null;
 	onSelect: (id: string | null) => void;
-	onCreateWorkspaceSession: (workspacePath: string) => void;
+	onCreateWorkspaceSession: (workspaceId: string) => void;
 	defaultOpen?: boolean;
 }) {
 	const [open, setOpen] = useState(defaultOpen ?? false);
@@ -195,7 +195,7 @@ function WorkspaceGroup({
 				<button
 					type="button"
 					aria-label={`Create new chat in ${name}`}
-					onClick={() => onCreateWorkspaceSession(workspacePath)}
+					onClick={() => onCreateWorkspaceSession(workspaceId)}
 					className="shrink-0 rounded-sm p-0.5 text-white/28 opacity-0 transition-opacity transition-colors hover:text-white/70 hover:bg-white/[6%] hover:rounded-sm group-hover:opacity-100"
 				>
 					<IconEdit stroke={2} size={12} />
@@ -227,7 +227,7 @@ function SessionItem({
 	onClick,
 	indented,
 }: {
-	session: MockSession;
+	session: Session;
 	isActive: boolean;
 	onClick: () => void;
 	indented: boolean;
@@ -268,7 +268,7 @@ function SessionItem({
 	);
 }
 
-function StatusDot({ status }: { status: MockSession["status"] }) {
+function StatusDot({ status }: { status: Session["status"] }) {
 	if (status === "running") {
 		return <span className="w-[5px] h-[5px] rounded-full bg-white/35 shrink-0 status-running" />;
 	}

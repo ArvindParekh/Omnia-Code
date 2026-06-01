@@ -80,7 +80,7 @@ function CodeBlock({ children }: ComponentPropsWithoutRef<"pre">) {
 			cls,
 			String(props.lang ?? ""),
 			String(props.meta ?? ""),
-			String((props as any)["data-language"] ?? ""),
+			String((props as Record<string, unknown>)["data-language"] ?? ""),
 		].join(" ");
 
 		let detected: string | undefined = undefined;
@@ -103,7 +103,7 @@ function CodeBlock({ children }: ComponentPropsWithoutRef<"pre">) {
 		};
 
 		if (detected) {
-			const key = detected.toLowerCase().replace(/[^a-z0-9\-]/g, "");
+			const key = detected.toLowerCase().replace(/[^a-z0-9-]/g, "");
 			language = aliasMap[key] ?? key;
 		} else {
 			// fall back to heuristics

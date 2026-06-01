@@ -1,4 +1,4 @@
-import { useState, useEffect, createContext, useContext } from "react";
+import { useState, createContext, useContext } from "react";
 import { Brain, CaretDown } from "@phosphor-icons/react";
 import { cn } from "../../lib/utils";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "../ui/collapsible";
@@ -34,6 +34,7 @@ export function Reasoning({
 	className,
 }: ReasoningProps) {
 	const [uncontrolledOpen, setUncontrolledOpen] = useState(defaultOpen);
+	const [prevIsStreaming, setPrevIsStreaming] = useState(isStreaming);
 	const isControlled = controlledOpen !== undefined;
 	const open = isControlled ? controlledOpen! : uncontrolledOpen;
 
@@ -42,11 +43,15 @@ export function Reasoning({
 		onOpenChange?.(v);
 	};
 
-	// Auto-open while streaming, auto-close when streaming ends
-	useEffect(() => {
-		if (isStreaming) setOpen(true);
-		// intentionally don't auto-close so user can keep it open after
-	}, [isStreaming]);
+	// Derived-state pattern: auto-open when streaming starts, keep open after it ends.
+	// React re-renders immediately when setState is called during render (no commit).
+	if (isStreaming && !prevIsStreaming) {
+		setPrevIsStreaming(true);
+		if (!isControlled && !uncontrolledOpen) setUncontrolledOpen(true);
+	} else if (!isStreaming && prevIsStreaming) {
+		setPrevIsStreaming(false);
+		// intentionally don't auto-close — let the user keep it open
+	}
 
 	return (
 		<ReasoningCtx.Provider value={{ open, setOpen }}>

@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { CaretRight } from "@phosphor-icons/react";
-import type { MockSession, TurnGroup, InspectorEvent } from "../lib/types";
+import type { Session, TurnGroup, InspectorEvent } from "../lib/types";
 import { providerLabel } from "../lib/provider";
 import { cn } from "../lib/utils";
 
 type EventInspectorProps = {
-	session: MockSession;
+	session: Session;
 	turns: TurnGroup[];
 };
 
