@@ -128,6 +128,39 @@ export default function App() {
 		}));
 	};
 
+	const createSession = (
+		title: string,
+		provider: Provider,
+		workspacePath: string,
+		text?: string,
+	) => {
+		const id = `session-${Date.now()}`;
+		const now = new Date();
+		const newSession: MockSession = {
+			id,
+			title,
+			provider,
+			status: "idle",
+			workspacePath,
+			updatedAt: now,
+		};
+		setSessions((prev) => [newSession, ...prev]);
+		setMessages((prev) => ({
+			...prev,
+			[id]: text
+				? [
+						{
+							kind: "user",
+							id: `msg-${Date.now()}`,
+							text,
+							timestamp: now,
+						},
+					]
+				: [],
+		}));
+		setActiveId(id);
+	};
+
 	const handleApprove = (msgId: string, approved: boolean) => {
 		if (!activeId) return;
 		setMessages((prev) => ({
@@ -139,21 +172,13 @@ export default function App() {
 	};
 
 	const handleNewSession = (text: string, provider: Provider, workspacePath: string) => {
-		const id = `session-${Date.now()}`;
-		const newSession: MockSession = {
-			id,
-			title: text.length > 40 ? `${text.slice(0, 40)}…` : text,
-			provider,
-			status: "idle",
-			workspacePath,
-			updatedAt: new Date(),
-		};
-		setSessions((prev) => [newSession, ...prev]);
-		setMessages((prev) => ({
-			...prev,
-			[id]: [{ kind: "user", id: `msg-${Date.now()}`, text, timestamp: new Date() }],
-		}));
-		setActiveId(id);
+		createSession(text.length > 40 ? `${text.slice(0, 40)}…` : text, provider, workspacePath, text);
+	};
+
+	const handleCreateWorkspaceSession = (workspacePath: string) => {
+		const workspaceSessions = sessions.filter((session) => session.workspacePath === workspacePath);
+		const provider = workspaceSessions[0]?.provider ?? "claude";
+		createSession("Untitled chat", provider, workspacePath);
 	};
 
 	return (
@@ -169,6 +194,7 @@ export default function App() {
 					sessions={sessions}
 					activeSessionId={activeId}
 					onSelectSession={setActiveId}
+					onCreateWorkspaceSession={handleCreateWorkspaceSession}
 				/>
 				{/* Rounded pill separator between sidebar and main content */}
 				{/*<div className="shrink-0 self-stretch flex">

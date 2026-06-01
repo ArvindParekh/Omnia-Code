@@ -20,13 +20,14 @@ type SessionSidebarProps = {
 	sessions: MockSession[];
 	activeSessionId: string | null;
 	onSelectSession: (id: string | null) => void;
-	onNewSession?: () => void;
+	onCreateWorkspaceSession: (workspacePath: string) => void;
 };
 
 export function SessionSidebar({
 	sessions,
 	activeSessionId,
 	onSelectSession,
+	onCreateWorkspaceSession,
 }: SessionSidebarProps) {
 	const [query, setQuery] = useState("");
 	const [listRef] = useAutoAnimate<HTMLDivElement>();
@@ -118,9 +119,11 @@ export function SessionSidebar({
 								<WorkspaceGroup
 									key={ws}
 									name={wsBase}
+									workspacePath={ws}
 									sessions={wsSessions}
 									activeSessionId={activeSessionId}
 									onSelect={onSelectSession}
+									onCreateWorkspaceSession={onCreateWorkspaceSession}
 									defaultOpen
 								/>
 							);
@@ -142,15 +145,19 @@ export function SessionSidebar({
 
 function WorkspaceGroup({
 	name,
+	workspacePath,
 	sessions,
 	activeSessionId,
 	onSelect,
+	onCreateWorkspaceSession,
 	defaultOpen,
 }: {
 	name: string;
+	workspacePath: string;
 	sessions: MockSession[];
 	activeSessionId: string | null;
 	onSelect: (id: string | null) => void;
+	onCreateWorkspaceSession: (workspacePath: string) => void;
 	defaultOpen?: boolean;
 }) {
 	const [open, setOpen] = useState(defaultOpen ?? false);
@@ -159,31 +166,41 @@ function WorkspaceGroup({
 
 	return (
 		<Collapsible open={open} onOpenChange={setOpen}>
-			<CollapsibleTrigger asChild>
+			<div className="flex items-center gap-1 px-2 py-1 rounded-lg group">
+				<CollapsibleTrigger asChild>
+					<button
+						type="button"
+						className={cn(
+							"flex flex-1 items-center gap-1.5 min-w-0 text-left transition-colors",
+							hasActive ? "text-white/65" : "text-white/38 hover:text-white/58",
+						)}
+					>
+						<CaretRightIcon
+							size={10}
+							weight="bold"
+							className={cn("shrink-0 transition-transform text-white/22", open && "rotate-90")}
+						/>
+						{open ? (
+							<FolderOpenIcon size={14} weight="fill" className={cn("shrink-0", "text-white/40")} />
+						) : (
+							<FolderSimple
+								size={14}
+								weight="regular"
+								className={cn("shrink-0", "text-white/28")}
+							/>
+						)}
+						<span className="text-xs font-medium truncate">{name}</span>
+					</button>
+				</CollapsibleTrigger>
 				<button
-					className={cn(
-						"flex items-center gap-1.5 w-full px-2 py-1 rounded-lg text-left transition-colors group",
-						hasActive ? "text-white/65" : "text-white/38 hover:text-white/58 hover:bg-white/[3%]",
-					)}
+					type="button"
+					aria-label={`Create new chat in ${name}`}
+					onClick={() => onCreateWorkspaceSession(workspacePath)}
+					className="shrink-0 rounded-sm p-0.5 text-white/28 opacity-0 transition-opacity transition-colors hover:text-white/70 hover:bg-white/[6%] hover:rounded-sm group-hover:opacity-100"
 				>
-					<CaretRightIcon
-						size={10}
-						weight="bold"
-						className={cn("shrink-0 transition-transform text-white/22", open && "rotate-90")}
-					/>
-					{open ? (
-						<FolderOpenIcon size={14} weight="fill" className={cn("shrink-0", "text-white/40")} />
-					) : (
-						<FolderSimple size={14} weight="regular" className={cn("shrink-0", "text-white/28")} />
-					)}
-					<span className="text-xs font-medium truncate">{name}</span>
-					<IconEdit
-						stroke={2}
-						size={12}
-						className="ml-auto shrink-0 text-white/28 opacity-0 transition-opacity transition-colors group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto hover:text-white/70 hover:bg-white/[6%] hover:rounded-sm cursor-pointer"
-					/>
+					<IconEdit stroke={2} size={12} />
 				</button>
-			</CollapsibleTrigger>
+			</div>
 			<CollapsibleContent>
 				<div
 					ref={sessionListRef}
