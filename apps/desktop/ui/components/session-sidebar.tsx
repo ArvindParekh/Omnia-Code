@@ -9,6 +9,7 @@ import {
 	GearSix,
 	ChatTeardropText,
 } from "@phosphor-icons/react";
+import { IconEdit } from "@tabler/icons-react";
 import type { MockSession } from "../lib/types";
 import { providerLabel } from "../lib/provider";
 import { timeAgo } from "../lib/time";
@@ -176,6 +177,11 @@ function WorkspaceGroup({
 						<FolderSimple size={14} weight="regular" className={cn("shrink-0", "text-white/28")} />
 					)}
 					<span className="text-xs font-medium truncate">{name}</span>
+					<IconEdit
+						stroke={2}
+						size={12}
+						className="ml-auto shrink-0 text-white/28 opacity-0 transition-opacity transition-colors group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto hover:text-white/70 hover:bg-white/[6%] hover:rounded-sm cursor-pointer"
+					/>
 				</button>
 			</CollapsibleTrigger>
 			<CollapsibleContent>

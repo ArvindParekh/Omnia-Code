@@ -140,7 +140,8 @@ export function NewChat({ onStart, recentSessions }: NewChatProps) {
 								textareaRef.current?.focus();
 							}}
 							className={cn(
-								"flex items-center gap-3 px-3 py-2.5 rounded-xl text-white/35", index !== SUGGESTIONS.length -1 ? "border-b" : "",
+								"flex items-center gap-3 px-3 py-2.5 rounded-xl text-white/35",
+								index !== SUGGESTIONS.length - 1 ? "border-b" : "",
 								"hover:text-white/60 hover:bg-white/[3%] transition-colors text-left w-full group",
 							)}
 						>
