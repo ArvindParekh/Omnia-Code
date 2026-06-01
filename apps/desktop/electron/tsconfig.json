@@ -9,5 +9,6 @@
 		"paths": {
 			"@omnia/*": ["packages/*/index.ts"]
 		}
-	}
+	},
+	"include": [".", "../preload"]
 }

@@ -3,7 +3,11 @@ import path from "path";
 import { app } from "electron";
 
 export function getPreloadPath() {
-	return path.join(app.getAppPath(), isDev() ? "./" : "../", "/dist-electron/preload.cjs");
+	return path.join(
+		app.getAppPath(),
+		isDev() ? "./" : "../",
+		"/dist-electron/apps/desktop/preload/preload.cjs",
+	);
 }
 
 export function getUIPath() {
