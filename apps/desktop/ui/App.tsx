@@ -65,7 +65,7 @@ function SessionChat({
 	return (
 		<ApprovalContext.Provider value={{ onApprove }}>
 			<AssistantRuntimeProvider runtime={runtime}>
-				<div className="flex flex-1 overflow-hidden">
+				<div className="flex flex-1 border-l border-l-white/10 rounded-l-lg  shadow-2xl overflow-hidden">
 					<ChatThread session={session} />
 					{showInspector && (
 						<>
