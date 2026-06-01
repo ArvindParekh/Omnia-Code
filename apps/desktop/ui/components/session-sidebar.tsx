@@ -4,7 +4,8 @@ import {
 	MagnifyingGlass,
 	PlusCircle,
 	FolderSimple,
-	CaretRight,
+	FolderOpenIcon,
+	CaretRightIcon,
 	GearSix,
 	ChatTeardropText,
 } from "@phosphor-icons/react";
@@ -164,16 +165,27 @@ function WorkspaceGroup({
 						hasActive ? "text-white/65" : "text-white/38 hover:text-white/58 hover:bg-white/[3%]",
 					)}
 				>
-					<CaretRight
+					<CaretRightIcon
 						size={10}
 						weight="bold"
 						className={cn("shrink-0 transition-transform text-white/22", open && "rotate-90")}
 					/>
-					<FolderSimple
+          {
+            open ? (
+
+              <FolderOpenIcon
 						size={14}
-						weight={open ? "fill" : "regular"}
-						className={cn("shrink-0", open ? "text-white/40" : "text-white/28")}
+						weight="fill"
+						className={cn("shrink-0", "text-white/40")}
 					/>
+            ) : (
+                <FolderSimple
+					size={14}
+					weight="regular"
+					className={cn("shrink-0", "text-white/28")}
+				/>
+            )
+					}
 					<span className="text-xs font-medium truncate">{name}</span>
 				</button>
 			</CollapsibleTrigger>
