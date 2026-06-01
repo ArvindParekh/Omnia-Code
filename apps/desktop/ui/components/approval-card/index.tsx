@@ -1,24 +1,8 @@
-import { createContext, useContext } from "react";
 import { Check, X, Warning } from "@phosphor-icons/react";
-import type { ApprovalArgs } from "../lib/types";
+import type { ApprovalArgs } from "../../lib/types";
+import { useApproval } from "./context";
 
-// ─── Context ──────────────────────────────────────────────────────────────────
-// Carries the approval callback down to ApprovalCard without threading it
-// through the assistant-ui message rendering tree.
-
-type ApprovalContextValue = {
-	onApprove: (id: string, approved: boolean) => void;
-};
-
-export const ApprovalContext = createContext<ApprovalContextValue | null>(null);
-
-export function useApproval() {
-	const ctx = useContext(ApprovalContext);
-	if (!ctx) throw new Error("useApproval must be used inside ApprovalContext.Provider");
-	return ctx;
-}
-
-// ─── Component ────────────────────────────────────────────────────────────────
+export { ApprovalContext, useApproval } from "./context";
 
 type ApprovalCardProps = ApprovalArgs & {
 	toolName: string;
