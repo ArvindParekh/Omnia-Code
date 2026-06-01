@@ -37,6 +37,18 @@ export type IpcChannels = {
 		args: Record<string, never>;
 		result: Provider[];
 	};
+	"window:minimize": {
+		args: Record<string, never>;
+		result: undefined;
+	};
+	"window:maximize": {
+		args: Record<string, never>;
+		result: undefined;
+	};
+	"window:close": {
+		args: Record<string, never>;
+		result: undefined;
+	};
 };
 
 export type IpcEvents = {

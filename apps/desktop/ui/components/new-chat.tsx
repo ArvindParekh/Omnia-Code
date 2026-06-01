@@ -4,7 +4,7 @@ import type { MockSession, Provider } from "../lib/types";
 import { providerLabel } from "../lib/provider";
 import { cn } from "../lib/utils";
 
-const PROVIDERS: Provider[] = ["claude", "gemini", "codex", "opencode"];
+const PROVIDERS: Provider[] = ["claude", "gemini", "codex", "opencode", "fake"];
 
 const SUGGESTIONS = [
 	{ icon: Bug, label: "Debug an issue in the codebase" },

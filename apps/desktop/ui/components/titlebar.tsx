@@ -1,4 +1,4 @@
-import { SidebarSimple, Sun, Moon } from "@phosphor-icons/react";
+import { SidebarSimple, Sun, Moon, X, Minus, Plus } from "@phosphor-icons/react";
 import { cn } from "../lib/utils";
 
 type TitlebarProps = {
@@ -19,11 +19,44 @@ export function Titlebar({
 			className="flex items-center h-[38px] px-4 shrink-0 border-b border-white/[6%]"
 			style={{ WebkitAppRegion: "drag" } as React.CSSProperties}
 		>
-			{/* macOS traffic light placeholder */}
-			<div className="flex items-center gap-[6px] mr-4">
-				<span className="w-3 h-3 rounded-full bg-white/[8%]" />
-				<span className="w-3 h-3 rounded-full bg-white/[8%]" />
-				<span className="w-3 h-3 rounded-full bg-white/[8%]" />
+			{/* macOS traffic lights */}
+			<div
+				className="flex items-center gap-[6px] mr-4 group"
+				style={{ WebkitAppRegion: "no-drag" } as React.CSSProperties}
+			>
+				<button
+					onClick={() => window.omnia.ipc.invoke("window:close", {})}
+					className="w-3 h-3 rounded-full bg-[#FF5F57] flex items-center justify-center"
+					title="Close"
+				>
+					<X
+						size={7}
+						weight="bold"
+						className="text-black/60 opacity-0 group-hover:opacity-100 transition-opacity"
+					/>
+				</button>
+				<button
+					onClick={() => window.omnia.ipc.invoke("window:minimize", {})}
+					className="w-3 h-3 rounded-full bg-[#FFBD2E] flex items-center justify-center"
+					title="Minimize"
+				>
+					<Minus
+						size={7}
+						weight="bold"
+						className="text-black/60 opacity-0 group-hover:opacity-100 transition-opacity"
+					/>
+				</button>
+				<button
+					onClick={() => window.omnia.ipc.invoke("window:maximize", {})}
+					className="w-3 h-3 rounded-full bg-[#28C840] flex items-center justify-center"
+					title="Maximize"
+				>
+					<Plus
+						size={7}
+						weight="bold"
+						className="text-black/60 opacity-0 group-hover:opacity-100 transition-opacity"
+					/>
+				</button>
 			</div>
 
 			{/* App name */}

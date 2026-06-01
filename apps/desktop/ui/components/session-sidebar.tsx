@@ -160,7 +160,7 @@ function WorkspaceGroup({
 			<CollapsibleTrigger asChild>
 				<button
 					className={cn(
-						"flex items-center gap-1.5 w-full px-2 py-1.5 rounded-lg text-left transition-colors group",
+						"flex items-center gap-1.5 w-full px-2 py-1 rounded-lg text-left transition-colors group",
 						hasActive ? "text-white/65" : "text-white/38 hover:text-white/58 hover:bg-white/[3%]",
 					)}
 				>
@@ -214,7 +214,7 @@ function SessionItem({
 		<button
 			onClick={onClick}
 			className={cn(
-				"w-full text-left rounded-lg px-2.5 py-[7px] transition-colors group",
+				"w-full text-left rounded-sm px-2.5 py-0.5 my-0.5 transition-colors group",
 				isActive ? "bg-white/[7%]" : "hover:bg-white/[4%]",
 				indented && "text-[12px]",
 			)}
