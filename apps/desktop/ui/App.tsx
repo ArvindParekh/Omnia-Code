@@ -73,6 +73,13 @@ export default function App() {
 							session={activeSession}
 							showInspector={showInspector}
 							initialMessage={activeId ? sessionInitials[activeId] : undefined}
+							onInitialMessageSent={() =>
+								setSessionInitials((prev) => {
+									const next = { ...prev };
+									if (activeId) delete next[activeId];
+									return next;
+								})
+							}
 						/>
 					) : (
 						<NewChat onStart={handleNewSession} recentSessions={sessions} providers={providers} />

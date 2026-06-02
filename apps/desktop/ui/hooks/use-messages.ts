@@ -1,20 +1,32 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { ChatMessage, CompleteAttachment, QuoteRef, TurnGroup } from "../lib/types";
 import { ipcInvoke, useIpcEvent } from "./use-ipc";
 
+// Module-level cache so messages/turns survive SessionChat remounts when
+// navigating between sessions. Keyed by sessionId.
+type SessionCache = { messages: ChatMessage[]; turns: TurnGroup[] };
+const sessionCache = new Map<string, SessionCache>();
+
 // Manages the full message state and event stream for a single session.
-// The invoke on agent:sendMessage completes when the full response stream ends,
-// so we use its resolution as the primary "done" signal. We also handle explicit
-// done/error AgentEvent types for forward compatibility with future backend updates.
 export function useMessages(sessionId: string) {
-	const [messages, setMessages] = useState<ChatMessage[]>([]);
-	const [turns, setTurns] = useState<TurnGroup[]>([]);
+	const [messages, setMessages] = useState<ChatMessage[]>(
+		() => sessionCache.get(sessionId)?.messages ?? []
+	);
+	const [turns, setTurns] = useState<TurnGroup[]>(
+		() => sessionCache.get(sessionId)?.turns ?? []
+	);
 	const [isRunning, setIsRunning] = useState(false);
 
 	// Refs for mutable streaming state — stable across renders, safe in closures
 	const streamingMsgId = useRef<string | null>(null);
 	const currentTurnId = useRef<string | null>(null);
 	const turnIndex = useRef(0);
+
+	// Write back to the cache on every change so a future remount picks up
+	// where we left off.
+	useEffect(() => {
+		sessionCache.set(sessionId, { messages, turns });
+	}, [sessionId, messages, turns]);
 
 	// Stable — only closes over refs and stable setters, so deps can be [].
 	const finalizeStream = useCallback((explicitTurnId?: string) => {

@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ArrowUp, FolderSimple, Lightning, Bug, GitBranch, Sparkle } from "@phosphor-icons/react";
 import type { Provider, Session } from "../lib/types";
 import { providerLabel } from "../lib/provider";
@@ -19,9 +19,16 @@ type NewChatProps = {
 
 export function NewChat({ onStart, recentSessions, providers }: NewChatProps) {
 	const [text, setText] = useState("");
-	console.log("available providers", providers);
 	const [provider, setProvider] = useState<Provider>(providers[0] ?? "claude");
 	const [workspace, setWorkspace] = useState(recentSessions[0]?.workspaceId ?? "~/projects");
+
+	// When the detected provider list resolves and the current selection is no
+	// longer in it, reset to the first available provider.
+	useEffect(() => {
+		if (providers.length > 0 && !providers.includes(provider)) {
+			setProvider(providers[0]);
+		}
+	}, [providers]); // provider intentionally omitted — only reset when the list itself changes
 	const textareaRef = useRef<HTMLTextAreaElement>(null);
 
 	const handleSubmit = () => {

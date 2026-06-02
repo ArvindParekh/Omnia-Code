@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import { AssistantRuntimeProvider, useExternalStoreRuntime } from "@assistant-ui/react";
 import type { AppendMessage, ThreadMessageLike } from "@assistant-ui/react";
 import type { CompleteAttachment, QuoteRef, Session } from "../lib/types";
@@ -13,9 +13,10 @@ type SessionChatProps = {
 	session: Session;
 	showInspector: boolean;
 	initialMessage?: string;
+	onInitialMessageSent?: () => void;
 };
 
-export function SessionChat({ session, showInspector, initialMessage }: SessionChatProps) {
+export function SessionChat({ session, showInspector, initialMessage, onInitialMessageSent }: SessionChatProps) {
 	const { messages, turns, send, approve, isRunning } = useMessages(session.id);
 
 	// Fire the initial message once on mount (only when creating a new session
@@ -25,16 +26,14 @@ export function SessionChat({ session, showInspector, initialMessage }: SessionC
 		if (initialMessage?.trim() && !initialSent.current) {
 			initialSent.current = true;
 			send(initialMessage.trim());
+			onInitialMessageSent?.();
 		}
 	}, []); // eslint-disable-line react-hooks/exhaustive-deps
 
 	const threadMessages = useMemo(() => convertToThreadMessages(messages), [messages]);
 
-	const runtime = useExternalStoreRuntime({
-		messages: threadMessages as ThreadMessageLike[],
-		convertMessage: (msg: ThreadMessageLike) => msg,
-		isRunning,
-		onNew: async (msg: AppendMessage) => {
+	const onNew = useCallback(
+		async (msg: AppendMessage) => {
 			const first = msg.content[0];
 			const quote = msg.metadata?.custom?.quote as QuoteRef | undefined;
 			const attachments = msg.attachments?.length
@@ -42,6 +41,14 @@ export function SessionChat({ session, showInspector, initialMessage }: SessionC
 				: undefined;
 			if (first?.type === "text") send(first.text, quote, attachments);
 		},
+		[send],
+	);
+
+	const runtime = useExternalStoreRuntime({
+		messages: threadMessages as ThreadMessageLike[],
+		convertMessage: (msg: ThreadMessageLike) => msg,
+		isRunning,
+		onNew,
 		adapters: { attachments: new AnyFileAttachmentAdapter() },
 	});
 
