@@ -33,22 +33,28 @@ export function useMessages(sessionId: string) {
 		setIsRunning(false);
 	}, []);
 
-	useIpcEvent("agent:event", ({ sessionId: evtSessionId, event }) => {
+	useIpcEvent("app:event", ({ sessionId: evtSessionId, event }) => {
 		if (evtSessionId !== sessionId) return;
 
-		if (event.type === "delta") {
+		if (event.type === "message.assistantDeltaReceived") {
+			// Determine or create the streaming message id OUTSIDE the updater.
+			// setMessages updaters run twice in StrictMode — mutating the ref
+			// inside the updater causes the second call to take a wrong branch.
+			if (!streamingMsgId.current) {
+				streamingMsgId.current = `asmsg-${Date.now()}`;
+			}
+			const msgId = streamingMsgId.current;
 			setMessages((prev) => {
-				if (!streamingMsgId.current) {
-					const id = `asmsg-${Date.now()}`;
-					streamingMsgId.current = id;
+				const exists = prev.some((m) => m.kind === "assistant" && m.id === msgId);
+				if (!exists) {
 					return [
 						...prev,
-						{ kind: "assistant", id, text: event.text, streaming: true, timestamp: new Date() },
+						{ kind: "assistant", id: msgId, text: event.payload.text, streaming: true, timestamp: new Date() },
 					];
 				}
 				return prev.map((m) =>
-					m.kind === "assistant" && m.id === streamingMsgId.current
-						? { ...m, text: m.text + event.text }
+					m.kind === "assistant" && m.id === msgId
+						? { ...m, text: m.text + event.payload.text }
 						: m,
 				);
 			});
@@ -65,6 +71,7 @@ export function useMessages(sessionId: string) {
 											id: `ev-delta-${Date.now()}`,
 											type: "delta",
 											summary: "message.assistantDelta",
+											detail: event.payload.text.slice(0, 80),
 											status: "running" as const,
 										},
 									],
@@ -73,14 +80,14 @@ export function useMessages(sessionId: string) {
 					),
 				);
 			}
-		} else if (event.type === "approval") {
+		} else if (event.type === "approval.requested") {
 			setMessages((prev) => [
 				...prev,
 				{
 					kind: "approval",
-					id: event.id,
-					toolName: event.toolName,
-					input: event.input as Record<string, unknown>,
+					id: event.payload.approvalId,
+					toolName: event.payload.toolName,
+					input: event.payload.input as Record<string, unknown>,
 					resolved: false,
 					timestamp: new Date(),
 				},
@@ -97,7 +104,7 @@ export function useMessages(sessionId: string) {
 										{
 											id: `ev-approval-${Date.now()}`,
 											type: "approval",
-											summary: `approval.requested — ${event.toolName}`,
+											summary: `approval.requested — ${event.payload.toolName}`,
 											status: "pending" as const,
 										},
 									],
@@ -106,12 +113,12 @@ export function useMessages(sessionId: string) {
 					),
 				);
 			}
-		} else if (event.type === "done") {
+		} else if (event.type === "turn.completed" || event.type === "turn.canceled") {
 			finalizeStream();
-		} else if (event.type === "error") {
+		} else if (event.type === "turn.failed") {
 			setMessages((prev) => [
 				...prev,
-				{ kind: "error", id: `err-${Date.now()}`, message: event.message, timestamp: new Date() },
+				{ kind: "error", id: `err-${Date.now()}`, message: event.payload.message, timestamp: new Date() },
 			]);
 			const turnId = currentTurnId.current;
 			if (turnId) {
@@ -159,10 +166,10 @@ export function useMessages(sessionId: string) {
 			]);
 
 			// sendMessage invoke resolves when the full stream ends — treat as done signal
-			ipcInvoke("agent:sendMessage", { sessionId, message: text.trim() })
+			ipcInvoke("turn.startRequested", { sessionId, text: text.trim() })
 				.then(() => {
 					// Guard: if a done event already handled this, currentTurnId will be null
-					if (currentTurnId.current === turnId) finalizeStream(turnId);
+					// if (currentTurnId.current === turnId) finalizeStream(turnId);
 				})
 				.catch((err: unknown) => {
 					const message = err instanceof Error ? err.message : String(err);
@@ -187,7 +194,7 @@ export function useMessages(sessionId: string) {
 					m.kind === "approval" && m.id === approvalId ? { ...m, resolved: true, approved } : m,
 				),
 			);
-			ipcInvoke("agent:confirm", { sessionId, toolCallId: approvalId, approved });
+			ipcInvoke("approval.resolveRequested", { approvalId, approved });
 		},
 		[sessionId],
 	);

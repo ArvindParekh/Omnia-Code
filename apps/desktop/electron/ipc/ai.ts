@@ -3,7 +3,7 @@ import { appServer } from "@omnia/app-server";
 import { BrowserWindow } from "electron";
 import crypto from "node:crypto";
 
-ipcMainHandle<"agent:createSession">("agent:createSession", async (event, { provider }) => {
+ipcMainHandle<"session.createRequested">("session.createRequested", async (event, { provider }) => {
 	const commandId = crypto.randomUUID();
 	await appServer.router.dispatch({
 		id: commandId,
@@ -22,14 +22,14 @@ ipcMainHandle<"agent:createSession">("agent:createSession", async (event, { prov
 	return session;
 });
 
-ipcMainHandle<"agent:sendMessage">("agent:sendMessage", async (event, { sessionId, message }) => {
+ipcMainHandle<"turn.startRequested">("turn.startRequested", async (event, { sessionId, text }) => {
 	const commandId = crypto.randomUUID();
 	await appServer.router.dispatch({
 		id: commandId,
 		type: "turn.startRequested",
 		payload: {
 			sessionId,
-			text: message,
+			text,
 			attachments: [],
 		},
 		requestedAt: Date.now(),
@@ -38,13 +38,13 @@ ipcMainHandle<"agent:sendMessage">("agent:sendMessage", async (event, { sessionI
 	return undefined;
 });
 
-ipcMainHandle<"agent:confirm">("agent:confirm", async (event, { sessionId, toolCallId, approved }) => {
+ipcMainHandle<"approval.resolveRequested">("approval.resolveRequested", async (event, { approvalId, approved }) => {
 	const commandId = crypto.randomUUID();
 	await appServer.router.dispatch({
 		id: commandId,
 		type: "approval.resolveRequested",
 		payload: {
-			approvalId: toolCallId, // The old UI passed toolCallId as approvalId
+			approvalId,
 			approved,
 			note: "",
 		},
@@ -54,18 +54,18 @@ ipcMainHandle<"agent:confirm">("agent:confirm", async (event, { sessionId, toolC
 	return undefined;
 });
 
-ipcMainHandle<"agent:getSessions">("agent:getSessions", () => {
+ipcMainHandle<"app:getSessions">("app:getSessions", () => {
 	return Array.from(appServer.sessionProjector.state.values());
 });
 
-ipcMainHandle<"agent:getEvents">("agent:getEvents", (event, { sessionId }) => {
+ipcMainHandle<"app:getEvents">("app:getEvents", (event, { sessionId }) => {
 	const events = appServer.eventStore.getEvents();
 	return events.filter(e => {
 		return "sessionId" in e.payload && (e.payload as any).sessionId === sessionId;
 	});
 });
 
-ipcMainHandle<"agent:detectProviders">("agent:detectProviders", async () => {
+ipcMainHandle<"app:detectProviders">("app:detectProviders", async () => {
 	const available = await appServer.registry.detectAvailable();
 	return available.map(a => a.provider);
 });
@@ -78,7 +78,7 @@ appServer.eventStore.subscribe((domainEvent) => {
 			? (domainEvent.payload as any).sessionId
 			: "";
 
-		ipcWebContentsSend<"agent:event">("agent:event", win.webContents, {
+		ipcWebContentsSend<"app:event">("app:event", win.webContents, {
 			sessionId,
 			event: domainEvent,
 		});
@@ -87,7 +87,7 @@ appServer.eventStore.subscribe((domainEvent) => {
 		if (domainEvent.type.startsWith("session.")) {
 			const session = appServer.sessionProjector.state.get(sessionId);
 			if (session) {
-				ipcWebContentsSend<"agent:sessionUpdated">("agent:sessionUpdated", win.webContents, {
+				ipcWebContentsSend<"app:sessionUpdated">("app:sessionUpdated", win.webContents, {
 					session
 				});
 			}

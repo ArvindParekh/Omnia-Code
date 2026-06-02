@@ -3,38 +3,37 @@ import type { Provider } from "./provider.js";
 import type { Session } from "./session.js";
 
 export type IpcChannels = {
-	"agent:createSession": {
+	"session.createRequested": {
 		args: {
 			provider: Provider;
 		};
-		result: Promise<Session>;
+		result: Session;
 	};
-	"agent:sendMessage": {
+	"turn.startRequested": {
 		args: {
 			sessionId: string;
-			message: string;
+			text: string;
 		};
 		result: undefined;
 	};
-	"agent:confirm": {
+	"approval.resolveRequested": {
 		args: {
-			sessionId: string;
-			toolCallId: string;
+			approvalId: string;
 			approved: boolean;
 		};
 		result: undefined;
 	};
-	"agent:getSessions": {
+	"app:getSessions": {
 		args: Record<string, never>;
 		result: Session[];
 	};
-	"agent:getEvents": {
+	"app:getEvents": {
 		args: {
 			sessionId: string;
 		};
 		result: AllEvents<EventType>[];
 	};
-	"agent:detectProviders": {
+	"app:detectProviders": {
 		args: Record<string, never>;
 		result: Provider[];
 	};
@@ -53,6 +52,6 @@ export type IpcChannels = {
 };
 
 export type IpcEvents = {
-	"agent:event": { sessionId: string; event: AllEvents<EventType> };
-	"agent:sessionUpdated": { session: Session };
+	"app:event": { sessionId: string; event: AllEvents<EventType> };
+	"app:sessionUpdated": { session: Session };
 };

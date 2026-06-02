@@ -1,4 +1,4 @@
-import { ProviderRegistry } from "@omnia/providers";
+import { fakeProviderAdapter, ProviderRegistry } from "@omnia/providers";
 import { CommandRouter } from "./command-router.js";
 import { createEvent, EventStore } from "./event-store.js";
 import { sessionProjector, turnProjector } from "./projections/index.js";
@@ -8,6 +8,7 @@ import { TurnService } from "./services/turn-service.js";
 const router = new CommandRouter();
 const eventStore = EventStore.getInstance();
 const registry = new ProviderRegistry();
+registry.register(fakeProviderAdapter);
 const sessionService = new SessionService(registry, eventStore);
 const turnService = new TurnService(sessionService, registry, eventStore);
 
@@ -34,9 +35,12 @@ router
 		await sessionService.create({ ...envelope, id: envelope.id });
 	})
 	.on("turn.startRequested", async (envelope) => {
+		const session = sessionProjector.state.get(envelope.payload.sessionId);
+		if (!session) throw new Error(`Cannot start turn: session ${envelope.payload.sessionId} not found`);
+
 		const ev = createEvent("turn.started", {
 			sessionId: envelope.payload.sessionId,
-			provider: "claude",
+			provider: session.provider,
 			startedAt: Date.now(),
 			turnId: envelope.id,
 		});

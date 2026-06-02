@@ -19,6 +19,7 @@ type NewChatProps = {
 
 export function NewChat({ onStart, recentSessions, providers }: NewChatProps) {
 	const [text, setText] = useState("");
+	console.log("available providers", providers);
 	const [provider, setProvider] = useState<Provider>(providers[0] ?? "claude");
 	const [workspace, setWorkspace] = useState(recentSessions[0]?.workspaceId ?? "~/projects");
 	const textareaRef = useRef<HTMLTextAreaElement>(null);

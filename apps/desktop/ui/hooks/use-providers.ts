@@ -2,14 +2,14 @@ import { useEffect, useState } from "react";
 import type { Provider } from "@omnia/contracts";
 import { ipcInvoke } from "./use-ipc";
 
-const ALL_PROVIDERS: Provider[] = ["claude", "gemini", "codex", "opencode", "cursor"];
+const ALL_PROVIDERS: Provider[] = ["claude", "gemini", "codex", "opencode", "cursor", "fake"];
 
 export function useProviders() {
 	const [available, setAvailable] = useState<Provider[]>([]);
 	const [loading, setLoading] = useState(true);
 
 	useEffect(() => {
-		ipcInvoke("agent:detectProviders", {})
+		ipcInvoke("app:detectProviders", {})
 			.then(setAvailable)
 			.catch(() => setAvailable([]))
 			.finally(() => setLoading(false));
