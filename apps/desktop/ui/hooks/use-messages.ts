@@ -199,6 +199,12 @@ export function useMessages(sessionId: string) {
 		[sessionId, finalizeStream],
 	);
 
+  const cancel = useCallback(
+    (turnId: string) => {
+      ipcInvoke("turn.cancelRequested", { sessionId, turnId });
+    }
+    , [sessionId])
+
 	const approve = useCallback(
 		(approvalId: string, approved: boolean) => {
 			setMessages((prev) =>
@@ -211,5 +217,5 @@ export function useMessages(sessionId: string) {
 		[sessionId],
 	);
 
-	return { messages, turns, send, approve, isRunning };
+	return { messages, turns, send, approve, isRunning, cancel };
 }

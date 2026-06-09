@@ -1,5 +1,20 @@
 type Provider = "gemini" | "claude" | "codex" | "opencode" | "cursor" | "fake";
 
+type ModelSelection = { mode: "provider_default" } | { mode: "explicit"; modelId: string };
+
+type ModelDescriptor = {
+	id: string;
+	label: string;
+	description?: string;
+};
+
+type ProviderModelCapabilities = {
+	provider: Provider;
+	selectionSupported: boolean;
+	discoveredModels: ModelDescriptor[];
+	discoveredAt: number;
+};
+
 type ProviderAvailability = {
 	provider: Provider;
 	status: "available" | "missing" | "needs_auth" | "error";
@@ -75,8 +90,11 @@ export type {
 	Approval,
 	Capability,
 	MessageAttachment,
+	ModelDescriptor,
+	ModelSelection,
 	Provider,
 	ProviderAvailability,
+	ProviderModelCapabilities,
 	ProviderRuntimeEvent,
 	ToolRisk,
 };

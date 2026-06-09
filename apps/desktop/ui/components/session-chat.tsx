@@ -17,7 +17,7 @@ type SessionChatProps = {
 };
 
 export function SessionChat({ session, showInspector, initialMessage, onInitialMessageSent }: SessionChatProps) {
-	const { messages, turns, send, approve, isRunning } = useMessages(session.id);
+	const { messages, turns, send, approve, isRunning, cancel } = useMessages(session.id);
 
 	// Fire the initial message once on mount (only when creating a new session
 	// from the NewChat screen — the ref guards against double-sends on StrictMode).
@@ -44,11 +44,17 @@ export function SessionChat({ session, showInspector, initialMessage, onInitialM
 		[send],
 	);
 
+  const onCancel = useCallback(async () => {
+    // last turn
+    cancel(turns[turns.length - 1].id);
+  }, [cancel, turns])
+
 	const runtime = useExternalStoreRuntime({
 		messages: threadMessages as ThreadMessageLike[],
 		convertMessage: (msg: ThreadMessageLike) => msg,
 		isRunning,
 		onNew,
+		onCancel,
 		adapters: { attachments: new AnyFileAttachmentAdapter() },
 	});
 

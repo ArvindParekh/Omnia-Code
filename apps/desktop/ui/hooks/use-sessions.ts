@@ -25,10 +25,14 @@ export function useSessions() {
         const createSession = useCallback(
                 async (
                         provider: Provider,
-                        _workspacePath: string,
-                        _title = "Untitled chat",
+                        workspacePath: string,
+                        title = "Untitled chat",
                 ): Promise<Session> => {
-                        const session = await ipcInvoke("session.createRequested", { provider });
+                        const session = await ipcInvoke("session.createRequested", {
+                                provider,
+                                workspacePath,
+                                title,
+                        });
                         // No need to enrich here, session comes back from projector already containing the true state
                         setSessions((prev) => [session, ...prev]);
                         return session;

@@ -6,6 +6,8 @@ export type IpcChannels = {
 	"session.createRequested": {
 		args: {
 			provider: Provider;
+			workspacePath: string;
+			title: string;
 		};
 		result: Session;
 	};
@@ -16,6 +18,13 @@ export type IpcChannels = {
 		};
 		result: undefined;
 	};
+  "turn.cancelRequested": {
+    args: {
+      sessionId: string;
+      turnId: string;
+    },
+    result: undefined;
+	}
 	"approval.resolveRequested": {
 		args: {
 			approvalId: string;

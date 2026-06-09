@@ -2,16 +2,18 @@ import { ipcMainHandle, ipcWebContentsSend } from "../util.js";
 import { appServer } from "@omnia/app-server";
 import { BrowserWindow } from "electron";
 import crypto from "node:crypto";
+import { resolveWorkspacePath } from "../workspacePath.js";
 
-ipcMainHandle<"session.createRequested">("session.createRequested", async (event, { provider }) => {
+ipcMainHandle<"session.createRequested">("session.createRequested", async (event, { provider, workspacePath, title }) => {
 	const commandId = crypto.randomUUID();
+	const resolvedWorkspacePath = resolveWorkspacePath(workspacePath);
 	await appServer.router.dispatch({
 		id: commandId,
 		type: "session.createRequested",
 		payload: {
 			provider,
-			workspacePath: process.cwd(),
-			title: `Session ${new Date().toLocaleTimeString()}`,
+			workspacePath: resolvedWorkspacePath,
+			title,
 		},
 		requestedAt: Date.now(),
 		requestedBy: "user",
@@ -37,6 +39,21 @@ ipcMainHandle<"turn.startRequested">("turn.startRequested", async (event, { sess
 	});
 	return undefined;
 });
+
+ipcMainHandle<"turn.cancelRequested">("turn.cancelRequested", async (event, { sessionId, turnId }) => {
+  const commandId = crypto.randomUUID();
+  await appServer.router.dispatch({
+    id: commandId,
+    type: "turn.cancelRequested",
+    payload: {
+      sessionId,
+      turnId,
+    },
+    requestedBy: "user",
+    requestedAt: Date.now(),
+  })
+  return undefined;
+})
 
 ipcMainHandle<"approval.resolveRequested">("approval.resolveRequested", async (event, { approvalId, approved }) => {
 	const commandId = crypto.randomUUID();

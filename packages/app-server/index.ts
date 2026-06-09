@@ -1,4 +1,4 @@
-import { fakeProviderAdapter, ProviderRegistry } from "@omnia/providers";
+import { ClaudeProvider, fakeProviderAdapter, ProviderRegistry } from "@omnia/providers";
 import { CommandRouter } from "./command-router.js";
 import { createEvent, EventStore } from "./event-store.js";
 import { sessionProjector, turnProjector } from "./projections/index.js";
@@ -8,8 +8,8 @@ import { TurnService } from "./services/turn-service.js";
 const router = new CommandRouter();
 const eventStore = EventStore.getInstance();
 const registry = new ProviderRegistry();
-registry.register(fakeProviderAdapter);
-const sessionService = new SessionService(registry, eventStore);
+registry.register(fakeProviderAdapter).register(new ClaudeProvider());
+const sessionService = new SessionService(registry);
 const turnService = new TurnService(sessionService, registry, eventStore);
 
 router
@@ -36,7 +36,8 @@ router
 	})
 	.on("turn.startRequested", async (envelope) => {
 		const session = sessionProjector.state.get(envelope.payload.sessionId);
-		if (!session) throw new Error(`Cannot start turn: session ${envelope.payload.sessionId} not found`);
+		if (!session)
+			throw new Error(`Cannot start turn: session ${envelope.payload.sessionId} not found`);
 
 		const ev = createEvent("turn.started", {
 			sessionId: envelope.payload.sessionId,
@@ -50,7 +51,7 @@ router
 	.on("turn.cancelRequested", async (envelope) => {
 		const ev = createEvent("turn.canceled", {
 			sessionId: envelope.payload.sessionId,
-			turnId: envelope.id,
+			turnId: envelope.payload.turnId,
 			canceledAt: Date.now(),
 		});
 		eventStore.addEvent(ev);

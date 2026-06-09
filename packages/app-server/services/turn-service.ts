@@ -1,11 +1,23 @@
 import type { CommandEnvelopeFor, MessageAttachment, ProviderRuntimeEvent } from "@omnia/contracts";
-import type { SessionService } from "./session-service.js";
-import type { ProviderAdapter, ProviderRegistry, ProviderSessionRef } from "@omnia/providers";
-import { createEvent } from "../event-store.js";
+import type {
+	CancelProviderTurnInput,
+	ProviderAdapter,
+	ProviderRegistry,
+	ProviderSessionRef,
+	SessionPolicy,
+} from "@omnia/providers";
 import type { EventStore } from "../event-store.js";
+import { createEvent } from "../event-store.js";
+import type { SessionService } from "./session-service.js";
+
+type ActiveTurn = {
+	abortController: AbortController;
+	adapter: ProviderAdapter;
+	cancelInput: CancelProviderTurnInput;
+};
 
 export class TurnService {
-	private activeAbortControllers = new Map<string, AbortController>();
+	private activeTurns = new Map<string, ActiveTurn>();
 
 	constructor(
 		private readonly sessionService: SessionService,
@@ -16,31 +28,59 @@ export class TurnService {
 	async start(envelope: CommandEnvelopeFor<"turn.startRequested">): Promise<void> {
 		const { sessionId, text, attachments } = envelope.payload;
 		const turnId = envelope.id;
-		const providerRef = this.sessionService.getProviderRef(sessionId);
+		const {
+			ref: providerRef,
+			workspacePath,
+			policy,
+		} = this.sessionService.getProviderSession(sessionId);
 		const adapter = this.registry.get(providerRef.provider);
+		const resume = this.eventStore
+			.getEvents()
+			.some(
+				(event) =>
+					event.type === "turn.started" &&
+					event.payload.sessionId === sessionId &&
+					event.payload.turnId !== turnId,
+			);
 
-		const abort = new AbortController();
-		this.activeAbortControllers.set(turnId, abort);
+		const abortController = new AbortController();
+		this.activeTurns.set(turnId, {
+			abortController,
+			adapter,
+			cancelInput: {
+				sessionId,
+				providerSessionRef: providerRef,
+				turnId,
+				workspacePath,
+				policy,
+				signal: abortController.signal,
+			},
+		});
 
-		// running stream asynchronously. not awaiting here to avoid blocking, turn.start returns immediately and renderer gets events pushed as they arrive
-		this.runStream({
+		// Run asynchronously so the command returns while provider events continue streaming.
+		void this.runStream({
 			adapter,
 			providerRef,
 			sessionId,
 			turnId,
 			text,
 			attachments: attachments ?? [],
-			signal: abort.signal,
+			workspacePath,
+			policy,
+			resume,
+			signal: abortController.signal,
 		});
 	}
 
 	async cancel(envelope: CommandEnvelopeFor<"turn.cancelRequested">): Promise<void> {
-		const { turnId } = envelope.payload;
+		const active = this.activeTurns.get(envelope.payload.turnId);
+		if (!active) return;
 
-		const abort = this.activeAbortControllers.get(turnId);
-		if (abort) {
-			abort.abort();
-			this.activeAbortControllers.delete(turnId);
+		active.abortController.abort();
+		try {
+			await active.adapter.cancelTurn(active.cancelInput);
+		} finally {
+			this.activeTurns.delete(envelope.payload.turnId);
 		}
 	}
 
@@ -51,31 +91,46 @@ export class TurnService {
 		turnId: string;
 		text: string;
 		attachments: MessageAttachment[];
+		workspacePath: string;
+		policy: SessionPolicy;
+		resume: boolean;
 		signal: AbortSignal;
 	}): Promise<void> {
 		try {
-			const { adapter, providerRef, sessionId, turnId, text, attachments, signal } = opts;
+			const {
+				adapter,
+				providerRef,
+				sessionId,
+				turnId,
+				text,
+				attachments,
+				workspacePath,
+				policy,
+				resume,
+				signal,
+			} = opts;
 			const messageId = crypto.randomUUID();
+			let failed = false;
 
 			const stream = adapter.sendTurn({
-				sessionId: opts.sessionId,
-				turnId: opts.turnId,
+				sessionId,
+				turnId,
 				text,
 				attachments,
 				providerSessionRef: providerRef,
-				policy: {
-					capabilities: [], //todo
-				},
+				workspacePath,
+				policy,
+				resume,
 				signal,
-				workspacePath: "", //todo
 			});
 
 			for await (const runtimeEvent of stream) {
 				if (signal.aborted) break;
+				if (runtimeEvent.type === "runtime.failed") failed = true;
 				this.mapAndAppend(runtimeEvent, { sessionId, turnId, messageId });
 			}
 
-			if (!signal.aborted) {
+			if (!signal.aborted && !failed) {
 				this.eventStore.addEvent(
 					createEvent("turn.completed", {
 						sessionId,
@@ -85,6 +140,8 @@ export class TurnService {
 				);
 			}
 		} catch (error) {
+			if (opts.signal.aborted) return;
+
 			const correlationId = crypto.randomUUID().slice(0, 8);
 			console.error(`[turn:${opts.turnId}]`, error, correlationId);
 
@@ -93,12 +150,12 @@ export class TurnService {
 					sessionId: opts.sessionId,
 					turnId: opts.turnId,
 					message: `Turn failed. Ref: ${correlationId}`,
-					retryable: true, //todo: implement isTransientError
+					retryable: true,
 					correlationId,
 				}),
 			);
 		} finally {
-			this.activeAbortControllers.delete(opts.turnId);
+			this.activeTurns.delete(opts.turnId);
 		}
 	}
 
