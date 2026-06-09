@@ -20,7 +20,7 @@ type NewChatProps = {
 export function NewChat({ onStart, recentSessions, providers }: NewChatProps) {
 	const [text, setText] = useState("");
 	const [provider, setProvider] = useState<Provider>(providers[0] ?? "claude");
-	const [workspace, setWorkspace] = useState(recentSessions[0]?.workspaceId ?? "~/projects");
+	const [workspace, setWorkspace] = useState(recentSessions[0]?.workspaceId ?? ".");
 
 	// When the detected provider list resolves and the current selection is no
 	// longer in it, reset to the first available provider.
