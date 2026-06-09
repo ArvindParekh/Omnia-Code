@@ -11,6 +11,7 @@ type CommandPayloadMap = {
 		sessionId: string;
 		text: string;
 		attachments?: MessageAttachment[];
+		turnId: string;
 	};
 	"turn.cancelRequested": {
 		sessionId: string;

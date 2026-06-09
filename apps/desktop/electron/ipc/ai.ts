@@ -26,6 +26,7 @@ ipcMainHandle<"session.createRequested">("session.createRequested", async (event
 
 ipcMainHandle<"turn.startRequested">("turn.startRequested", async (event, { sessionId, text }) => {
 	const commandId = crypto.randomUUID();
+  const turnId = crypto.randomUUID();
 	await appServer.router.dispatch({
 		id: commandId,
 		type: "turn.startRequested",
@@ -33,11 +34,12 @@ ipcMainHandle<"turn.startRequested">("turn.startRequested", async (event, { sess
 			sessionId,
 			text,
 			attachments: [],
+			turnId,
 		},
 		requestedAt: Date.now(),
 		requestedBy: "user",
 	});
-	return undefined;
+	return turnId;
 });
 
 ipcMainHandle<"turn.cancelRequested">("turn.cancelRequested", async (event, { sessionId, turnId }) => {

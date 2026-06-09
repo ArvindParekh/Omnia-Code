@@ -1,5 +1,5 @@
-import { ComposerPrimitive, useThreadRuntime } from "@assistant-ui/react";
-import { ArrowUp, FolderSimple, Paperclip, X } from "@phosphor-icons/react";
+import { ComposerPrimitive, useThread } from "@assistant-ui/react";
+import { ArrowUp, FolderSimple, Paperclip, SpinnerGap, X } from "@phosphor-icons/react";
 import type { Provider } from "../../lib/types";
 import { providerLabel } from "../../lib/provider";
 import { Quotes } from "@phosphor-icons/react";
@@ -8,11 +8,11 @@ type ComposerProps = {
 	label: string;
 	workspaceId: string;
 	provider: Provider;
+	isCanceling: boolean;
 };
 
-export function Composer({ label, workspaceId, provider }: ComposerProps) {
-	const threadRuntime = useThreadRuntime();
-	const isRunning = threadRuntime.getState().isRunning;
+export function Composer({ label, workspaceId, provider, isCanceling }: ComposerProps) {
+	const isRunning = useThread((thread) => thread.isRunning);
 	const workspaceBase = workspaceId.replace(/^.*\//, "") || workspaceId;
 
 	return (
@@ -71,8 +71,16 @@ export function Composer({ label, workspaceId, provider }: ComposerProps) {
 				<div className="ml-auto">
 					{isRunning ? (
 						<ComposerPrimitive.Cancel asChild>
-							<button className="w-8 h-8 rounded-full bg-white/[8%] border border-white/[12%] flex items-center justify-center hover:bg-white/[14%] transition-colors">
-								<X size={13} weight="bold" className="text-white/60" />
+							<button
+								disabled={isCanceling}
+								aria-label={isCanceling ? "Canceling response" : "Cancel response"}
+								className="w-8 h-8 rounded-full bg-white/[8%] border border-white/[12%] flex items-center justify-center hover:bg-white/[14%] disabled:cursor-wait disabled:opacity-60 transition-colors"
+							>
+								{isCanceling ? (
+									<SpinnerGap size={13} weight="bold" className="text-white/60 animate-spin" />
+								) : (
+									<X size={13} weight="bold" className="text-white/60" />
+								)}
 							</button>
 						</ComposerPrimitive.Cancel>
 					) : (

@@ -17,7 +17,7 @@ type SessionChatProps = {
 };
 
 export function SessionChat({ session, showInspector, initialMessage, onInitialMessageSent }: SessionChatProps) {
-	const { messages, turns, send, approve, isRunning, cancel } = useMessages(session.id);
+	const { messages, turns, send, approve, isRunning, isCanceling, cancel } = useMessages(session.id);
 
 	// Fire the initial message once on mount (only when creating a new session
 	// from the NewChat screen — the ref guards against double-sends on StrictMode).
@@ -44,10 +44,9 @@ export function SessionChat({ session, showInspector, initialMessage, onInitialM
 		[send],
 	);
 
-  const onCancel = useCallback(async () => {
-    // last turn
-    cancel(turns[turns.length - 1].id);
-  }, [cancel, turns])
+	const onCancel = useCallback(async () => {
+		await cancel();
+	}, [cancel]);
 
 	const runtime = useExternalStoreRuntime({
 		messages: threadMessages as ThreadMessageLike[],
@@ -62,7 +61,7 @@ export function SessionChat({ session, showInspector, initialMessage, onInitialM
 		<ApprovalContext.Provider value={{ onApprove: approve }}>
 			<AssistantRuntimeProvider runtime={runtime}>
 				<div className="flex flex-1 border-l border-l-white/10 rounded-l-lg shadow-2xl overflow-hidden">
-					<ChatThread session={session} />
+					<ChatThread session={session} isCanceling={isCanceling} />
 					{showInspector && (
 						<>
 							<div className="shrink-0 self-stretch py-3 flex">

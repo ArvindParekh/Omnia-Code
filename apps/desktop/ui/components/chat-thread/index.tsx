@@ -8,7 +8,13 @@ import { Composer } from "./composer";
 import { UserMessage } from "./user-message";
 import { AssistantMessage } from "./assistant-message";
 
-export function ChatThread({ session }: { session: Session }) {
+export function ChatThread({
+	session,
+	isCanceling,
+}: {
+	session: Session;
+	isCanceling: boolean;
+}) {
 	const label = providerLabel(session.provider);
 	const workspaceBase = session.workspaceId.replace(/^.*\//, "") || session.workspaceId;
 	const [messagesRef] = useAutoAnimate<HTMLDivElement>();
@@ -21,11 +27,10 @@ export function ChatThread({ session }: { session: Session }) {
 					{label} &middot; {workspaceBase}
 				</span>
 				{session.status === "running" && (
-					<SpinnerGap
-						size={13}
-						weight="bold"
-						className="ml-auto text-white/30 animate-spin shrink-0"
-					/>
+					<div className="ml-auto flex items-center gap-1.5 text-white/30">
+						<SpinnerGap size={13} weight="bold" className="animate-spin shrink-0" />
+						{isCanceling && <span className="text-[11px]">canceling</span>}
+					</div>
 				)}
 				{session.status === "error" && (
 					<span className="ml-auto text-[11px] text-red-400/50 shrink-0">failed</span>
@@ -66,6 +71,7 @@ export function ChatThread({ session }: { session: Session }) {
 								label={label}
 								workspaceId={session.workspaceId}
 								provider={session.provider}
+								isCanceling={isCanceling}
 							/>
 						</div>
 					</ThreadPrimitive.ViewportFooter>

@@ -16,10 +16,13 @@ export function useMessages(sessionId: string) {
 		() => sessionCache.get(sessionId)?.turns ?? []
 	);
 	const [isRunning, setIsRunning] = useState(false);
+	const [isCanceling, setIsCanceling] = useState(false);
 
 	// Refs for mutable streaming state — stable across renders, safe in closures
 	const streamingMsgId = useRef<string | null>(null);
 	const currentTurnId = useRef<string | null>(null);
+	const pendingStart = useRef<Promise<string> | null>(null);
+	const cancelingRef = useRef(false);
 	const turnIndex = useRef(0);
 
 	// Write back to the cache on every change so a future remount picks up
@@ -29,7 +32,7 @@ export function useMessages(sessionId: string) {
 	}, [sessionId, messages, turns]);
 
 	// Stable — only closes over refs and stable setters, so deps can be [].
-	const finalizeStream = useCallback((explicitTurnId?: string) => {
+	const finalizeStream = useCallback((status: "done" | "canceled") => {
 		if (streamingMsgId.current) {
 			const id = streamingMsgId.current;
 			streamingMsgId.current = null;
@@ -37,12 +40,14 @@ export function useMessages(sessionId: string) {
 				prev.map((m) => (m.kind === "assistant" && m.id === id ? { ...m, streaming: false } : m)),
 			);
 		}
-		const tid = explicitTurnId ?? currentTurnId.current;
+		const tid = currentTurnId.current;
 		if (tid) {
 			currentTurnId.current = null;
-			setTurns((prev) => prev.map((t) => (t.id === tid ? { ...t, status: "done" } : t)));
+			setTurns((prev) => prev.map((t) => (t.id === tid ? { ...t, status } : t)));
 		}
 		setIsRunning(false);
+		cancelingRef.current = false;
+		setIsCanceling(false);
 	}, []);
 
 	useIpcEvent("app:event", ({ sessionId: evtSessionId, event }) => {
@@ -125,8 +130,10 @@ export function useMessages(sessionId: string) {
 					),
 				);
 			}
-		} else if (event.type === "turn.completed" || event.type === "turn.canceled") {
-			finalizeStream();
+		} else if (event.type === "turn.completed") {
+			finalizeStream("done");
+		} else if (event.type === "turn.canceled") {
+			finalizeStream("canceled");
 		} else if (event.type === "turn.failed") {
 			setMessages((prev) => [
 				...prev,
@@ -138,17 +145,21 @@ export function useMessages(sessionId: string) {
 				setTurns((prev) => prev.map((t) => (t.id === turnId ? { ...t, status: "failed" } : t)));
 			}
 			setIsRunning(false);
+			cancelingRef.current = false;
+			setIsCanceling(false);
 		}
 	});
 
 	const send = useCallback(
 		(text: string, quote?: QuoteRef, attachments?: CompleteAttachment[]) => {
 			if (!text.trim()) return;
-			const turnId = `turn-${Date.now()}`;
+			const optimisticTurnId = `pending-turn-${Date.now()}`;
 			turnIndex.current += 1;
-			currentTurnId.current = turnId;
+			currentTurnId.current = optimisticTurnId;
 
 			setIsRunning(true);
+			cancelingRef.current = false;
+			setIsCanceling(false);
 			setMessages((prev) => [
 				...prev,
 				{
@@ -163,7 +174,7 @@ export function useMessages(sessionId: string) {
 			setTurns((prev) => [
 				...prev,
 				{
-					id: turnId,
+					id: optimisticTurnId,
 					index: turnIndex.current,
 					status: "running",
 					events: [
@@ -177,11 +188,19 @@ export function useMessages(sessionId: string) {
 				},
 			]);
 
-			// sendMessage invoke resolves when the full stream ends — treat as done signal
-			ipcInvoke("turn.startRequested", { sessionId, text: text.trim() })
-				.then(() => {
-					// Guard: if a done event already handled this, currentTurnId will be null
-					// if (currentTurnId.current === turnId) finalizeStream(turnId);
+			const start = ipcInvoke("turn.startRequested", { sessionId, text: text.trim() });
+			pendingStart.current = start;
+
+			start
+				.then((turnId) => {
+					if (currentTurnId.current === optimisticTurnId) {
+						currentTurnId.current = turnId;
+					}
+					setTurns((prev) =>
+						prev.map((turn) =>
+							turn.id === optimisticTurnId ? { ...turn, id: turnId } : turn,
+						),
+					);
 				})
 				.catch((err: unknown) => {
 					const message = err instanceof Error ? err.message : String(err);
@@ -189,21 +208,53 @@ export function useMessages(sessionId: string) {
 						...prev,
 						{ kind: "error", id: `err-${Date.now()}`, message, timestamp: new Date() },
 					]);
-					if (currentTurnId.current === turnId) {
+					if (currentTurnId.current === optimisticTurnId) {
 						currentTurnId.current = null;
-						setTurns((prev) => prev.map((t) => (t.id === turnId ? { ...t, status: "failed" } : t)));
+						setTurns((prev) =>
+							prev.map((turn) =>
+								turn.id === optimisticTurnId ? { ...turn, status: "failed" } : turn,
+							),
+						);
 					}
 					setIsRunning(false);
+					cancelingRef.current = false;
+					setIsCanceling(false);
+				})
+				.finally(() => {
+					if (pendingStart.current === start) {
+						pendingStart.current = null;
+					}
 				});
 		},
-		[sessionId, finalizeStream],
+		[sessionId],
 	);
 
-  const cancel = useCallback(
-    (turnId: string) => {
-      ipcInvoke("turn.cancelRequested", { sessionId, turnId });
-    }
-    , [sessionId])
+	const cancel = useCallback(async () => {
+		if (cancelingRef.current) return;
+		cancelingRef.current = true;
+		setIsCanceling(true);
+
+		try {
+			const turnId = pendingStart.current
+				? await pendingStart.current
+				: currentTurnId.current;
+			if (!turnId) {
+				cancelingRef.current = false;
+				setIsCanceling(false);
+				return;
+			}
+
+			await ipcInvoke("turn.cancelRequested", { sessionId, turnId });
+		} catch (error) {
+			cancelingRef.current = false;
+			setIsCanceling(false);
+			const message = error instanceof Error ? error.message : String(error);
+			setMessages((prev) => [
+				...prev,
+				{ kind: "error", id: `err-${Date.now()}`, message, timestamp: new Date() },
+			]);
+		}
+	}, [sessionId]);
 
 	const approve = useCallback(
 		(approvalId: string, approved: boolean) => {
@@ -217,5 +268,5 @@ export function useMessages(sessionId: string) {
 		[sessionId],
 	);
 
-	return { messages, turns, send, approve, isRunning, cancel };
+	return { messages, turns, send, approve, isRunning, isCanceling, cancel };
 }

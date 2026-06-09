@@ -43,19 +43,19 @@ router
 			sessionId: envelope.payload.sessionId,
 			provider: session.provider,
 			startedAt: Date.now(),
-			turnId: envelope.id,
+			turnId: envelope.payload.turnId,
 		});
 		eventStore.addEvent(ev);
 		await turnService.start(envelope);
 	})
 	.on("turn.cancelRequested", async (envelope) => {
+		await turnService.cancel(envelope);
 		const ev = createEvent("turn.canceled", {
 			sessionId: envelope.payload.sessionId,
 			turnId: envelope.payload.turnId,
 			canceledAt: Date.now(),
 		});
 		eventStore.addEvent(ev);
-		await turnService.cancel(envelope);
 	})
 	.on("approval.resolveRequested", async (envelope) => {
 		const ev = createEvent("approval.resolved", {

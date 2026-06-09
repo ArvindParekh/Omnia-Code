@@ -16,7 +16,7 @@ export type IpcChannels = {
 			sessionId: string;
 			text: string;
 		};
-		result: undefined;
+		result: string;
 	};
   "turn.cancelRequested": {
     args: {
