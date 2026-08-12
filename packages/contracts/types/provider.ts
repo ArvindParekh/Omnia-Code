@@ -96,5 +96,8 @@ export type {
 	ProviderAvailability,
 	ProviderModelCapabilities,
 	ProviderRuntimeEvent,
-	ToolRisk,
 };
+
+// ToolRisk is a real enum (not a string-literal union) — it needs a value
+// export too, or consumers can never construct one, only annotate with it.
+export { ToolRisk };

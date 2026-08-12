@@ -4,6 +4,7 @@ import { createEvent, EventStore } from "./event-store.js";
 import { sessionProjector, turnProjector } from "./projections/index.js";
 import { SessionService } from "./services/session-service.js";
 import { TurnService } from "./services/turn-service.js";
+import { ApprovalService } from "./services/approval-service.js";
 
 const router = new CommandRouter();
 const eventStore = EventStore.getInstance();
@@ -11,6 +12,7 @@ const registry = new ProviderRegistry();
 registry.register(fakeProviderAdapter).register(new ClaudeProvider());
 const sessionService = new SessionService(registry);
 const turnService = new TurnService(sessionService, registry, eventStore);
+const approvalService = new ApprovalService(sessionService, registry, eventStore);
 
 router
 	.use(async (envelope, next) => {
@@ -64,7 +66,7 @@ router
 			note: envelope.payload.note,
 		});
 		eventStore.addEvent(ev);
-		// await approvalService.resolve(envelope.payload.approvalId, envelope.payload.approved);
+		await approvalService.resolve(envelope);
 	});
 
 export const appServer = {
