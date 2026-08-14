@@ -10,11 +10,9 @@ const sessionCache = new Map<string, SessionCache>();
 // Manages the full message state and event stream for a single session.
 export function useMessages(sessionId: string) {
 	const [messages, setMessages] = useState<ChatMessage[]>(
-		() => sessionCache.get(sessionId)?.messages ?? []
+		() => sessionCache.get(sessionId)?.messages ?? [],
 	);
-	const [turns, setTurns] = useState<TurnGroup[]>(
-		() => sessionCache.get(sessionId)?.turns ?? []
-	);
+	const [turns, setTurns] = useState<TurnGroup[]>(() => sessionCache.get(sessionId)?.turns ?? []);
 	const [isRunning, setIsRunning] = useState(false);
 	const [isCanceling, setIsCanceling] = useState(false);
 
@@ -66,7 +64,13 @@ export function useMessages(sessionId: string) {
 				if (!exists) {
 					return [
 						...prev,
-						{ kind: "assistant", id: msgId, text: event.payload.text, streaming: true, timestamp: new Date() },
+						{
+							kind: "assistant",
+							id: msgId,
+							text: event.payload.text,
+							streaming: true,
+							timestamp: new Date(),
+						},
 					];
 				}
 				return prev.map((m) =>
@@ -137,7 +141,12 @@ export function useMessages(sessionId: string) {
 		} else if (event.type === "turn.failed") {
 			setMessages((prev) => [
 				...prev,
-				{ kind: "error", id: `err-${Date.now()}`, message: event.payload.message, timestamp: new Date() },
+				{
+					kind: "error",
+					id: `err-${Date.now()}`,
+					message: event.payload.message,
+					timestamp: new Date(),
+				},
 			]);
 			const turnId = currentTurnId.current;
 			if (turnId) {
@@ -197,9 +206,7 @@ export function useMessages(sessionId: string) {
 						currentTurnId.current = turnId;
 					}
 					setTurns((prev) =>
-						prev.map((turn) =>
-							turn.id === optimisticTurnId ? { ...turn, id: turnId } : turn,
-						),
+						prev.map((turn) => (turn.id === optimisticTurnId ? { ...turn, id: turnId } : turn)),
 					);
 				})
 				.catch((err: unknown) => {
@@ -235,9 +242,7 @@ export function useMessages(sessionId: string) {
 		setIsCanceling(true);
 
 		try {
-			const turnId = pendingStart.current
-				? await pendingStart.current
-				: currentTurnId.current;
+			const turnId = pendingStart.current ? await pendingStart.current : currentTurnId.current;
 			if (!turnId) {
 				cancelingRef.current = false;
 				setIsCanceling(false);
@@ -257,13 +262,15 @@ export function useMessages(sessionId: string) {
 	}, [sessionId]);
 
 	const approve = useCallback(
-		(approvalId: string, approved: boolean) => {
+		(approvalId: string, approved: boolean, note?: string) => {
 			setMessages((prev) =>
 				prev.map((m) =>
-					m.kind === "approval" && m.id === approvalId ? { ...m, resolved: true, approved } : m,
+					m.kind === "approval" && m.id === approvalId
+						? { ...m, resolved: true, approved, note }
+						: m,
 				),
 			);
-			ipcInvoke("approval.resolveRequested", { approvalId, approved });
+			ipcInvoke("approval.resolveRequested", { approvalId, approved, note });
 		},
 		[sessionId],
 	);

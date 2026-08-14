@@ -18,17 +18,18 @@ export type IpcChannels = {
 		};
 		result: string;
 	};
-  "turn.cancelRequested": {
-    args: {
-      sessionId: string;
-      turnId: string;
-    },
-    result: undefined;
+	"turn.cancelRequested": {
+		args: {
+			sessionId: string;
+			turnId: string;
+		},
+		result: undefined;
 	}
 	"approval.resolveRequested": {
 		args: {
 			approvalId: string;
 			approved: boolean;
+			note?: string;
 		};
 		result: undefined;
 	};

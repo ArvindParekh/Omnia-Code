@@ -43,6 +43,7 @@ export type ChatMessage =
 			input: Record<string, unknown>;
 			resolved: boolean;
 			approved?: boolean;
+			note?: string;
 			timestamp: Date;
 	  }
 	| { kind: "error"; id: string; message: string; timestamp: Date };
@@ -71,4 +72,5 @@ export type ApprovalArgs = {
 	__approvalId: string;
 	__resolved: boolean;
 	__approved: boolean | null;
+	__note?: string;
 };

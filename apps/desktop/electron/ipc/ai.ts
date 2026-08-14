@@ -26,7 +26,7 @@ ipcMainHandle<"session.createRequested">("session.createRequested", async (event
 
 ipcMainHandle<"turn.startRequested">("turn.startRequested", async (event, { sessionId, text }) => {
 	const commandId = crypto.randomUUID();
-  const turnId = crypto.randomUUID();
+	const turnId = crypto.randomUUID();
 	await appServer.router.dispatch({
 		id: commandId,
 		type: "turn.startRequested",
@@ -43,21 +43,21 @@ ipcMainHandle<"turn.startRequested">("turn.startRequested", async (event, { sess
 });
 
 ipcMainHandle<"turn.cancelRequested">("turn.cancelRequested", async (event, { sessionId, turnId }) => {
-  const commandId = crypto.randomUUID();
-  await appServer.router.dispatch({
-    id: commandId,
-    type: "turn.cancelRequested",
-    payload: {
-      sessionId,
-      turnId,
-    },
-    requestedBy: "user",
-    requestedAt: Date.now(),
-  })
-  return undefined;
+	const commandId = crypto.randomUUID();
+	await appServer.router.dispatch({
+		id: commandId,
+		type: "turn.cancelRequested",
+		payload: {
+			sessionId,
+			turnId,
+		},
+		requestedBy: "user",
+		requestedAt: Date.now(),
+	})
+	return undefined;
 })
 
-ipcMainHandle<"approval.resolveRequested">("approval.resolveRequested", async (event, { approvalId, approved }) => {
+ipcMainHandle<"approval.resolveRequested">("approval.resolveRequested", async (event, { approvalId, approved, note }) => {
 	const commandId = crypto.randomUUID();
 	await appServer.router.dispatch({
 		id: commandId,
@@ -65,7 +65,7 @@ ipcMainHandle<"approval.resolveRequested">("approval.resolveRequested", async (e
 		payload: {
 			approvalId,
 			approved,
-			note: "",
+			note: note ?? "",
 		},
 		requestedAt: Date.now(),
 		requestedBy: "user",

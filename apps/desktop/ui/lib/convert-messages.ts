@@ -87,6 +87,7 @@ export function convertToThreadMessages(msgs: ChatMessage[]): ThreadMessageLike[
 				__approvalId: msg.id,
 				__resolved: msg.resolved,
 				__approved: msg.approved ?? null,
+				__note: msg.note,
 			};
 			assemblingAssistant!.content.push({
 				type: "tool-call",
