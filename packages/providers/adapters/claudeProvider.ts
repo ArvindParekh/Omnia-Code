@@ -113,7 +113,7 @@ export class ClaudeProvider implements ProviderAdapter {
 		};
 	}
 
-	async resumeSession(_input: ResumeProviderSessionInput): Promise<void> { }
+	async resumeSession(_input: ResumeProviderSessionInput): Promise<void> {}
 
 	async disposeSession(input: DisposeProviderSessionInput): Promise<void> {
 		const turnIds = [...this.activeTurns.entries()]
@@ -193,10 +193,10 @@ export class ClaudeProvider implements ProviderAdapter {
 			input.approved
 				? { behavior: "allow", toolUseID: input.toolCallId }
 				: {
-					behavior: "deny",
-					message: input.note ? String(input.note) : "User denied",
-					toolUseID: input.toolCallId,
-				},
+						behavior: "deny",
+						message: input.note ? String(input.note) : "User denied",
+						toolUseID: input.toolCallId,
+					},
 		);
 	}
 

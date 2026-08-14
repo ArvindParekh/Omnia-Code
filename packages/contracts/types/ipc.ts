@@ -22,9 +22,9 @@ export type IpcChannels = {
 		args: {
 			sessionId: string;
 			turnId: string;
-		},
+		};
 		result: undefined;
-	}
+	};
 	"approval.resolveRequested": {
 		args: {
 			approvalId: string;

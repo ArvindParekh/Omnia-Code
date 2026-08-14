@@ -27,7 +27,7 @@ export class TurnService {
 
 	async start(envelope: CommandEnvelopeFor<"turn.startRequested">): Promise<void> {
 		const { sessionId, text, attachments } = envelope.payload;
-    const turnId = envelope.payload.turnId;
+		const turnId = envelope.payload.turnId;
 		const {
 			ref: providerRef,
 			workspacePath,

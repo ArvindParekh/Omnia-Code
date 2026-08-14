@@ -16,8 +16,15 @@ type SessionChatProps = {
 	onInitialMessageSent?: () => void;
 };
 
-export function SessionChat({ session, showInspector, initialMessage, onInitialMessageSent }: SessionChatProps) {
-	const { messages, turns, send, approve, isRunning, isCanceling, cancel } = useMessages(session.id);
+export function SessionChat({
+	session,
+	showInspector,
+	initialMessage,
+	onInitialMessageSent,
+}: SessionChatProps) {
+	const { messages, turns, send, approve, isRunning, isCanceling, cancel } = useMessages(
+		session.id,
+	);
 
 	// Fire the initial message once on mount (only when creating a new session
 	// from the NewChat screen — the ref guards against double-sends on StrictMode).

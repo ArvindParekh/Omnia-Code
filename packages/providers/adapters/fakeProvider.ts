@@ -36,11 +36,12 @@ export const fakeProviderAdapter: ProviderAdapter = {
 	},
 
 	sendTurn: (_input: SendProviderTurnInput) => {
-    return (async function* (): AsyncIterable<ProviderRuntimeEvent> {
-      for (let i = 0; i < 5; i++) {
-        await new Promise((r) => setTimeout(r, 1000));
-        yield {
-          type: "assistant.delta", text: `HDone. Here's a summary of everything:
+		return (async function* (): AsyncIterable<ProviderRuntimeEvent> {
+			for (let i = 0; i < 5; i++) {
+				await new Promise((r) => setTimeout(r, 1000));
+				yield {
+					type: "assistant.delta",
+					text: `HDone. Here's a summary of everything:
   ──────
   ## Root cause: StrictMode double-invocation of state updaters
 
@@ -56,10 +57,10 @@ export const fakeProviderAdapter: ProviderAdapter = {
   1. Move the ref mutation outside the updater — set  streamingMsgId.current  before calling  setMessages , capture it as a local  const msgId , and use that local const inside the
   updater. The updater now detects "create vs append" by checking if the message exists in  prev  (a pure check), not by reading a ref.
   2. Added  detail: event.payload.text.slice(0, 80)  to the delta inspector event — this is why they were non-expandable (the  EventRow  component gates the caret icon and click handler
-  on  event.detail  being truthy).ello, world!` };
-      }
-    })();
-
+  on  event.detail  being truthy).ello, world!`,
+				};
+			}
+		})();
 	},
 
 	cancelTurn: async (_input: CancelProviderTurnInput) => {

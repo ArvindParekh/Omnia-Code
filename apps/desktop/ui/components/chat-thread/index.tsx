@@ -8,13 +8,7 @@ import { Composer } from "./composer";
 import { UserMessage } from "./user-message";
 import { AssistantMessage } from "./assistant-message";
 
-export function ChatThread({
-	session,
-	isCanceling,
-}: {
-	session: Session;
-	isCanceling: boolean;
-}) {
+export function ChatThread({ session, isCanceling }: { session: Session; isCanceling: boolean }) {
 	const label = providerLabel(session.provider);
 	const workspaceBase = session.workspaceId.replace(/^.*\//, "") || session.workspaceId;
 	const [messagesRef] = useAutoAnimate<HTMLDivElement>();
