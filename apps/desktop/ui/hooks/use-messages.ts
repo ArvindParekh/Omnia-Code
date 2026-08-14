@@ -134,6 +134,49 @@ export function useMessages(sessionId: string) {
 					),
 				);
 			}
+		} else if (event.type === "tool.callStarted") {
+			const turnId = currentTurnId.current;
+			if (turnId) {
+				setTurns((prev) =>
+					prev.map((t) =>
+						t.id === turnId
+							? {
+									...t,
+									events: [
+										...t.events,
+										{
+											id: event.payload.toolCallId,
+											type: "tool",
+											summary: `tool.callStarted — ${event.payload.toolName}`,
+											status: "running" as const,
+										},
+									],
+								}
+							: t,
+					),
+				);
+			}
+		} else if (event.type === "tool.callCompleted") {
+			const turnId = currentTurnId.current;
+			if (turnId) {
+				setTurns((prev) =>
+					prev.map((t) =>
+						t.id === turnId
+							? {
+									...t,
+									events: t.events.map((e) =>
+										e.id === event.payload.toolCallId
+											? {
+													...e,
+													status: event.payload.isError ? ("error" as const) : ("done" as const),
+												}
+											: e,
+									),
+								}
+							: t,
+					),
+				);
+			}
 		} else if (event.type === "turn.completed") {
 			finalizeStream("done");
 		} else if (event.type === "turn.canceled") {
