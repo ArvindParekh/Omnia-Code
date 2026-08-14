@@ -1,7 +1,7 @@
 import { createContext, useContext } from "react";
 
 type ApprovalContextValue = {
-	onApprove: (id: string, approved: boolean) => void;
+	onApprove: (id: string, approved: boolean, note?: string) => void;
 };
 
 export const ApprovalContext = createContext<ApprovalContextValue | null>(null);

@@ -113,7 +113,7 @@ export class ClaudeProvider implements ProviderAdapter {
 		};
 	}
 
-	async resumeSession(_input: ResumeProviderSessionInput): Promise<void> {}
+	async resumeSession(_input: ResumeProviderSessionInput): Promise<void> { }
 
 	async disposeSession(input: DisposeProviderSessionInput): Promise<void> {
 		const turnIds = [...this.activeTurns.entries()]
@@ -191,13 +191,18 @@ export class ClaudeProvider implements ProviderAdapter {
 		this.activeApprovals.delete(input.toolCallId);
 		pending.resolve(
 			input.approved
-				? { behavior: "allow", toolUseID: input.toolCallId }
-				: {
-						behavior: "deny",
-						message: input.note ? String(input.note) : "User denied",
+				? {
+						behavior: "allow",
+						updatedInput: (input.input ?? {}) as Record<string, unknown>,
 						toolUseID: input.toolCallId,
-					},
+					}
+				: {
+					behavior: "deny",
+					message: input.note ? String(input.note) : "User denied",
+					toolUseID: input.toolCallId,
+				},
 		);
+
 	}
 
 	private createCanUseTool(
@@ -240,6 +245,33 @@ export class ClaudeProvider implements ProviderAdapter {
 						type: "assistant.delta",
 						text: message.event.delta.text,
 					});
+				}
+
+				if (message.type === 'assistant') {
+					for (const block of message.message.content) {
+						if (block.type !== 'tool_use') continue;
+						events.push({
+							type: "tool.started",
+							toolCallId: block.id,
+							toolName: block.name,
+							input: block.input,
+							risk: classifyToolRisk(block.name),
+						})
+					}
+				}
+
+				if (message.type === 'user') {
+					if (Array.isArray(message.message.content)) {
+						for (const block of message.message.content) {
+							if (block.type !== 'tool_result') continue;
+							events.push({
+								type: "tool.completed",
+								toolCallId: block.tool_use_id,
+								output: block.content,
+								isError: block.is_error ?? false,
+							})
+						}
+					}
 				}
 
 				if (message.type !== "result") continue;
