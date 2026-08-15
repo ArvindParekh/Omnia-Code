@@ -101,6 +101,10 @@ export type DomainEvent<TType extends string, TPayload> = {
 
 export type DomainEventFor<T extends EventType> = DomainEvent<T, EventPayload<T>>;
 
+// An event that has been constructed but not yet appended to the store. `seq` is
+// assigned by the store on insert, so holding a `DomainEvent` means it's durable.
+export type DraftEvent<T extends EventType> = Omit<DomainEventFor<T>, "seq">;
+
 // All kinds of domain events defined here.
 export type SessionCreated = DomainEventFor<"session.created">;
 export type TurnStarted = DomainEventFor<"turn.started">;
@@ -129,4 +133,8 @@ export type TurnCanceled = DomainEventFor<"turn.canceled">;
 
 export type AllEvents<T extends EventType> = {
 	[K in T]: DomainEventFor<K>;
+}[T];
+
+export type AllDraftEvents<T extends EventType> = {
+	[K in T]: DraftEvent<K>;
 }[T];

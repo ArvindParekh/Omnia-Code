@@ -11,7 +11,7 @@ export default defineConfig([
 		outDir: "dist-electron/apps/desktop",
 		format: ["esm"],
 		platform: "node",
-		external: ["electron", "node:crypto", ...desktopDeps],
+		external: ["electron", "node:crypto", "node:sqlite", ...desktopDeps],
 		noExternal: [/^@omnia\//],
 		clean: true,
 	},

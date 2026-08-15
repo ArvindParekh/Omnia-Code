@@ -1,4 +1,9 @@
-import type { CommandEnvelopeFor, MessageAttachment, ProviderRuntimeEvent } from "@omnia/contracts";
+import type {
+	CommandEnvelopeFor,
+	EventStore,
+	MessageAttachment,
+	ProviderRuntimeEvent,
+} from "@omnia/contracts";
 import type {
 	CancelProviderTurnInput,
 	ProviderAdapter,
@@ -6,8 +11,7 @@ import type {
 	ProviderSessionRef,
 	SessionPolicy,
 } from "@omnia/providers";
-import type { EventStore } from "../event-store.js";
-import { createEvent } from "../event-store.js";
+import { createEvent } from "../create-event.js";
 import type { SessionService } from "./session-service.js";
 
 type ActiveTurn = {
@@ -34,14 +38,10 @@ export class TurnService {
 			policy,
 		} = this.sessionService.getProviderSession(sessionId);
 		const adapter = this.registry.get(providerRef.provider);
+		// Scoped to the session so this is an indexed range scan, not a full log read.
 		const resume = this.eventStore
-			.getEvents()
-			.some(
-				(event) =>
-					event.type === "turn.started" &&
-					event.payload.sessionId === sessionId &&
-					event.payload.turnId !== turnId,
-			);
+			.getEvents(sessionId)
+			.some((event) => event.type === "turn.started" && event.payload.turnId !== turnId);
 
 		const abortController = new AbortController();
 		this.activeTurns.set(turnId, {

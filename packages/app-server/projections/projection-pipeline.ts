@@ -1,4 +1,4 @@
-import type { EventStore } from "../event-store.js";
+import type { EventStore } from "@omnia/contracts";
 import type { Projector } from "./projectors/types.js";
 
 export class ProjectionPipeline {

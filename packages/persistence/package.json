@@ -1,0 +1,23 @@
+{
+	"name": "@omnia/persistence",
+	"type": "module",
+	"private": true,
+	"exports": {
+		".": "./index.ts"
+	},
+	"scripts": {
+		"build": "tsc",
+		"lint": "biome check .",
+		"lint:fix": "biome check . --fix",
+		"typecheck": "tsc --noEmit"
+	},
+	"dependencies": {
+		"@omnia/contracts": "workspace:*"
+	},
+	"devDependencies": {
+		"@types/bun": "latest"
+	},
+	"peerDependencies": {
+		"typescript": "^5"
+	}
+}

@@ -1,6 +1,5 @@
-import type { CommandEnvelopeFor, DomainEventFor } from "@omnia/contracts";
+import type { CommandEnvelopeFor, DomainEventFor, EventStore } from "@omnia/contracts";
 import type { ProviderRegistry } from "@omnia/providers";
-import type { EventStore } from "../event-store.js";
 import type { SessionService } from "./session-service.js";
 
 export class ApprovalService {

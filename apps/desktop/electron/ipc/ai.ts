@@ -1,5 +1,5 @@
 import { ipcMainHandle, ipcWebContentsSend } from "../util.js";
-import { appServer } from "@omnia/app-server";
+import { appServer } from "../app-server.js";
 import { BrowserWindow } from "electron";
 import crypto from "node:crypto";
 import { resolveWorkspacePath } from "../workspacePath.js";
@@ -87,10 +87,7 @@ ipcMainHandle<"app:getSessions">("app:getSessions", () => {
 });
 
 ipcMainHandle<"app:getEvents">("app:getEvents", (event, { sessionId }) => {
-	const events = appServer.eventStore.getEvents();
-	return events.filter((e) => {
-		return "sessionId" in e.payload && (e.payload as any).sessionId === sessionId;
-	});
+	return appServer.eventStore.getEvents(sessionId);
 });
 
 ipcMainHandle<"app:detectProviders">("app:detectProviders", async () => {
