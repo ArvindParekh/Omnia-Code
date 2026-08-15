@@ -17,7 +17,7 @@
 		"lint:fix": "oxlint --fix",
 		"typecheck": "tsc --noEmit",
 		"fmt": "biome format --write .",
-		"fmt:check": "biome format --check .",
+		"fmt:check": "biome format .",
 		"check-all": "bun run lint && bun run typecheck && bun run fmt:check",
 		"check-all-fix": "bun run lint:fix && bun run fmt",
 		"preview": "vite preview",
