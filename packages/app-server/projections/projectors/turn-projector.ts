@@ -12,7 +12,6 @@ export class TurnProjector implements Projector<Map<string, Turn>> {
 					sessionId: event.payload.sessionId,
 					userMessage: "",
 					status: "in_progress",
-					agentEvents: [], //todo
 					createdAt: event.payload.startedAt,
 					updatedAt: event.payload.startedAt,
 				});

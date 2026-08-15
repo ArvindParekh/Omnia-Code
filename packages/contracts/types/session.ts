@@ -15,24 +15,12 @@ export type Turn = {
 	id: string;
 	sessionId: string;
 	userMessage: string;
-	agentEvents: AgentEvent[];
 	status: TurnStatus;
 	createdAt: number;
 	updatedAt: number;
 };
 
 export type TurnStatus = "in_progress" | "completed" | "failed" | "canceled";
-
-export type AgentEvent =
-	| { type: "delta"; text: string }
-	| { type: "done" }
-	| {
-			type: "error";
-			message: string;
-			retryable?: boolean;
-			correlationId?: string;
-	  }
-	| { type: "approval"; id: string; toolName: string; input: unknown };
 
 export type SessionStatus = "idle" | "running" | "error";
 
