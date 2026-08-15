@@ -1,6 +1,7 @@
 import { Terminal, SpinnerGap } from "@phosphor-icons/react";
 import type { ToolCallMessagePartProps } from "@assistant-ui/react";
 import type { ApprovalArgs } from "../lib/types";
+import { getToolPrimaryArg } from "../lib/tool-call";
 import { ApprovalCard } from "./approval-card";
 
 // Renders a single tool call from the assistant message.
@@ -16,8 +17,7 @@ export function ToolCallBlock({ toolName, args, result, status }: ToolCallMessag
 		return <ApprovalCard {...meta} toolName={toolName} command={command} />;
 	}
 
-	const primaryArg =
-		(typedArgs.path as string) ?? (typedArgs.command as string) ?? JSON.stringify(args);
+	const primaryArg = getToolPrimaryArg(typedArgs);
 
 	const output =
 		typeof result === "object" && result !== null && "output" in (result as object)

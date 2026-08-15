@@ -65,6 +65,7 @@ export function convertToThreadMessages(msgs: ChatMessage[]): ThreadMessageLike[
 		} else if (msg.kind === "reasoning") {
 			ensureAssistant(`reasoning-${msg.id}`, msg.timestamp);
 			assemblingAssistant!.content.push({ type: "reasoning", text: msg.text });
+			if (msg.streaming) assemblingAssistant!.isRunning = true;
 		} else if (msg.kind === "assistant") {
 			ensureAssistant(`asmsg-${msg.id}`, msg.timestamp);
 			assemblingAssistant!.content.push({ type: "text", text: msg.text });

@@ -30,6 +30,10 @@ type ProviderRuntimeEvent =
 	  }
 	| { type: "assistant.completed" }
 	| {
+			type: "reasoning.delta";
+			text: string;
+	  }
+	| {
 			type: "tool.started";
 			toolCallId: string;
 			toolName: string;

@@ -26,7 +26,13 @@ export type ChatMessage =
 			timestamp: Date;
 	  }
 	| { kind: "assistant"; id: string; text: string; streaming?: boolean; timestamp: Date }
-	| { kind: "reasoning"; id: string; text: string; timestamp: Date }
+	| {
+			kind: "reasoning";
+			id: string;
+			text: string;
+			streaming?: boolean;
+			timestamp: Date;
+	  }
 	| {
 			kind: "tool";
 			id: string;
@@ -54,6 +60,9 @@ export type InspectorEvent = {
 	summary: string;
 	detail?: string;
 	status?: "done" | "running" | "error" | "pending";
+	toolName?: string;
+	input?: Record<string, unknown>;
+	output?: unknown;
 };
 
 export type TurnGroup = {

@@ -18,6 +18,7 @@ export function useMessages(sessionId: string) {
 
 	// Refs for mutable streaming state — stable across renders, safe in closures
 	const streamingMsgId = useRef<string | null>(null);
+	const streamingReasoningId = useRef<string | null>(null);
 	const currentTurnId = useRef<string | null>(null);
 	const pendingStart = useRef<Promise<string> | null>(null);
 	const cancelingRef = useRef(false);
@@ -36,6 +37,13 @@ export function useMessages(sessionId: string) {
 			streamingMsgId.current = null;
 			setMessages((prev) =>
 				prev.map((m) => (m.kind === "assistant" && m.id === id ? { ...m, streaming: false } : m)),
+			);
+		}
+		if (streamingReasoningId.current) {
+			const id = streamingReasoningId.current;
+			streamingReasoningId.current = null;
+			setMessages((prev) =>
+				prev.map((m) => (m.kind === "reasoning" && m.id === id ? { ...m, streaming: false } : m)),
 			);
 		}
 		const tid = currentTurnId.current;
@@ -101,6 +109,31 @@ export function useMessages(sessionId: string) {
 					),
 				);
 			}
+		} else if (event.type === "message.reasoningDeltaReceived") {
+			if (!streamingReasoningId.current) {
+				streamingReasoningId.current = `reasoning-${Date.now()}`;
+			}
+			const msgId = streamingReasoningId.current;
+			setMessages((prev) => {
+				const exists = prev.some((m) => m.kind === "reasoning" && m.id === msgId);
+				if (!exists) {
+					return [
+						...prev,
+						{
+							kind: "reasoning",
+							id: msgId,
+							text: event.payload.text,
+							streaming: true,
+							timestamp: new Date(),
+						},
+					];
+				}
+				return prev.map((m) =>
+					m.kind === "reasoning" && m.id === msgId
+						? { ...m, text: m.text + event.payload.text }
+						: m,
+				);
+			});
 		} else if (event.type === "approval.requested") {
 			setMessages((prev) => [
 				...prev,
@@ -149,6 +182,8 @@ export function useMessages(sessionId: string) {
 											type: "tool",
 											summary: `tool.callStarted — ${event.payload.toolName}`,
 											status: "running" as const,
+											toolName: event.payload.toolName,
+											input: event.payload.input as Record<string, unknown>,
 										},
 									],
 								}
@@ -169,6 +204,7 @@ export function useMessages(sessionId: string) {
 											? {
 													...e,
 													status: event.payload.isError ? ("error" as const) : ("done" as const),
+													output: event.payload.output,
 												}
 											: e,
 									),

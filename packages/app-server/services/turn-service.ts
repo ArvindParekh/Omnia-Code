@@ -185,6 +185,16 @@ export class TurnService {
 					}),
 				);
 				break;
+			case "reasoning.delta":
+				this.eventStore.addEvent(
+					createEvent("message.reasoningDeltaReceived", {
+						sessionId,
+						turnId,
+						messageId,
+						text: event.text,
+					}),
+				);
+				break;
 			case "tool.started":
 				this.eventStore.addEvent(
 					createEvent("tool.callStarted", {

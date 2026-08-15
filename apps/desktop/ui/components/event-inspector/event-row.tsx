@@ -2,6 +2,7 @@ import { useState } from "react";
 import { CaretRight } from "@phosphor-icons/react";
 import type { InspectorEvent } from "../../lib/types";
 import { cn } from "../../lib/utils";
+import { ToolEventDetail } from "./tool-event-detail";
 
 function getEventOpacity(type: string, status?: InspectorEvent["status"]): number {
 	if (type === "error" || status === "error") return 0.45;
@@ -15,14 +16,16 @@ function getEventOpacity(type: string, status?: InspectorEvent["status"]): numbe
 export function EventRow({ event, isLast }: { event: InspectorEvent; isLast: boolean }) {
 	const [expanded, setExpanded] = useState(false);
 	const opacity = getEventOpacity(event.type, event.status);
+	const isTool = event.type === "tool";
+	const isExpandable = isTool || Boolean(event.detail);
 
 	return (
 		<div>
 			<button
-				onClick={() => event.detail && setExpanded((v) => !v)}
+				onClick={() => isExpandable && setExpanded((v) => !v)}
 				className={cn(
 					"w-full flex items-center gap-2 pl-8 pr-4 py-[3px] transition-colors text-left",
-					event.detail ? "hover:bg-white/[3%] cursor-pointer" : "cursor-default",
+					isExpandable ? "hover:bg-white/[3%] cursor-pointer" : "cursor-default",
 				)}
 			>
 				<span className="shrink-0 w-3 flex flex-col items-center relative" aria-hidden="true">
@@ -39,7 +42,7 @@ export function EventRow({ event, isLast }: { event: InspectorEvent; isLast: boo
 					{event.summary}
 				</span>
 
-				{event.detail && (
+				{isExpandable && (
 					<CaretRight
 						size={8}
 						weight="bold"
@@ -48,7 +51,13 @@ export function EventRow({ event, isLast }: { event: InspectorEvent; isLast: boo
 				)}
 			</button>
 
-			{expanded && event.detail && (
+			{expanded && isTool && (
+				<div className="pl-14 pr-4 py-1.5">
+					<ToolEventDetail event={event} />
+				</div>
+			)}
+
+			{expanded && !isTool && event.detail && (
 				<div className="pl-14 pr-4 py-1.5">
 					<code className="block text-[10px] font-mono text-white/22 leading-relaxed whitespace-pre-wrap break-all select-text">
 						{event.detail}

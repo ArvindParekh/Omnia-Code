@@ -158,6 +158,7 @@ export class ClaudeProvider implements ProviderAdapter {
 				},
 				includePartialMessages: true,
 				permissionMode: "default",
+				thinking: { type: "adaptive" },
 				canUseTool: this.createCanUseTool(input.turnId, events),
 				...(input.resume ? { resume: externalId } : { sessionId: externalId }),
 			},
@@ -243,6 +244,17 @@ export class ClaudeProvider implements ProviderAdapter {
 					events.push({
 						type: "assistant.delta",
 						text: message.event.delta.text,
+					});
+				}
+
+				if (
+					message.type === "stream_event" &&
+					message.event.type === "content_block_delta" &&
+					message.event.delta.type === "thinking_delta"
+				) {
+					events.push({
+						type: "reasoning.delta",
+						text: message.event.delta.thinking,
 					});
 				}
 

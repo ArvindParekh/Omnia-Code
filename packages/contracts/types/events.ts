@@ -32,6 +32,12 @@ export type EventPayloadMap = {
 		turnId: string;
 		messageId: string;
 	};
+	"message.reasoningDeltaReceived": {
+		sessionId: string;
+		turnId: string;
+		messageId: string;
+		text: string;
+	};
 	"tool.callStarted": {
 		sessionId: string;
 		turnId: string;
@@ -104,6 +110,8 @@ export type UserMessageCreated = DomainEventFor<"message.userCreated">;
 export type AssistantDeltaReceived = DomainEventFor<"message.assistantDeltaReceived">;
 
 export type AssistantMessageCompleted = DomainEventFor<"message.assistantCompleted">;
+
+export type ReasoningDeltaReceived = DomainEventFor<"message.reasoningDeltaReceived">;
 
 export type ToolCallStarted = DomainEventFor<"tool.callStarted">;
 
