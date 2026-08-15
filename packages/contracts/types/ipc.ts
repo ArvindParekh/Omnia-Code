@@ -1,5 +1,5 @@
 import type { AllEvents, EventType } from "./events.js";
-import type { Provider } from "./provider.js";
+import type { MessageAttachment, Provider, QuoteRef } from "./provider.js";
 import type { Session } from "./session.js";
 
 export type IpcChannels = {
@@ -15,6 +15,8 @@ export type IpcChannels = {
 		args: {
 			sessionId: string;
 			text: string;
+			attachments?: MessageAttachment[];
+			quote?: QuoteRef;
 		};
 		result: string;
 	};
@@ -43,6 +45,10 @@ export type IpcChannels = {
 		};
 		result: AllEvents<EventType>[];
 	};
+	"app.getSessionView": {
+		args: Record<string, never>;
+		result: 
+	},
 	"app:detectProviders": {
 		args: Record<string, never>;
 		result: Provider[];

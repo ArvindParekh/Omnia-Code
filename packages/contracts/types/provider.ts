@@ -78,8 +78,14 @@ type MessageAttachment = {
 	id: string;
 	kind: "file" | "image" | "text";
 	path: string;
+	name: string;
 	contentType?: string;
 	sizeBytes?: number;
+};
+
+type QuoteRef = {
+	text: string;
+	messageId: string;
 };
 
 type Approval = {
@@ -98,6 +104,7 @@ export type {
 	ModelSelection,
 	Provider,
 	ProviderAvailability,
+	QuoteRef,
 	ProviderModelCapabilities,
 	ProviderRuntimeEvent,
 };

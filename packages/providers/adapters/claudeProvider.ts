@@ -134,10 +134,6 @@ export class ClaudeProvider implements ProviderAdapter {
 			throw new Error("Turn text is required");
 		}
 
-		if (input.attachments.length > 0) {
-			throw new Error("Claude attachments are not implemented");
-		}
-
 		if (input.signal.aborted) return;
 
 		const abortController = new AbortController();
@@ -147,7 +143,7 @@ export class ClaudeProvider implements ProviderAdapter {
 		const events = new AsyncEventQueue<ProviderRuntimeEvent>();
 
 		const stream = query({
-			prompt: input.text,
+			prompt: buildPrompt(input),
 			options: {
 				abortController,
 				cwd: input.workspacePath,
@@ -346,6 +342,21 @@ export class ClaudeProvider implements ProviderAdapter {
 			this.activeTurns.delete(turnId);
 		}
 	}
+}
+
+function buildPrompt(input: SendProviderTurnInput): string {
+	const sections = [input.text];
+
+	if (input.quote) {
+		sections.unshift(`Quoting a previous message:\n\n> ${input.quote.text.replace(/\n/g, "\n> ")}`);
+	}
+
+	if (input.attachments.length > 0) {
+		const files = input.attachments.map((a) => `- ${a.path}`).join("\n");
+		sections.push(`Attached files (read these as needed):\n${files}`);
+	}
+
+	return sections.join("\n\n");
 }
 
 function isTransientError(error: unknown): boolean {

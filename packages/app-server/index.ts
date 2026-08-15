@@ -78,6 +78,7 @@ export function createAppServer(deps: { eventStore: EventStore }): {
 					messageId: crypto.randomUUID(),
 					text: envelope.payload.text,
 					attachments: envelope.payload.attachments ?? [],
+					quote: envelope.payload.quote,
 				}),
 			);
 

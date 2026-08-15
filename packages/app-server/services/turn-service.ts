@@ -3,6 +3,7 @@ import type {
 	EventStore,
 	MessageAttachment,
 	ProviderRuntimeEvent,
+	QuoteRef,
 } from "@omnia/contracts";
 import type { CancelProviderTurnInput, ProviderAdapter, ProviderRegistry } from "@omnia/providers";
 import type { ProviderSessionRef, SessionPolicy } from "@omnia/contracts";
@@ -25,7 +26,7 @@ export class TurnService {
 	) {}
 
 	async start(envelope: CommandEnvelopeFor<"turn.startRequested">): Promise<void> {
-		const { sessionId, text, attachments } = envelope.payload;
+		const { sessionId, text, attachments, quote } = envelope.payload;
 		const turnId = envelope.payload.turnId;
 		const {
 			ref: providerRef,
@@ -60,6 +61,7 @@ export class TurnService {
 			turnId,
 			text,
 			attachments: attachments ?? [],
+			quote,
 			workspacePath,
 			policy,
 			resume,
@@ -86,6 +88,7 @@ export class TurnService {
 		turnId: string;
 		text: string;
 		attachments: MessageAttachment[];
+		quote?: QuoteRef;
 		workspacePath: string;
 		policy: SessionPolicy;
 		resume: boolean;
@@ -99,6 +102,7 @@ export class TurnService {
 				turnId,
 				text,
 				attachments,
+				quote,
 				workspacePath,
 				policy,
 				resume,
@@ -112,6 +116,7 @@ export class TurnService {
 				turnId,
 				text,
 				attachments,
+				quote,
 				providerSessionRef: providerRef,
 				workspacePath,
 				policy,

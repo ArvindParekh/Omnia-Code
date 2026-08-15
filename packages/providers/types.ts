@@ -4,6 +4,7 @@ import type {
 	Provider,
 	ProviderAvailability,
 	ProviderRuntimeEvent,
+	QuoteRef,
 	SessionPolicy,
 	ToolRisk,
 	ProviderSessionRef,
@@ -53,6 +54,7 @@ type SendProviderTurnInput = {
 	turnId: string;
 	text: string;
 	attachments: MessageAttachment[];
+	quote?: QuoteRef;
 	workspacePath: string;
 	policy: SessionPolicy;
 	resume: boolean;

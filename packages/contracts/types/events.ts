@@ -1,4 +1,4 @@
-import type { MessageAttachment, Provider, ToolRisk } from "./provider.ts";
+import type { MessageAttachment, Provider, QuoteRef, ToolRisk } from "./provider.ts";
 import type { ProviderSessionRef, SessionPolicy } from "./session.ts";
 
 export type EventPayloadMap = {
@@ -23,6 +23,7 @@ export type EventPayloadMap = {
 		messageId: string;
 		text: string;
 		attachments: MessageAttachment[];
+		quote?: QuoteRef;
 	};
 	"message.assistantDeltaReceived": {
 		sessionId: string;

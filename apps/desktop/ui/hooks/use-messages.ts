@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { takeAttachments } from "../lib/attachment-adapter";
 import type { ChatMessage, CompleteAttachment, QuoteRef, TurnGroup } from "../lib/types";
 import { ipcInvoke, useIpcEvent } from "./use-ipc";
 
@@ -276,7 +277,12 @@ export function useMessages(sessionId: string) {
 				},
 			]);
 
-			const start = ipcInvoke("turn.startRequested", { sessionId, text: text.trim() });
+			const start = ipcInvoke("turn.startRequested", {
+				sessionId,
+				text: text.trim(),
+				attachments: takeAttachments((attachments ?? []).map((a) => a.id)),
+				quote,
+			});
 			pendingStart.current = start;
 
 			start
