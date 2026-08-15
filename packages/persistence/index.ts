@@ -1,5 +1,11 @@
 import { DatabaseSync } from "node:sqlite";
-import type { AllDraftEvents, AllEvents, EventStore, EventType } from "@omnia/contracts";
+import type {
+    AllDraftEvents,
+    AllEvents,
+    DomainEventFor,
+    EventStore,
+    EventType,
+} from "@omnia/contracts";
 
 const SCHEMA = `
 CREATE TABLE IF NOT EXISTS events (
@@ -14,6 +20,7 @@ CREATE TABLE IF NOT EXISTS events (
 ) STRICT;
 
 CREATE INDEX IF NOT EXISTS idx_events_stream ON events (stream_id, seq);
+CREATE INDEX IF NOT EXISTS idx_events_type ON events (type, seq);
 `;
 
 type EventRow = {
@@ -32,6 +39,7 @@ export class SqliteEventStore implements EventStore {
     private readonly insert;
     private readonly selectAll;
     private readonly selectStream;
+    private readonly selectByType;
     private listeners: ((event: AllEvents<EventType>) => void)[] = [];
 
     constructor(dbPath: string) {
@@ -53,6 +61,7 @@ export class SqliteEventStore implements EventStore {
         );
         this.selectAll = this.db.prepare("SELECT * FROM events ORDER BY seq");
         this.selectStream = this.db.prepare("SELECT * FROM events WHERE stream_id = ? ORDER BY seq");
+        this.selectByType = this.db.prepare("SELECT * FROM events WHERE type = ? ORDER BY seq");
     }
 
     addEvent(draft: AllDraftEvents<EventType>): AllEvents<EventType> {
@@ -79,6 +88,11 @@ export class SqliteEventStore implements EventStore {
             ? this.selectStream.all(sessionId)
             : this.selectAll.all()) as unknown as EventRow[];
         return rows.map(hydrate);
+    }
+
+    getEventsByType<K extends EventType>(type: K): DomainEventFor<K>[] {
+        const rows = this.selectByType.all(type) as unknown as EventRow[];
+        return rows.map(hydrate) as DomainEventFor<K>[];
     }
 
     subscribe(listener: (event: AllEvents<EventType>) => void): () => void {

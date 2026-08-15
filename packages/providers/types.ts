@@ -6,6 +6,7 @@ import type {
 	ProviderRuntimeEvent,
 	SessionPolicy,
 	ToolRisk,
+	ProviderSessionRef,
 } from "@omnia/contracts";
 
 type ProviderAdapter = {
@@ -39,15 +40,11 @@ type CreateProviderSessionInput = {
 	policy: SessionPolicy;
 };
 
-type ProviderSessionRef = {
-	sessionId: string;
-	provider: Provider;
-	externalId?: string;
-	stateJson?: unknown;
-};
-
 type ResumeProviderSessionInput = {
 	sessionId: string;
+	providerSessionRef: ProviderSessionRef;
+	workspacePath: string;
+	policy: SessionPolicy;
 };
 
 type SendProviderTurnInput = {
@@ -95,9 +92,7 @@ export type {
 	DisposeProviderSessionInput,
 	MessageAttachment,
 	ProviderAdapter,
-	ProviderSessionRef,
 	ResolveProviderApprovalInput,
 	ResumeProviderSessionInput,
 	SendProviderTurnInput,
-	SessionPolicy,
 };

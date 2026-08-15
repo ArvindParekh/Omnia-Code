@@ -10,11 +10,11 @@ import type {
 	CreateProviderSessionInput,
 	DisposeProviderSessionInput,
 	ProviderAdapter,
-	ProviderSessionRef,
 	ResolveProviderApprovalInput,
 	ResumeProviderSessionInput,
 	SendProviderTurnInput,
 } from "../types.js";
+import type { ProviderSessionRef } from "@omnia/contracts";
 
 const HIGH_RISK_TOOLS = new Set(["Bash", "Write", "Edit", "NotebookEdit", "KillShell"]);
 

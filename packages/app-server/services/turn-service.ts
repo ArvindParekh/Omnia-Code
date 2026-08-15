@@ -4,13 +4,8 @@ import type {
 	MessageAttachment,
 	ProviderRuntimeEvent,
 } from "@omnia/contracts";
-import type {
-	CancelProviderTurnInput,
-	ProviderAdapter,
-	ProviderRegistry,
-	ProviderSessionRef,
-	SessionPolicy,
-} from "@omnia/providers";
+import type { CancelProviderTurnInput, ProviderAdapter, ProviderRegistry } from "@omnia/providers";
+import type { ProviderSessionRef, SessionPolicy } from "@omnia/contracts";
 import { createEvent } from "../create-event.js";
 import type { SessionService } from "./session-service.js";
 

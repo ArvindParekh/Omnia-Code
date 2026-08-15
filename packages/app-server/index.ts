@@ -15,6 +15,7 @@ export function createAppServer(deps: { eventStore: EventStore }): {
 	sessionProjector: ReturnType<typeof createProjections>["sessionProjector"];
 	turnProjector: ReturnType<typeof createProjections>["turnProjector"];
 	registry: ProviderRegistry;
+	start: () => Promise<void>;
 } {
 	const { eventStore } = deps;
 
@@ -24,7 +25,7 @@ export function createAppServer(deps: { eventStore: EventStore }): {
 
 	const { sessionProjector, turnProjector } = createProjections(eventStore);
 
-	const sessionService = new SessionService(registry);
+	const sessionService = new SessionService(registry, eventStore);
 	const turnService = new TurnService(sessionService, registry, eventStore);
 	const approvalService = new ApprovalService(sessionService, registry, eventStore);
 
@@ -40,16 +41,21 @@ export function createAppServer(deps: { eventStore: EventStore }): {
 			await next();
 		})
 		.on("session.createRequested", async (envelope) => {
+			const { ref, workspacePath, policy } = await sessionService.create({
+				...envelope,
+				id: envelope.id,
+			});
 			eventStore.addEvent(
 				createEvent("session.created", {
 					sessionId: envelope.id,
 					provider: envelope.payload.provider,
-					workspacePath: envelope.payload.workspacePath,
+					workspacePath,
+					policy,
+					ref,
 					title: envelope.payload.title ?? "",
 					createdAt: Date.now(),
 				}),
 			);
-			await sessionService.create({ ...envelope, id: envelope.id });
 		})
 		.on("turn.startRequested", async (envelope) => {
 			const session = sessionProjector.state.get(envelope.payload.sessionId);
@@ -98,5 +104,7 @@ export function createAppServer(deps: { eventStore: EventStore }): {
 			await approvalService.resolve(envelope);
 		});
 
-	return { router, eventStore, sessionProjector, turnProjector, registry };
+	const start = () => sessionService.rehydrate();
+
+	return { router, eventStore, sessionProjector, turnProjector, registry, start };
 }

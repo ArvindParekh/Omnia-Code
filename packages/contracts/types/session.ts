@@ -36,6 +36,13 @@ export type AgentEvent =
 
 export type SessionStatus = "idle" | "running" | "error";
 
+export type ProviderSessionRef = {
+	sessionId: string;
+	provider: Provider;
+	externalId?: string;
+	stateJson?: unknown;
+};
+
 export type SessionPolicy = {
 	capabilities: Capability[];
 };

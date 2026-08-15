@@ -1,4 +1,5 @@
 import type { MessageAttachment, Provider, ToolRisk } from "./provider.ts";
+import type { ProviderSessionRef, SessionPolicy } from "./session.ts";
 
 export type EventPayloadMap = {
 	"session.created": {
@@ -6,6 +7,8 @@ export type EventPayloadMap = {
 		provider: Provider;
 		workspacePath: string;
 		title: string;
+		policy: SessionPolicy;
+		ref: ProviderSessionRef;
 		createdAt: number;
 	};
 	"turn.started": {

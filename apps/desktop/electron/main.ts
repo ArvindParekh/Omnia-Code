@@ -1,6 +1,7 @@
 import { app, BrowserWindow, Menu } from "electron";
 import { isDev } from "./util.js";
 import { getPreloadPath, getUIPath, getIconPath } from "./pathResolver.js";
+import { appServer } from "./app-server.js";
 import "./ipc/ai.js";
 import "./ipc/window.js";
 import dotenv from "dotenv";
@@ -31,7 +32,8 @@ const createWindow = () => {
 	else mainWindow.loadFile(getUIPath());
 };
 
-app.on("ready", () => {
+app.on("ready", async () => {
 	Menu.setApplicationMenu(null);
+	await appServer.start();
 	createWindow();
 });
