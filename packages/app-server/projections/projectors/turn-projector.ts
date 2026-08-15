@@ -10,12 +10,23 @@ export class TurnProjector implements Projector<Map<string, Turn>> {
 				this.state.set(event.payload.turnId, {
 					id: event.payload.turnId,
 					sessionId: event.payload.sessionId,
-					userMessage: "", //todo
+					userMessage: "",
 					status: "in_progress",
 					agentEvents: [], //todo
 					createdAt: event.payload.startedAt,
 					updatedAt: event.payload.startedAt,
 				});
+				break;
+			}
+			case "message.userCreated": {
+				const turn = this.state.get(event.payload.turnId);
+				if (turn) {
+					this.state.set(event.payload.turnId, {
+						...turn,
+						userMessage: event.payload.text,
+						updatedAt: event.occurredAt,
+					});
+				}
 				break;
 			}
 			case "turn.completed": {

@@ -64,6 +64,17 @@ export function createAppServer(deps: { eventStore: EventStore }): {
 					turnId: envelope.payload.turnId,
 				}),
 			);
+
+			eventStore.addEvent(
+				createEvent("message.userCreated", {
+					sessionId: envelope.payload.sessionId,
+					turnId: envelope.payload.turnId,
+					messageId: crypto.randomUUID(),
+					text: envelope.payload.text,
+					attachments: envelope.payload.attachments ?? [],
+				}),
+			);
+
 			await turnService.start(envelope);
 		})
 		.on("turn.cancelRequested", async (envelope) => {
