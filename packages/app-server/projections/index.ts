@@ -11,6 +11,6 @@ export function createProjections(eventStore: EventStore) {
 	return {
 		sessionProjector: pipeline.register(new SessionProjector()),
 		turnProjector: pipeline.register(new TurnProjector()),
-		SessionViewProjector: pipeline.register(new SessionViewProjector()),
+		sessionViewProjector: pipeline.register(new SessionViewProjector()),
 	};
 }

@@ -91,6 +91,12 @@ ipcMainHandle<"app:getSessions">("app:getSessions", () => {
 	return Array.from(appServer.sessionProjector.state.values());
 });
 
+ipcMainHandle<"app:getSessionView">("app:getSessionView", async (event, { sessionId }) => {
+	const view = appServer.sessionViewProjector.state.get(sessionId);
+	if (!view) throw new Error("Session view not found");
+	return view;
+})
+
 ipcMainHandle<"app:getEvents">("app:getEvents", (event, { sessionId }) => {
 	return appServer.eventStore.getEvents(sessionId);
 });

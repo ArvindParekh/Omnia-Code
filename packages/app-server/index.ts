@@ -15,6 +15,7 @@ export function createAppServer(deps: { eventStore: EventStore }): {
 	sessionProjector: ReturnType<typeof createProjections>["sessionProjector"];
 	turnProjector: ReturnType<typeof createProjections>["turnProjector"];
 	registry: ProviderRegistry;
+	sessionViewProjector: ReturnType<typeof createProjections>["sessionViewProjector"];
 	start: () => Promise<void>;
 } {
 	const { eventStore } = deps;
@@ -23,7 +24,7 @@ export function createAppServer(deps: { eventStore: EventStore }): {
 	const registry = new ProviderRegistry();
 	registry.register(fakeProviderAdapter).register(new ClaudeProvider());
 
-	const { sessionProjector, turnProjector } = createProjections(eventStore);
+	const { sessionProjector, turnProjector, sessionViewProjector } = createProjections(eventStore);
 
 	const sessionService = new SessionService(registry, eventStore);
 	const turnService = new TurnService(sessionService, registry, eventStore);
@@ -108,5 +109,5 @@ export function createAppServer(deps: { eventStore: EventStore }): {
 
 	const start = () => sessionService.rehydrate();
 
-	return { router, eventStore, sessionProjector, turnProjector, registry, start };
+	return { router, eventStore, sessionProjector, turnProjector, registry, sessionViewProjector, start };
 }
