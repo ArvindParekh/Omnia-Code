@@ -26,11 +26,13 @@ type ProviderAvailability = {
 type ProviderRuntimeEvent =
 	| {
 			type: "assistant.delta";
+			blockId: string;
 			text: string;
 	  }
-	| { type: "assistant.completed" }
+	| { type: "assistant.completed"; blockId: string }
 	| {
 			type: "reasoning.delta";
+			blockId: string;
 			text: string;
 	  }
 	| {

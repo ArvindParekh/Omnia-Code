@@ -97,6 +97,7 @@ export function createAppServer(deps: { eventStore: EventStore }): {
 		.on("approval.resolveRequested", async (envelope) => {
 			eventStore.addEvent(
 				createEvent("approval.resolved", {
+					sessionId: envelope.payload.sessionId,
 					approvalId: envelope.payload.approvalId,
 					approved: envelope.payload.approved,
 					note: envelope.payload.note,

@@ -184,6 +184,7 @@ export const sampleApprovalFlowEvents: (
 		seq: 6,
 		type: "approval.resolved",
 		payload: {
+			sessionId: "session-2",
 			approvalId: "apr-1",
 			approved: true,
 			note: "Looks safe",

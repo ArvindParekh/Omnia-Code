@@ -355,7 +355,7 @@ export function useMessages(sessionId: string) {
 						: m,
 				),
 			);
-			ipcInvoke("approval.resolveRequested", { approvalId, approved, note });
+			ipcInvoke("approval.resolveRequested", { sessionId, approvalId, approved, note });
 		},
 		[sessionId],
 	);

@@ -67,6 +67,7 @@ export type EventPayloadMap = {
 		risk: ToolRisk;
 	};
 	"approval.resolved": {
+		sessionId: string;
 		approvalId: string;
 		approved: boolean;
 		note?: string;

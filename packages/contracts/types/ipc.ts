@@ -1,6 +1,7 @@
 import type { AllEvents, EventType } from "./events.js";
 import type { MessageAttachment, Provider, QuoteRef } from "./provider.js";
 import type { Session } from "./session.js";
+import type { SessionView } from "./session-view.js";
 
 export type IpcChannels = {
 	"session.createRequested": {
@@ -29,6 +30,7 @@ export type IpcChannels = {
 	};
 	"approval.resolveRequested": {
 		args: {
+			sessionId: string;
 			approvalId: string;
 			approved: boolean;
 			note?: string;
@@ -45,10 +47,12 @@ export type IpcChannels = {
 		};
 		result: AllEvents<EventType>[];
 	};
-	"app.getSessionView": {
-		args: Record<string, never>;
-		result: 
-	},
+	"app:getSessionView": {
+		args: {
+			sessionId: string;
+		};
+		result: SessionView;
+	};
 	"app:detectProviders": {
 		args: Record<string, never>;
 		result: Provider[];

@@ -37,10 +37,12 @@ export const fakeProviderAdapter: ProviderAdapter = {
 
 	sendTurn: (_input: SendProviderTurnInput) => {
 		return (async function* (): AsyncIterable<ProviderRuntimeEvent> {
+			const blockId = crypto.randomUUID();
 			for (let i = 0; i < 5; i++) {
 				await new Promise((r) => setTimeout(r, 1000));
 				yield {
 					type: "assistant.delta",
+					blockId,
 					text: `HDone. Here's a summary of everything:
   ──────
   ## Root cause: StrictMode double-invocation of state updaters

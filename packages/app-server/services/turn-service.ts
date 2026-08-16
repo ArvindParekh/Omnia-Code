@@ -108,7 +108,18 @@ export class TurnService {
 				resume,
 				signal,
 			} = opts;
-			const messageId = crypto.randomUUID();
+			// One assistant/reasoning message per provider content block. A single
+			// id per turn would merge text emitted after a tool call back into the
+			// message that preceded it.
+			const messageIds = new Map<string, string>();
+			const messageIdFor = (blockId: string): string => {
+				const existing = messageIds.get(blockId);
+				if (existing) return existing;
+
+				const created = crypto.randomUUID();
+				messageIds.set(blockId, created);
+				return created;
+			};
 			let failed = false;
 
 			const stream = adapter.sendTurn({
@@ -127,7 +138,7 @@ export class TurnService {
 			for await (const runtimeEvent of stream) {
 				if (signal.aborted) break;
 				if (runtimeEvent.type === "runtime.failed") failed = true;
-				this.mapAndAppend(runtimeEvent, { sessionId, turnId, messageId });
+				this.mapAndAppend(runtimeEvent, { sessionId, turnId, messageIdFor });
 			}
 
 			if (!signal.aborted && !failed) {
@@ -161,9 +172,9 @@ export class TurnService {
 
 	private mapAndAppend(
 		event: ProviderRuntimeEvent,
-		ctx: { sessionId: string; turnId: string; messageId: string },
+		ctx: { sessionId: string; turnId: string; messageIdFor: (blockId: string) => string },
 	) {
-		const { sessionId, turnId, messageId } = ctx;
+		const { sessionId, turnId, messageIdFor } = ctx;
 
 		switch (event.type) {
 			case "assistant.delta":
@@ -171,7 +182,7 @@ export class TurnService {
 					createEvent("message.assistantDeltaReceived", {
 						sessionId,
 						turnId,
-						messageId,
+						messageId: messageIdFor(event.blockId),
 						text: event.text,
 					}),
 				);
@@ -181,7 +192,7 @@ export class TurnService {
 					createEvent("message.assistantCompleted", {
 						sessionId,
 						turnId,
-						messageId,
+						messageId: messageIdFor(event.blockId),
 					}),
 				);
 				break;
@@ -190,7 +201,7 @@ export class TurnService {
 					createEvent("message.reasoningDeltaReceived", {
 						sessionId,
 						turnId,
-						messageId,
+						messageId: messageIdFor(event.blockId),
 						text: event.text,
 					}),
 				);

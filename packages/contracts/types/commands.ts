@@ -19,6 +19,7 @@ type CommandPayloadMap = {
 		turnId: string;
 	};
 	"approval.resolveRequested": {
+		sessionId: string;
 		approvalId: string;
 		approved: boolean;
 		note?: string;

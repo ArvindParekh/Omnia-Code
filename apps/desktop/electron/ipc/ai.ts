@@ -69,12 +69,13 @@ ipcMainHandle<"turn.cancelRequested">(
 
 ipcMainHandle<"approval.resolveRequested">(
 	"approval.resolveRequested",
-	async (event, { approvalId, approved, note }) => {
+	async (event, { sessionId, approvalId, approved, note }) => {
 		const commandId = crypto.randomUUID();
 		await appServer.router.dispatch({
 			id: commandId,
 			type: "approval.resolveRequested",
 			payload: {
+				sessionId,
 				approvalId,
 				approved,
 				note: note ?? "",

@@ -229,8 +229,49 @@ export class ClaudeProvider implements ProviderAdapter {
 	): Promise<void> {
 		let receivedDeltas = false;
 
+		// Block indices restart at 0 for every assistant message in a turn, so an
+		// index is only unique between its start and stop. Minting an id per block
+		// is what keeps text emitted after a tool call from merging back into the
+		// message that preceded it.
+		const blocks = new Map<number, { id: string; kind: string }>();
+
+		const blockIdFor = (index: number, kind: string): string => {
+			const existing = blocks.get(index);
+			if (existing) return existing.id;
+
+			const created = { id: crypto.randomUUID(), kind };
+			blocks.set(index, created);
+			return created.id;
+		};
+
+		const closeOpenTextBlocks = () => {
+			for (const [index, block] of blocks) {
+				if (block.kind === "text") {
+					events.push({ type: "assistant.completed", blockId: block.id });
+				}
+				blocks.delete(index);
+			}
+		};
+
 		try {
 			for await (const message of stream) {
+				if (message.type === "stream_event" && message.event.type === "content_block_start") {
+					blocks.set(message.event.index, {
+						id: crypto.randomUUID(),
+						kind: message.event.content_block.type,
+					});
+				}
+
+				if (message.type === "stream_event" && message.event.type === "content_block_stop") {
+					const block = blocks.get(message.event.index);
+					if (block) {
+						if (block.kind === "text") {
+							events.push({ type: "assistant.completed", blockId: block.id });
+						}
+						blocks.delete(message.event.index);
+					}
+				}
+
 				if (
 					message.type === "stream_event" &&
 					message.event.type === "content_block_delta" &&
@@ -239,6 +280,7 @@ export class ClaudeProvider implements ProviderAdapter {
 					receivedDeltas = true;
 					events.push({
 						type: "assistant.delta",
+						blockId: blockIdFor(message.event.index, "text"),
 						text: message.event.delta.text,
 					});
 				}
@@ -250,6 +292,7 @@ export class ClaudeProvider implements ProviderAdapter {
 				) {
 					events.push({
 						type: "reasoning.delta",
+						blockId: blockIdFor(message.event.index, "thinking"),
 						text: message.event.delta.thinking,
 					});
 				}
@@ -294,13 +337,13 @@ export class ClaudeProvider implements ProviderAdapter {
 				}
 
 				if (!receivedDeltas && message.result) {
-					events.push({
-						type: "assistant.delta",
-						text: message.result,
-					});
+					const blockId = crypto.randomUUID();
+					events.push({ type: "assistant.delta", blockId, text: message.result });
+					events.push({ type: "assistant.completed", blockId });
+					return;
 				}
 
-				events.push({ type: "assistant.completed" });
+				closeOpenTextBlocks();
 				return;
 			}
 		} catch (error) {
