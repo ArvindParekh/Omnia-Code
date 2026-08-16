@@ -109,5 +109,13 @@ export function createAppServer(deps: { eventStore: EventStore }): {
 
 	const start = () => sessionService.rehydrate();
 
-	return { router, eventStore, sessionProjector, turnProjector, registry, sessionViewProjector, start };
+	return {
+		router,
+		eventStore,
+		sessionProjector,
+		turnProjector,
+		registry,
+		sessionViewProjector,
+		start,
+	};
 }

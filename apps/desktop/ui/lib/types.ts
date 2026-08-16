@@ -6,53 +6,15 @@ export type { CompleteAttachment };
 
 // Re-export shared contract types so component imports stay stable if the
 // contracts package structure changes — update this file, not every component.
-export type { Provider, Session, SessionStatus } from "@omnia/contracts";
-
-// A quote carried on a user message — the snippet the user selected from a
-// prior assistant response before sending. Mirrors assistant-ui's QuoteInfo,
-// which lives at message.metadata.custom.quote.
-export type QuoteRef = {
-	text: string;
-	messageId: string;
-};
-
-export type ChatMessage =
-	| {
-			kind: "user";
-			id: string;
-			text: string;
-			quote?: QuoteRef;
-			attachments?: CompleteAttachment[];
-			timestamp: Date;
-	  }
-	| { kind: "assistant"; id: string; text: string; streaming?: boolean; timestamp: Date }
-	| {
-			kind: "reasoning";
-			id: string;
-			text: string;
-			streaming?: boolean;
-			timestamp: Date;
-	  }
-	| {
-			kind: "tool";
-			id: string;
-			name: string;
-			input: Record<string, unknown>;
-			status: "running" | "done" | "error";
-			output?: string;
-			timestamp: Date;
-	  }
-	| {
-			kind: "approval";
-			id: string;
-			toolName: string;
-			input: Record<string, unknown>;
-			resolved: boolean;
-			approved?: boolean;
-			note?: string;
-			timestamp: Date;
-	  }
-	| { kind: "error"; id: string; message: string; timestamp: Date };
+export type {
+	MessageAttachment,
+	Provider,
+	QuoteRef,
+	Session,
+	SessionStatus,
+	SessionView,
+	SessionViewItem,
+} from "@omnia/contracts";
 
 export type InspectorEvent = {
 	id: string;

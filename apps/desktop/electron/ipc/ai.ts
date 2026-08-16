@@ -92,9 +92,11 @@ ipcMainHandle<"app:getSessions">("app:getSessions", () => {
 });
 
 ipcMainHandle<"app:getSessionView">("app:getSessionView", async (event, { sessionId }) => {
-	const view = appServer.sessionViewProjector.state.get(sessionId);
-	if (!view) throw new Error("Session view not found");
-	return view;
+	return appServer.sessionViewProjector.state.get(sessionId) ?? {
+		sessionId,
+		items: [],
+		lastSeq: 0,
+	};
 })
 
 ipcMainHandle<"app:getEvents">("app:getEvents", (event, { sessionId }) => {

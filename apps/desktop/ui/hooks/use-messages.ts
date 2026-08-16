@@ -1,240 +1,80 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { SessionViewProjector } from "@omnia/app-server/projections";
+import type { AllEvents, EventType } from "@omnia/contracts";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { takeAttachments } from "../lib/attachment-adapter";
-import type { ChatMessage, CompleteAttachment, QuoteRef, TurnGroup } from "../lib/types";
+import { groupIntoTurns } from "../lib/turns";
+import type { CompleteAttachment, QuoteRef, SessionViewItem } from "../lib/types";
 import { ipcInvoke, useIpcEvent } from "./use-ipc";
 
-// Module-level cache so messages/turns survive SessionChat remounts when
-// navigating between sessions. Keyed by sessionId.
-type SessionCache = { messages: ChatMessage[]; turns: TurnGroup[] };
-const sessionCache = new Map<string, SessionCache>();
-
-// Manages the full message state and event stream for a single session.
 export function useMessages(sessionId: string) {
-	const [messages, setMessages] = useState<ChatMessage[]>(
-		() => sessionCache.get(sessionId)?.messages ?? [],
-	);
-	const [turns, setTurns] = useState<TurnGroup[]>(() => sessionCache.get(sessionId)?.turns ?? []);
+	const [items, setItems] = useState<SessionViewItem[]>([]);
+	const [localErrors, setLocalErrors] = useState<SessionViewItem[]>([]);
 	const [isRunning, setIsRunning] = useState(false);
 	const [isCanceling, setIsCanceling] = useState(false);
 
-	// Refs for mutable streaming state — stable across renders, safe in closures
-	const streamingMsgId = useRef<string | null>(null);
-	const streamingReasoningId = useRef<string | null>(null);
+	const projector = useRef(new SessionViewProjector());
+	const lastSeq = useRef(0);
+	const hydrated = useRef(false);
+	const buffered = useRef<AllEvents<EventType>[]>([]);
 	const currentTurnId = useRef<string | null>(null);
 	const pendingStart = useRef<Promise<string> | null>(null);
 	const cancelingRef = useRef(false);
-	const turnIndex = useRef(0);
 
-	// Write back to the cache on every change so a future remount picks up
-	// where we left off.
 	useEffect(() => {
-		sessionCache.set(sessionId, { messages, turns });
-	}, [sessionId, messages, turns]);
+		let cancelled = false;
 
-	// Stable — only closes over refs and stable setters, so deps can be [].
-	const finalizeStream = useCallback((status: "done" | "canceled") => {
-		if (streamingMsgId.current) {
-			const id = streamingMsgId.current;
-			streamingMsgId.current = null;
-			setMessages((prev) =>
-				prev.map((m) => (m.kind === "assistant" && m.id === id ? { ...m, streaming: false } : m)),
-			);
-		}
-		if (streamingReasoningId.current) {
-			const id = streamingReasoningId.current;
-			streamingReasoningId.current = null;
-			setMessages((prev) =>
-				prev.map((m) => (m.kind === "reasoning" && m.id === id ? { ...m, streaming: false } : m)),
-			);
-		}
-		const tid = currentTurnId.current;
-		if (tid) {
-			currentTurnId.current = null;
-			setTurns((prev) => prev.map((t) => (t.id === tid ? { ...t, status } : t)));
-		}
-		setIsRunning(false);
-		cancelingRef.current = false;
-		setIsCanceling(false);
-	}, []);
+		projector.current = new SessionViewProjector();
+		lastSeq.current = 0;
+		hydrated.current = false;
+		buffered.current = [];
+		setItems([]);
+		setLocalErrors([]);
+
+		ipcInvoke("app:getSessionView", { sessionId }).then((view) => {
+			if (cancelled || view.sessionId !== sessionId) return;
+
+			projector.current.state.set(sessionId, view);
+			lastSeq.current = view.lastSeq;
+
+			for (const event of buffered.current) {
+				if (event.seq <= lastSeq.current) continue;
+				projector.current.apply(event);
+			}
+			buffered.current = [];
+			hydrated.current = true;
+
+			setItems(projector.current.state.get(sessionId)?.items ?? view.items);
+		});
+
+		return () => {
+			cancelled = true;
+		};
+	}, [sessionId]);
 
 	useIpcEvent("app:event", ({ sessionId: evtSessionId, event }) => {
 		if (evtSessionId !== sessionId) return;
 
-		if (event.type === "message.assistantDeltaReceived") {
-			// Determine or create the streaming message id OUTSIDE the updater.
-			// setMessages updaters run twice in StrictMode — mutating the ref
-			// inside the updater causes the second call to take a wrong branch.
-			if (!streamingMsgId.current) {
-				streamingMsgId.current = `asmsg-${Date.now()}`;
-			}
-			const msgId = streamingMsgId.current;
-			setMessages((prev) => {
-				const exists = prev.some((m) => m.kind === "assistant" && m.id === msgId);
-				if (!exists) {
-					return [
-						...prev,
-						{
-							kind: "assistant",
-							id: msgId,
-							text: event.payload.text,
-							streaming: true,
-							timestamp: new Date(),
-						},
-					];
-				}
-				return prev.map((m) =>
-					m.kind === "assistant" && m.id === msgId
-						? { ...m, text: m.text + event.payload.text }
-						: m,
-				);
-			});
-			const turnId = currentTurnId.current;
-			if (turnId) {
-				setTurns((prev) =>
-					prev.map((t) =>
-						t.id === turnId
-							? {
-									...t,
-									events: [
-										...t.events,
-										{
-											id: `ev-delta-${Date.now()}`,
-											type: "delta",
-											summary: "message.assistantDelta",
-											detail: event.payload.text.slice(0, 80),
-											status: "running" as const,
-										},
-									],
-								}
-							: t,
-					),
-				);
-			}
-		} else if (event.type === "message.reasoningDeltaReceived") {
-			if (!streamingReasoningId.current) {
-				streamingReasoningId.current = `reasoning-${Date.now()}`;
-			}
-			const msgId = streamingReasoningId.current;
-			setMessages((prev) => {
-				const exists = prev.some((m) => m.kind === "reasoning" && m.id === msgId);
-				if (!exists) {
-					return [
-						...prev,
-						{
-							kind: "reasoning",
-							id: msgId,
-							text: event.payload.text,
-							streaming: true,
-							timestamp: new Date(),
-						},
-					];
-				}
-				return prev.map((m) =>
-					m.kind === "reasoning" && m.id === msgId
-						? { ...m, text: m.text + event.payload.text }
-						: m,
-				);
-			});
-		} else if (event.type === "approval.requested") {
-			setMessages((prev) => [
-				...prev,
-				{
-					kind: "approval",
-					id: event.payload.approvalId,
-					toolName: event.payload.toolName,
-					input: event.payload.input as Record<string, unknown>,
-					resolved: false,
-					timestamp: new Date(),
-				},
-			]);
-			const turnId = currentTurnId.current;
-			if (turnId) {
-				setTurns((prev) =>
-					prev.map((t) =>
-						t.id === turnId
-							? {
-									...t,
-									events: [
-										...t.events,
-										{
-											id: `ev-approval-${Date.now()}`,
-											type: "approval",
-											summary: `approval.requested — ${event.payload.toolName}`,
-											status: "pending" as const,
-										},
-									],
-								}
-							: t,
-					),
-				);
-			}
-		} else if (event.type === "tool.callStarted") {
-			const turnId = currentTurnId.current;
-			if (turnId) {
-				setTurns((prev) =>
-					prev.map((t) =>
-						t.id === turnId
-							? {
-									...t,
-									events: [
-										...t.events,
-										{
-											id: event.payload.toolCallId,
-											type: "tool",
-											summary: `tool.callStarted — ${event.payload.toolName}`,
-											status: "running" as const,
-											toolName: event.payload.toolName,
-											input: event.payload.input as Record<string, unknown>,
-										},
-									],
-								}
-							: t,
-					),
-				);
-			}
-		} else if (event.type === "tool.callCompleted") {
-			const turnId = currentTurnId.current;
-			if (turnId) {
-				setTurns((prev) =>
-					prev.map((t) =>
-						t.id === turnId
-							? {
-									...t,
-									events: t.events.map((e) =>
-										e.id === event.payload.toolCallId
-											? {
-													...e,
-													status: event.payload.isError ? ("error" as const) : ("done" as const),
-													output: event.payload.output,
-												}
-											: e,
-									),
-								}
-							: t,
-					),
-				);
-			}
-		} else if (event.type === "turn.completed") {
-			finalizeStream("done");
-		} else if (event.type === "turn.canceled") {
-			finalizeStream("canceled");
-		} else if (event.type === "turn.failed") {
-			setMessages((prev) => [
-				...prev,
-				{
-					kind: "error",
-					id: `err-${Date.now()}`,
-					message: event.payload.message,
-					timestamp: new Date(),
-				},
-			]);
-			const turnId = currentTurnId.current;
-			if (turnId) {
-				currentTurnId.current = null;
-				setTurns((prev) => prev.map((t) => (t.id === turnId ? { ...t, status: "failed" } : t)));
-			}
-			setIsRunning(false);
+		if (!hydrated.current) {
+			buffered.current.push(event);
+			return;
+		}
+		if (event.seq <= lastSeq.current) return;
+
+		projector.current.apply(event);
+		const view = projector.current.state.get(sessionId);
+		if (view) {
+			lastSeq.current = view.lastSeq;
+			setItems(view.items);
+		}
+
+		if (
+			event.type === "turn.completed" ||
+			event.type === "turn.canceled" ||
+			event.type === "turn.failed"
+		) {
+			currentTurnId.current = null;
 			cancelingRef.current = false;
+			setIsRunning(false);
 			setIsCanceling(false);
 		}
 	});
@@ -242,40 +82,11 @@ export function useMessages(sessionId: string) {
 	const send = useCallback(
 		(text: string, quote?: QuoteRef, attachments?: CompleteAttachment[]) => {
 			if (!text.trim()) return;
-			const optimisticTurnId = `pending-turn-${Date.now()}`;
-			turnIndex.current += 1;
-			currentTurnId.current = optimisticTurnId;
 
+			setLocalErrors([]);
 			setIsRunning(true);
 			cancelingRef.current = false;
 			setIsCanceling(false);
-			setMessages((prev) => [
-				...prev,
-				{
-					kind: "user",
-					id: `msg-${Date.now()}`,
-					text: text.trim(),
-					quote,
-					attachments,
-					timestamp: new Date(),
-				},
-			]);
-			setTurns((prev) => [
-				...prev,
-				{
-					id: optimisticTurnId,
-					index: turnIndex.current,
-					status: "running",
-					events: [
-						{
-							id: `ev-user-${Date.now()}`,
-							type: "user",
-							summary: "message.userCreated",
-							detail: text.trim().slice(0, 80),
-						},
-					],
-				},
-			]);
 
 			const start = ipcInvoke("turn.startRequested", {
 				sessionId,
@@ -287,35 +98,26 @@ export function useMessages(sessionId: string) {
 
 			start
 				.then((turnId) => {
-					if (currentTurnId.current === optimisticTurnId) {
-						currentTurnId.current = turnId;
-					}
-					setTurns((prev) =>
-						prev.map((turn) => (turn.id === optimisticTurnId ? { ...turn, id: turnId } : turn)),
-					);
+					currentTurnId.current = turnId;
 				})
-				.catch((err: unknown) => {
-					const message = err instanceof Error ? err.message : String(err);
-					setMessages((prev) => [
-						...prev,
-						{ kind: "error", id: `err-${Date.now()}`, message, timestamp: new Date() },
-					]);
-					if (currentTurnId.current === optimisticTurnId) {
-						currentTurnId.current = null;
-						setTurns((prev) =>
-							prev.map((turn) =>
-								turn.id === optimisticTurnId ? { ...turn, status: "failed" } : turn,
-							),
-						);
-					}
-					setIsRunning(false);
+				.catch((error: unknown) => {
+					currentTurnId.current = null;
 					cancelingRef.current = false;
+					setIsRunning(false);
 					setIsCanceling(false);
+					setLocalErrors([
+						{
+							kind: "error",
+							id: `local-${Date.now()}`,
+							turnId: "local",
+							message: error instanceof Error ? error.message : String(error),
+							retryable: false,
+							createdAt: Date.now(),
+						},
+					]);
 				})
 				.finally(() => {
-					if (pendingStart.current === start) {
-						pendingStart.current = null;
-					}
+					if (pendingStart.current === start) pendingStart.current = null;
 				});
 		},
 		[sessionId],
@@ -333,32 +135,32 @@ export function useMessages(sessionId: string) {
 				setIsCanceling(false);
 				return;
 			}
-
 			await ipcInvoke("turn.cancelRequested", { sessionId, turnId });
 		} catch (error) {
 			cancelingRef.current = false;
 			setIsCanceling(false);
-			const message = error instanceof Error ? error.message : String(error);
-			setMessages((prev) => [
-				...prev,
-				{ kind: "error", id: `err-${Date.now()}`, message, timestamp: new Date() },
+			setLocalErrors([
+				{
+					kind: "error",
+					id: `local-${Date.now()}`,
+					turnId: "local",
+					message: error instanceof Error ? error.message : String(error),
+					retryable: false,
+					createdAt: Date.now(),
+				},
 			]);
 		}
 	}, [sessionId]);
 
 	const approve = useCallback(
 		(approvalId: string, approved: boolean, note?: string) => {
-			setMessages((prev) =>
-				prev.map((m) =>
-					m.kind === "approval" && m.id === approvalId
-						? { ...m, resolved: true, approved, note }
-						: m,
-				),
-			);
 			ipcInvoke("approval.resolveRequested", { sessionId, approvalId, approved, note });
 		},
 		[sessionId],
 	);
+
+	const messages = useMemo(() => [...items, ...localErrors], [items, localErrors]);
+	const turns = useMemo(() => groupIntoTurns(messages), [messages]);
 
 	return { messages, turns, send, approve, isRunning, isCanceling, cancel };
 }

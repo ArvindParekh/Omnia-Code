@@ -14,3 +14,5 @@ export function createProjections(eventStore: EventStore) {
 		sessionViewProjector: pipeline.register(new SessionViewProjector()),
 	};
 }
+
+export { SessionViewProjector } from "./projectors/session-view-projector.js";

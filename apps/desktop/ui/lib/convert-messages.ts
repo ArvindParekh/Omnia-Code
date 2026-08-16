@@ -1,12 +1,23 @@
 import type { ThreadMessageLike } from "@assistant-ui/react";
-import type { ApprovalArgs, ChatMessage } from "./types";
+import type { ApprovalArgs, MessageAttachment, SessionViewItem } from "./types";
 
 type MutableContent = Array<{
 	type: string;
 	[key: string]: unknown;
 }>;
 
-export function convertToThreadMessages(msgs: ChatMessage[]): ThreadMessageLike[] {
+function toUiAttachment(attachment: MessageAttachment) {
+	return {
+		id: attachment.id,
+		type: attachment.kind === "image" ? ("image" as const) : ("file" as const),
+		name: attachment.name,
+		contentType: attachment.contentType ?? "application/octet-stream",
+		status: { type: "complete" as const },
+		content: [],
+	};
+}
+
+export function convertToThreadMessages(msgs: SessionViewItem[]): ThreadMessageLike[] {
 	const result: ThreadMessageLike[] = [];
 
 	let assemblingAssistant: {
@@ -53,25 +64,25 @@ export function convertToThreadMessages(msgs: ChatMessage[]): ThreadMessageLike[
 			result.push({
 				role: "user",
 				id: msg.id,
-				createdAt: msg.timestamp,
+				createdAt: new Date(msg.createdAt),
 				content: [{ type: "text", text: msg.text }],
 				// MessagePrimitive.Quote reads metadata.custom.quote to render the
 				// quoted snippet on the message bubble. Only set it when present.
 				...(msg.quote ? { metadata: { custom: { quote: msg.quote } } } : {}),
 				// MessagePrimitive.Attachments reads message.attachments to render
 				// attachment chips on the sent message bubble.
-				...(msg.attachments?.length ? { attachments: msg.attachments } : {}),
+				...(msg.attachments.length ? { attachments: msg.attachments.map(toUiAttachment) } : {}),
 			});
 		} else if (msg.kind === "reasoning") {
-			ensureAssistant(`reasoning-${msg.id}`, msg.timestamp);
+			ensureAssistant(`reasoning-${msg.id}`, new Date(msg.createdAt));
 			assemblingAssistant!.content.push({ type: "reasoning", text: msg.text });
 			if (msg.streaming) assemblingAssistant!.isRunning = true;
 		} else if (msg.kind === "assistant") {
-			ensureAssistant(`asmsg-${msg.id}`, msg.timestamp);
+			ensureAssistant(`asmsg-${msg.id}`, new Date(msg.createdAt));
 			assemblingAssistant!.content.push({ type: "text", text: msg.text });
 			if (msg.streaming) assemblingAssistant!.isRunning = true;
 		} else if (msg.kind === "tool") {
-			ensureAssistant(`toolmsg-${msg.id}`, msg.timestamp);
+			ensureAssistant(`toolmsg-${msg.id}`, new Date(msg.createdAt));
 			assemblingAssistant!.content.push({
 				type: "tool-call",
 				toolCallId: msg.id,
@@ -82,7 +93,7 @@ export function convertToThreadMessages(msgs: ChatMessage[]): ThreadMessageLike[
 			});
 			if (msg.status === "running") assemblingAssistant!.isRunning = true;
 		} else if (msg.kind === "approval") {
-			ensureAssistant(`approvalmsg-${msg.id}`, msg.timestamp);
+			ensureAssistant(`approvalmsg-${msg.id}`, new Date(msg.createdAt));
 			const approvalMeta: ApprovalArgs = {
 				__isApproval: true,
 				__approvalId: msg.id,
@@ -103,7 +114,7 @@ export function convertToThreadMessages(msgs: ChatMessage[]): ThreadMessageLike[
 			result.push({
 				role: "assistant",
 				id: `errmsg-${msg.id}`,
-				createdAt: msg.timestamp,
+				createdAt: new Date(msg.createdAt),
 				content: [{ type: "text", text: `⚠ ${msg.message}` }],
 				status: { type: "incomplete", reason: "error" },
 			} as ThreadMessageLike);
