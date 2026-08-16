@@ -6,7 +6,7 @@ import {
 } from "@assistant-ui/react";
 import { ArrowClockwise, CaretLeft, CaretRight, SpinnerGap } from "@phosphor-icons/react";
 import { cn } from "../../lib/utils";
-import { ToolCallBlock } from "../tool-call-block";
+import { ToolCallBlock } from "../tool-call";
 import { MarkdownText } from "../assistant-ui/markdown-text";
 import { ReasoningPart } from "./reasoning-part";
 import { ActionButton } from "./action-button";

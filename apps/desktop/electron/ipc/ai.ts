@@ -92,12 +92,14 @@ ipcMainHandle<"app:getSessions">("app:getSessions", () => {
 });
 
 ipcMainHandle<"app:getSessionView">("app:getSessionView", async (event, { sessionId }) => {
-	return appServer.sessionViewProjector.state.get(sessionId) ?? {
-		sessionId,
-		items: [],
-		lastSeq: 0,
-	};
-})
+	return (
+		appServer.sessionViewProjector.state.get(sessionId) ?? {
+			sessionId,
+			items: [],
+			lastSeq: 0,
+		}
+	);
+});
 
 ipcMainHandle<"app:getEvents">("app:getEvents", (event, { sessionId }) => {
 	return appServer.eventStore.getEvents(sessionId);
