@@ -5,12 +5,12 @@ import { cn } from "../../lib/utils";
 import { ToolEventDetail } from "./tool-event-detail";
 
 function getEventOpacity(type: string, status?: InspectorEvent["status"]): number {
-	if (type === "error" || status === "error") return 0.45;
-	if (type === "approval" || status === "pending") return 0.5;
-	if (status === "running") return 0.45;
-	if (type === "turn.end") return 0.32;
-	if (type === "user") return 0.5;
-	return 0.3;
+	if (type === "error" || status === "error") return 0.5;
+	if (type === "approval" || status === "pending") return 0.55;
+	if (status === "running") return 0.5;
+	if (type === "user") return 0.55;
+	if (type === "reasoning") return 0.26;
+	return 0.36;
 }
 
 export function EventRow({ event, isLast }: { event: InspectorEvent; isLast: boolean }) {

@@ -30,6 +30,7 @@ export type InspectorEvent = {
 export type TurnGroup = {
 	id: string;
 	index: number;
+	title: string;
 	status: "done" | "running" | "failed" | "canceled";
 	durationMs?: number;
 	events: InspectorEvent[];
