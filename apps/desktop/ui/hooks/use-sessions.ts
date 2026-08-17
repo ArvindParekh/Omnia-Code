@@ -14,6 +14,10 @@ export function useSessions() {
 			.finally(() => setLoading(false));
 	}, []);
 
+	useIpcEvent("app:sessionDeleted", ({ sessionId }) => {
+		setSessions((prev) => prev.filter((s) => s.id !== sessionId));
+	});
+
 	useIpcEvent("app:sessionUpdated", ({ session }) => {
 		setSessions((prev) => {
 			const idx = prev.findIndex((s) => s.id === session.id);
@@ -44,5 +48,9 @@ export function useSessions() {
 		await ipcInvoke("session.renameRequested", { sessionId, customTitle: title });
 	}, []);
 
-	return { sessions, createSession, renameSession, loading };
+	const deleteSession = useCallback(async (sessionId: string): Promise<void> => {
+		await ipcInvoke("session.deleteRequested", { sessionId });
+	}, []);
+
+	return { sessions, createSession, renameSession, deleteSession, loading };
 }

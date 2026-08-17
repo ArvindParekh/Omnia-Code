@@ -16,6 +16,9 @@ export type EventPayloadMap = {
 		title: string;
 		source: "provider" | "user";
 	};
+	"session.deleted": {
+		sessionId: string;
+	};
 	"turn.started": {
 		sessionId: string;
 		turnId: string;

@@ -31,6 +31,10 @@ export class SessionProjector implements Projector<Map<string, Session>> {
 				});
 				break;
 			}
+			case "session.deleted": {
+				this.state.delete(event.payload.sessionId);
+				break;
+			}
 			case "turn.started": {
 				const session = this.state.get(event.payload.sessionId);
 				if (session) {

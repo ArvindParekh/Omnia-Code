@@ -15,6 +15,7 @@ type WorkspaceGroupProps = {
 	onSelect: (id: string | null) => void;
 	onCreateWorkspaceSession: (workspaceId: string) => void;
 	onRenameSession: (sessionId: string, title: string) => void;
+	onDeleteSession: (sessionId: string) => void;
 	defaultOpen?: boolean;
 };
 
@@ -26,6 +27,7 @@ export function WorkspaceGroup({
 	onSelect,
 	onCreateWorkspaceSession,
 	onRenameSession,
+	onDeleteSession,
 	defaultOpen,
 }: WorkspaceGroupProps) {
 	const [open, setOpen] = useState(defaultOpen ?? false);
@@ -77,6 +79,7 @@ export function WorkspaceGroup({
 							isActive={s.id === activeSessionId}
 							onClick={() => onSelect(s.id)}
 							onRename={(title) => onRenameSession(s.id, title)}
+							onDelete={() => onDeleteSession(s.id)}
 							indented
 						/>
 					))}

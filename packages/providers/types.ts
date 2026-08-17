@@ -25,6 +25,9 @@ type ProviderAdapter = {
 	// resumes an existing session with the provider
 	resumeSession(input: ResumeProviderSessionInput): Promise<void>;
 
+	// delete an existing session with the provider
+	deleteSession(input: DeleteProviderSessionInput): Promise<void>;
+
 	// sends a turn to the provider
 	sendTurn(input: SendProviderTurnInput): AsyncIterable<ProviderRuntimeEvent>;
 
@@ -42,6 +45,11 @@ type RenameProviderSessionInput = {
 	sessionId: string;
 	providerSessionRef: ProviderSessionRef;
 	customTitle: string;
+};
+
+type DeleteProviderSessionInput = {
+	sessionId: string;
+	providerSessionRef: ProviderSessionRef;
 };
 
 type CreateProviderSessionInput = {
@@ -107,4 +115,5 @@ export type {
 	ResumeProviderSessionInput,
 	SendProviderTurnInput,
 	RenameProviderSessionInput,
+	DeleteProviderSessionInput,
 };

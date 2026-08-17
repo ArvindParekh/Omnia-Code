@@ -19,6 +19,12 @@ export type IpcChannels = {
 		};
 		result: undefined;
 	};
+	"session.deleteRequested": {
+		args: {
+			sessionId: string;
+		};
+		result: undefined;
+	};
 	"turn.startRequested": {
 		args: {
 			sessionId: string;
@@ -81,4 +87,5 @@ export type IpcChannels = {
 export type IpcEvents = {
 	"app:event": { sessionId: string; event: AllEvents<EventType> };
 	"app:sessionUpdated": { session: Session };
+	"app:sessionDeleted": { sessionId: string };
 };

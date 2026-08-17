@@ -3,6 +3,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import {
+	deleteSession,
 	getSessionInfo,
 	query,
 	renameSession,
@@ -14,6 +15,7 @@ import type { Provider, ProviderAvailability, ProviderRuntimeEvent } from "@omni
 import type {
 	CancelProviderTurnInput,
 	CreateProviderSessionInput,
+	DeleteProviderSessionInput,
 	DisposeProviderSessionInput,
 	ProviderAdapter,
 	RenameProviderSessionInput,
@@ -210,6 +212,12 @@ export class ClaudeProvider implements ProviderAdapter {
 		const { sessionId, providerSessionRef, customTitle } = input;
 		this.lastTitle.set(sessionId, customTitle);
 		await renameSession(providerSessionRef.externalId ?? sessionId, customTitle);
+	}
+
+	async deleteSession(input: DeleteProviderSessionInput): Promise<void> {
+		const { sessionId, providerSessionRef } = input;
+		this.lastTitle.delete(sessionId);
+		await deleteSession(providerSessionRef.externalId ?? sessionId);
 	}
 
 	async cancelTurn(input: CancelProviderTurnInput): Promise<void> {

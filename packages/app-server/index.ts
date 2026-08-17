@@ -73,6 +73,19 @@ export function createAppServer(deps: { eventStore: EventStore }): {
 				console.error(`[rename:${envelope.payload.sessionId}]`, error);
 			}
 		})
+		.on("session.deleteRequested", async (envelope) => {
+			eventStore.addEvent(
+				createEvent("session.deleted", {
+					sessionId: envelope.payload.sessionId,
+				}),
+			);
+
+			try {
+				await sessionService.delete(envelope);
+			} catch (error) {
+				console.error(`[delete:${envelope.payload.sessionId}]`, error);
+			}
+		})
 		.on("turn.startRequested", async (envelope) => {
 			const session = sessionProjector.state.get(envelope.payload.sessionId);
 			if (!session)

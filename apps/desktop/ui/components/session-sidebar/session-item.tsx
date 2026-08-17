@@ -1,13 +1,24 @@
-import { ChatTeardropText, DotsThree, PencilSimple } from "@phosphor-icons/react";
+import { ChatTeardropText, DotsThree, PencilSimple, Trash } from "@phosphor-icons/react";
 import { useEffect, useRef, useState } from "react";
 import { providerLabel } from "../../lib/provider";
 import { timeAgo } from "../../lib/time";
 import type { Session } from "../../lib/types";
 import { cn } from "../../lib/utils";
 import {
+	AlertDialog,
+	AlertDialogAction,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogTitle,
+} from "../ui/alert-dialog";
+import {
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuItem,
+	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
 
@@ -73,16 +84,19 @@ export function SessionItem({
 	isActive,
 	onClick,
 	onRename,
+	onDelete,
 	indented,
 }: {
 	session: Session;
 	isActive: boolean;
 	onClick: () => void;
 	onRename: (title: string) => void;
+	onDelete: () => void;
 	indented: boolean;
 }) {
 	const [renaming, setRenaming] = useState(false);
 	const [menuOpen, setMenuOpen] = useState(false);
+	const [confirmingDelete, setConfirmingDelete] = useState(false);
 	const label = providerLabel(session.provider);
 
 	if (renaming) {
@@ -156,13 +170,39 @@ export function SessionItem({
 						<DotsThree size={14} weight="bold" />
 					</button>
 				</DropdownMenuTrigger>
-				<DropdownMenuContent align="end" className="min-w-[140px]">
+				<DropdownMenuContent align="end" className="min-w-[150px]">
 					<DropdownMenuItem onSelect={() => setRenaming(true)}>
 						<PencilSimple size={12} weight="light" />
 						Rename
 					</DropdownMenuItem>
+					<DropdownMenuSeparator />
+					<DropdownMenuItem variant="destructive" onSelect={() => setConfirmingDelete(true)}>
+						<Trash size={12} weight="light" />
+						Delete
+					</DropdownMenuItem>
 				</DropdownMenuContent>
 			</DropdownMenu>
+
+			<AlertDialog open={confirmingDelete} onOpenChange={setConfirmingDelete}>
+				<AlertDialogContent>
+					<AlertDialogHeader>
+						<AlertDialogTitle>Delete chat?</AlertDialogTitle>
+						<AlertDialogDescription>
+							<span className="text-white/70">{session.title}</span> and its full history will be
+							permanently deleted. This cannot be undone.
+						</AlertDialogDescription>
+					</AlertDialogHeader>
+					<AlertDialogFooter>
+						<AlertDialogCancel>Cancel</AlertDialogCancel>
+						<AlertDialogAction
+							onClick={onDelete}
+							className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+						>
+							Delete
+						</AlertDialogAction>
+					</AlertDialogFooter>
+				</AlertDialogContent>
+			</AlertDialog>
 		</div>
 	);
 }

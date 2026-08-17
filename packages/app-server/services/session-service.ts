@@ -57,6 +57,19 @@ export class SessionService {
 		});
 	}
 
+	async delete(envelope: CommandEnvelopeFor<"session.deleteRequested">): Promise<void> {
+		const { sessionId } = envelope.payload;
+		const session = this.providerSessions.get(sessionId);
+		if (!session) return;
+
+		this.providerSessions.delete(sessionId);
+
+		await this.registry.get(session.ref.provider).deleteSession({
+			sessionId,
+			providerSessionRef: session.ref,
+		});
+	}
+
 	getProviderSession(sessionId: string): ProviderSession {
 		const session = this.providerSessions.get(sessionId);
 		if (!session) throw new Error(`No provider session found for session ${sessionId}`);
@@ -64,7 +77,13 @@ export class SessionService {
 	}
 
 	async rehydrate(): Promise<void> {
+		const deleted = new Set(
+			this.eventStore.getEventsByType("session.deleted").map((event) => event.payload.sessionId),
+		);
+
 		for (const event of this.eventStore.getEventsByType("session.created")) {
+			if (deleted.has(event.payload.sessionId)) continue;
+
 			const { sessionId, ref, workspacePath, policy } = event.payload;
 
 			const session = { ref, workspacePath, policy };

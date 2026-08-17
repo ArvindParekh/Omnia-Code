@@ -11,6 +11,9 @@ type CommandPayloadMap = {
 		sessionId: string;
 		customTitle: string;
 	};
+	"session.deleteRequested": {
+		sessionId: string;
+	};
 	"turn.startRequested": {
 		sessionId: string;
 		text: string;

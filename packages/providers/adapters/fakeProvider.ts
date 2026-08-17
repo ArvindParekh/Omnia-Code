@@ -10,6 +10,7 @@ import type {
 	CancelProviderTurnInput,
 	ResolveProviderApprovalInput,
 	DisposeProviderSessionInput,
+	DeleteProviderSessionInput,
 } from "../types.js";
 
 export const fakeProviderAdapter: ProviderAdapter = {
@@ -33,6 +34,10 @@ export const fakeProviderAdapter: ProviderAdapter = {
 	},
 
 	renameSession: async (_input: RenameProviderSessionInput) => {
+		return;
+	},
+
+	deleteSession: async (_input: DeleteProviderSessionInput) => {
 		return;
 	},
 

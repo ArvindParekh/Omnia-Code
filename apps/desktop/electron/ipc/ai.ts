@@ -45,6 +45,23 @@ ipcMainHandle<"session.renameRequested">(
 	},
 );
 
+ipcMainHandle<"session.deleteRequested">(
+	"session.deleteRequested",
+	async (event, { sessionId }) => {
+		const commandId = crypto.randomUUID();
+		await appServer.router.dispatch({
+			id: commandId,
+			requestedAt: Date.now(),
+			requestedBy: "user",
+			type: "session.deleteRequested",
+			payload: {
+				sessionId,
+			},
+		});
+		return undefined;
+	},
+);
+
 ipcMainHandle<"turn.startRequested">(
 	"turn.startRequested",
 	async (event, { sessionId, text, attachments, quote }) => {
@@ -139,6 +156,13 @@ appServer.eventStore.subscribe((domainEvent) => {
 			sessionId,
 			event: domainEvent,
 		});
+
+		if (domainEvent.type === "session.deleted") {
+			ipcWebContentsSend<"app:sessionDeleted">("app:sessionDeleted", win.webContents, {
+				sessionId,
+			});
+			continue;
+		}
 
 		// Emulate the old "agent:sessionUpdated" behavior for the renderer's session list
 		if (domainEvent.type.startsWith("session.")) {

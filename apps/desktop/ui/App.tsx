@@ -9,7 +9,7 @@ import { useSessions } from "./hooks/use-sessions";
 import { useProviders } from "./hooks/use-providers";
 
 export default function App() {
-	const { sessions, createSession, renameSession } = useSessions();
+	const { sessions, createSession, renameSession, deleteSession } = useSessions();
 	const { providers } = useProviders();
 	const [activeId, setActiveId] = useState<string | null>(null);
 	const [showInspector, setShowInspector] = useState(true);
@@ -36,6 +36,10 @@ export default function App() {
 	}, [isDark]);
 
 	const activeSession = sessions.find((s) => s.id === activeId) ?? null;
+
+	useEffect(() => {
+		if (activeId && !sessions.some((s) => s.id === activeId)) setActiveId(null);
+	}, [sessions, activeId]);
 
 	const handleNewSession = async (text: string, provider: Provider, workspacePath: string) => {
 		const session = await createSession(provider, workspacePath);
@@ -65,6 +69,7 @@ export default function App() {
 					onSelectSession={setActiveId}
 					onCreateWorkspaceSession={handleCreateWorkspaceSession}
 					onRenameSession={renameSession}
+					onDeleteSession={deleteSession}
 				/>
 				<div ref={contentRef} className="flex flex-1 overflow-hidden">
 					{activeSession ? (
