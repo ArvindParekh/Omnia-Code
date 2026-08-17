@@ -36,6 +36,10 @@ type ProviderRuntimeEvent =
 			text: string;
 	  }
 	| {
+			type: "session.titleSuggested";
+			title: string;
+	  }
+	| {
 			type: "tool.started";
 			toolCallId: string;
 			toolName: string;

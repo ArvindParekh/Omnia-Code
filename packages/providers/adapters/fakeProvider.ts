@@ -4,6 +4,7 @@ import type { ProviderRuntimeEvent } from "@omnia/contracts";
 import type {
 	ProviderAdapter,
 	CreateProviderSessionInput,
+	RenameProviderSessionInput,
 	ResumeProviderSessionInput,
 	SendProviderTurnInput,
 	CancelProviderTurnInput,
@@ -29,6 +30,10 @@ export const fakeProviderAdapter: ProviderAdapter = {
 			externalId: undefined,
 			stateJson: undefined,
 		};
+	},
+
+	renameSession: async (_input: RenameProviderSessionInput) => {
+		return;
 	},
 
 	resumeSession: async (_input: ResumeProviderSessionInput) => {

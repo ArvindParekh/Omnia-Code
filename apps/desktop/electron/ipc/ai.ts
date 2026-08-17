@@ -27,6 +27,24 @@ ipcMainHandle<"session.createRequested">(
 	},
 );
 
+ipcMainHandle<"session.renameRequested">(
+	"session.renameRequested",
+	async (event, { sessionId, customTitle }) => {
+		const commandId = crypto.randomUUID();
+		await appServer.router.dispatch({
+			id: commandId,
+			requestedAt: Date.now(),
+			requestedBy: "user",
+			type: "session.renameRequested",
+			payload: {
+				sessionId,
+				customTitle,
+			},
+		});
+		return undefined;
+	},
+);
+
 ipcMainHandle<"turn.startRequested">(
 	"turn.startRequested",
 	async (event, { sessionId, text, attachments, quote }) => {

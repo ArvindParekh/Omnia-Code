@@ -19,6 +19,9 @@ type ProviderAdapter = {
 	// creates a new session with the provider
 	createSession(input: CreateProviderSessionInput): Promise<ProviderSessionRef>;
 
+	// renames an existing session with the provider
+	renameSession(input: RenameProviderSessionInput): Promise<void>;
+
 	// resumes an existing session with the provider
 	resumeSession(input: ResumeProviderSessionInput): Promise<void>;
 
@@ -33,6 +36,12 @@ type ProviderAdapter = {
 
 	// disposes off a session with the provider
 	disposeSession(input: DisposeProviderSessionInput): Promise<void>;
+};
+
+type RenameProviderSessionInput = {
+	sessionId: string;
+	providerSessionRef: ProviderSessionRef;
+	customTitle: string;
 };
 
 type CreateProviderSessionInput = {
@@ -97,4 +106,5 @@ export type {
 	ResolveProviderApprovalInput,
 	ResumeProviderSessionInput,
 	SendProviderTurnInput,
+	RenameProviderSessionInput,
 };

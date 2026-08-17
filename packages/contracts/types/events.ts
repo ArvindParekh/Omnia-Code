@@ -11,6 +11,11 @@ export type EventPayloadMap = {
 		ref: ProviderSessionRef;
 		createdAt: number;
 	};
+	"session.renamed": {
+		sessionId: string;
+		title: string;
+		source: "provider" | "user";
+	};
 	"turn.started": {
 		sessionId: string;
 		turnId: string;

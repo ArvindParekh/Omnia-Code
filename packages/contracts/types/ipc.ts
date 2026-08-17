@@ -12,6 +12,13 @@ export type IpcChannels = {
 		};
 		result: Session;
 	};
+	"session.renameRequested": {
+		args: {
+			sessionId: string;
+			customTitle: string;
+		};
+		result: undefined;
+	};
 	"turn.startRequested": {
 		args: {
 			sessionId: string;

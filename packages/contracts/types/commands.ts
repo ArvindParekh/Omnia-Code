@@ -7,6 +7,10 @@ type CommandPayloadMap = {
 		workspacePath: string;
 		title?: string;
 	};
+	"session.renameRequested": {
+		sessionId: string;
+		customTitle: string;
+	};
 	"turn.startRequested": {
 		sessionId: string;
 		text: string;

@@ -4,6 +4,7 @@ export type Session = {
 	id: string;
 	provider: Provider;
 	title: string;
+	titleSource?: "provider" | "user";
 	status: SessionStatus;
 	workspaceId: string;
 	metadata?: Record<string, unknown>;

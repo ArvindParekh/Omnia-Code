@@ -38,8 +38,7 @@ export default function App() {
 	const activeSession = sessions.find((s) => s.id === activeId) ?? null;
 
 	const handleNewSession = async (text: string, provider: Provider, workspacePath: string) => {
-		const title = text.length > 40 ? `${text.slice(0, 40)}…` : text;
-		const session = await createSession(provider, workspacePath, title);
+		const session = await createSession(provider, workspacePath);
 		setSessionInitials((prev) => ({ ...prev, [session.id]: text }));
 		setActiveId(session.id);
 	};

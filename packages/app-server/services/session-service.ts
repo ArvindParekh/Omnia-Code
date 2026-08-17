@@ -44,6 +44,19 @@ export class SessionService {
 		return session;
 	}
 
+	async rename(envelope: CommandEnvelopeFor<"session.renameRequested">): Promise<void> {
+		const { sessionId, customTitle } = envelope.payload;
+
+		const session = this.providerSessions.get(sessionId);
+		if (!session) return;
+
+		await this.registry.get(session.ref.provider).renameSession({
+			sessionId,
+			providerSessionRef: session.ref,
+			customTitle,
+		});
+	}
+
 	getProviderSession(sessionId: string): ProviderSession {
 		const session = this.providerSessions.get(sessionId);
 		if (!session) throw new Error(`No provider session found for session ${sessionId}`);

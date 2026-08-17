@@ -2,7 +2,13 @@ import { execSync } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { query, type CanUseTool, type PermissionResult } from "@anthropic-ai/claude-agent-sdk";
+import {
+	getSessionInfo,
+	query,
+	renameSession,
+	type CanUseTool,
+	type PermissionResult,
+} from "@anthropic-ai/claude-agent-sdk";
 import { ToolRisk } from "@omnia/contracts";
 import type { Provider, ProviderAvailability, ProviderRuntimeEvent } from "@omnia/contracts";
 import type {
@@ -10,6 +16,7 @@ import type {
 	CreateProviderSessionInput,
 	DisposeProviderSessionInput,
 	ProviderAdapter,
+	RenameProviderSessionInput,
 	ResolveProviderApprovalInput,
 	ResumeProviderSessionInput,
 	SendProviderTurnInput,
@@ -61,6 +68,7 @@ class AsyncEventQueue<T> {
 export class ClaudeProvider implements ProviderAdapter {
 	readonly provider: Provider = "claude";
 
+	private lastTitle = new Map<string, string>(); // sessionId -> title
 	private activeTurns = new Map<
 		string,
 		{
@@ -116,6 +124,8 @@ export class ClaudeProvider implements ProviderAdapter {
 	async resumeSession(_input: ResumeProviderSessionInput): Promise<void> {}
 
 	async disposeSession(input: DisposeProviderSessionInput): Promise<void> {
+		this.lastTitle.delete(input.sessionId);
+
 		const turnIds = [...this.activeTurns.entries()]
 			.filter(([, active]) => active.sessionId === input.sessionId)
 			.map(([turnId]) => turnId);
@@ -172,9 +182,34 @@ export class ClaudeProvider implements ProviderAdapter {
 			for await (const event of events) {
 				yield event;
 			}
+
+			const suggested = await this.suggestTitle(input.sessionId, externalId, input.workspacePath);
+			if (suggested) yield { type: "session.titleSuggested", title: suggested };
 		} finally {
 			input.signal.removeEventListener("abort", forwardAbort);
 		}
+	}
+
+	private async suggestTitle(
+		sessionId: string,
+		externalId: string,
+		workspacePath: string,
+	): Promise<string | null> {
+		try {
+			const info = await getSessionInfo(externalId, { dir: workspacePath });
+			if (!info?.summary || info.summary === this.lastTitle.get(sessionId)) return null;
+
+			this.lastTitle.set(sessionId, info.summary);
+			return info.summary;
+		} catch {
+			return null;
+		}
+	}
+
+	async renameSession(input: RenameProviderSessionInput): Promise<void> {
+		const { sessionId, providerSessionRef, customTitle } = input;
+		this.lastTitle.set(sessionId, customTitle);
+		await renameSession(providerSessionRef.externalId ?? sessionId, customTitle);
 	}
 
 	async cancelTurn(input: CancelProviderTurnInput): Promise<void> {

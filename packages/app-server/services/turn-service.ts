@@ -187,6 +187,15 @@ export class TurnService {
 					}),
 				);
 				break;
+			case "session.titleSuggested":
+				this.eventStore.addEvent(
+					createEvent("session.renamed", {
+						sessionId,
+						title: event.title,
+						source: "provider",
+					}),
+				);
+				break;
 			case "assistant.completed":
 				this.eventStore.addEvent(
 					createEvent("message.assistantCompleted", {

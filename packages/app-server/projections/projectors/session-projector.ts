@@ -18,6 +18,19 @@ export class SessionProjector implements Projector<Map<string, Session>> {
 				});
 				break;
 			}
+			case "session.renamed": {
+				const session = this.state.get(event.payload.sessionId);
+				if (!session) break;
+				if (event.payload.source === "provider" && session.titleSource === "user") break;
+
+				this.state.set(session.id, {
+					...session,
+					title: event.payload.title,
+					titleSource: event.payload.source,
+					updatedAt: event.occurredAt,
+				});
+				break;
+			}
 			case "turn.started": {
 				const session = this.state.get(event.payload.sessionId);
 				if (session) {

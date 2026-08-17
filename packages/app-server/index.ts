@@ -58,6 +58,21 @@ export function createAppServer(deps: { eventStore: EventStore }): {
 				}),
 			);
 		})
+		.on("session.renameRequested", async (envelope) => {
+			eventStore.addEvent(
+				createEvent("session.renamed", {
+					sessionId: envelope.payload.sessionId,
+					source: "user",
+					title: envelope.payload.customTitle,
+				}),
+			);
+
+			try {
+				await sessionService.rename(envelope);
+			} catch (error) {
+				console.error(`[rename:${envelope.payload.sessionId}]`, error);
+			}
+		})
 		.on("turn.startRequested", async (envelope) => {
 			const session = sessionProjector.state.get(envelope.payload.sessionId);
 			if (!session)
