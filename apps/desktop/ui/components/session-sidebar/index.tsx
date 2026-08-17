@@ -11,6 +11,7 @@ type SessionSidebarProps = {
 	activeSessionId: string | null;
 	onSelectSession: (id: string | null) => void;
 	onCreateWorkspaceSession: (workspaceId: string) => void;
+	onRenameSession: (sessionId: string, title: string) => void;
 };
 
 export function SessionSidebar({
@@ -18,6 +19,7 @@ export function SessionSidebar({
 	activeSessionId,
 	onSelectSession,
 	onCreateWorkspaceSession,
+	onRenameSession,
 }: SessionSidebarProps) {
 	const [query, setQuery] = useState("");
 	const [listRef] = useAutoAnimate<HTMLDivElement>();
@@ -84,6 +86,7 @@ export function SessionSidebar({
 									session={s}
 									isActive={s.id === activeSessionId}
 									onClick={() => onSelectSession(s.id)}
+									onRename={(title) => onRenameSession(s.id, title)}
 									indented={false}
 								/>
 							))
@@ -109,6 +112,7 @@ export function SessionSidebar({
 									activeSessionId={activeSessionId}
 									onSelect={onSelectSession}
 									onCreateWorkspaceSession={onCreateWorkspaceSession}
+									onRenameSession={onRenameSession}
 									defaultOpen
 								/>
 							);

@@ -9,7 +9,7 @@ import { useSessions } from "./hooks/use-sessions";
 import { useProviders } from "./hooks/use-providers";
 
 export default function App() {
-	const { sessions, createSession } = useSessions();
+	const { sessions, createSession, renameSession } = useSessions();
 	const { providers } = useProviders();
 	const [activeId, setActiveId] = useState<string | null>(null);
 	const [showInspector, setShowInspector] = useState(true);
@@ -64,6 +64,7 @@ export default function App() {
 					activeSessionId={activeId}
 					onSelectSession={setActiveId}
 					onCreateWorkspaceSession={handleCreateWorkspaceSession}
+					onRenameSession={renameSession}
 				/>
 				<div ref={contentRef} className="flex flex-1 overflow-hidden">
 					{activeSession ? (

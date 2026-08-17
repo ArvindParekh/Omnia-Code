@@ -40,5 +40,9 @@ export function useSessions() {
 		[],
 	);
 
-	return { sessions, createSession, loading };
+	const renameSession = useCallback(async (sessionId: string, title: string): Promise<void> => {
+		await ipcInvoke("session.renameRequested", { sessionId, customTitle: title });
+	}, []);
+
+	return { sessions, createSession, renameSession, loading };
 }
