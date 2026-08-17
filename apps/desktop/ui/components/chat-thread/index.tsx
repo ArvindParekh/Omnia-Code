@@ -14,7 +14,7 @@ export function ChatThread({ session, isCanceling }: { session: Session; isCance
 	const [messagesRef] = useAutoAnimate<HTMLDivElement>();
 
 	return (
-		<ThreadPrimitive.Root className="flex flex-col flex-1 overflow-hidden">
+		<ThreadPrimitive.Root className="flex h-full flex-col overflow-hidden">
 			<div className="flex items-center gap-3 px-5 py-3 border-b border-white/[6%] shrink-0">
 				<span className="text-[12px] font-medium text-white/80 truncate">{session.title}</span>
 				<span className="text-[10px] text-white/25 shrink-0 hidden sm:block">

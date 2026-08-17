@@ -8,12 +8,12 @@
 :root {
 	color-scheme: dark;
 	/* Three surfaces — background, elevated, card */
-	--background: #171717;
-	--surface: #1e1e1e;
-	--surface-raised: #252525;
+	--background: #1a1a19;
+	--surface: #212120;
+	--surface-raised: #282827;
 
 	/* shadcn compat */
-	--foreground: rgba(255, 255, 255, 0.88);
+	--foreground: rgba(255, 255, 255, 0.84);
 	--card: #1e1e1e;
 	--card-foreground: rgba(255, 255, 255, 0.88);
 	--popover: #222222;
@@ -34,7 +34,7 @@
 	--radius: 0.5rem;
 
 	/* Text hierarchy — opacity only, no hue */
-	--t1: rgba(255, 255, 255, 0.88);
+	--t1: rgba(255, 255, 255, 0.84);
 	--t2: rgba(255, 255, 255, 0.45);
 	--t3: rgba(255, 255, 255, 0.24);
 
@@ -120,6 +120,12 @@
 		background-color: var(--background);
 		color: var(--foreground);
 		font-family: var(--font-sans);
+		-webkit-font-smoothing: antialiased;
+		-moz-osx-font-smoothing: grayscale;
+		text-rendering: optimizeLegibility;
+		font-feature-settings:
+			"liga" 1,
+			"calt" 1;
 		font-size: 12px;
 		line-height: 1.5;
 		-webkit-font-smoothing: antialiased;

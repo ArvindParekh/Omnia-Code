@@ -13,6 +13,7 @@ type SessionSidebarProps = {
 	onCreateWorkspaceSession: (workspaceId: string) => void;
 	onRenameSession: (sessionId: string, title: string) => void;
 	onDeleteSession: (sessionId: string) => void;
+	onOpenSearch: () => void;
 };
 
 export function SessionSidebar({
@@ -22,6 +23,7 @@ export function SessionSidebar({
 	onCreateWorkspaceSession,
 	onRenameSession,
 	onDeleteSession,
+	onOpenSearch,
 }: SessionSidebarProps) {
 	const [query, setQuery] = useState("");
 	const [listRef] = useAutoAnimate<HTMLDivElement>();
@@ -38,7 +40,7 @@ export function SessionSidebar({
 	const workspaces = Array.from(new Set(ordered.map((s) => s.workspaceId)));
 
 	return (
-		<div className="flex flex-col w-[240px] shrink-0 overflow-hidden">
+		<div className="flex h-full flex-col overflow-hidden">
 			<div className="px-3 pt-3 pb-2 flex flex-col gap-0.5">
 				<button
 					onClick={() => onSelectSession(null)}
@@ -62,9 +64,14 @@ export function SessionSidebar({
 					<span className="text-[12px] font-medium">New chat</span>
 				</button>
 
-				<button className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-white/40 hover:text-white/65 hover:bg-white/[4%] transition-colors w-full text-left">
+				<button
+					type="button"
+					onClick={onOpenSearch}
+					className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-white/40 hover:text-white/65 hover:bg-white/[4%] transition-colors w-full text-left"
+				>
 					<MagnifyingGlass size={15} weight="light" className="shrink-0" />
 					<span className="text-[12px]">Search</span>
+					<kbd className="ml-auto font-mono text-[9px] text-white/22">⌘K</kbd>
 				</button>
 			</div>
 

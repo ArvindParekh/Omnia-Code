@@ -3,9 +3,13 @@ import { useAutoAnimate } from "@formkit/auto-animate/react";
 import type { Provider } from "./lib/types";
 import { Titlebar } from "./components/titlebar";
 import { SessionSidebar } from "./components/session-sidebar";
+import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "./components/ui/resizable";
 import { SessionChat } from "./components/session-chat";
 import { NewChat } from "./components/new-chat";
+import { CommandPalette } from "./components/command-palette";
+import { Toaster } from "sonner";
 import { useSessions } from "./hooks/use-sessions";
+import { usePanelLayout } from "./hooks/use-panel-layout";
 import { useProviders } from "./hooks/use-providers";
 
 export default function App() {
@@ -14,6 +18,8 @@ export default function App() {
 	const [activeId, setActiveId] = useState<string | null>(null);
 	const [showInspector, setShowInspector] = useState(true);
 	const [isDark, setIsDark] = useState(true);
+	const shellLayout = usePanelLayout("shell");
+	const [paletteOpen, setPaletteOpen] = useState(false);
 
 	// Tracks the initial message to send when a new session is created from
 	// NewChat. Keyed by session ID so switching to an existing session never
@@ -62,35 +68,77 @@ export default function App() {
 				isDark={isDark}
 				onToggleTheme={() => setIsDark((v) => !v)}
 			/>
-			<div className="flex flex-1 overflow-hidden">
-				<SessionSidebar
-					sessions={sessions}
-					activeSessionId={activeId}
-					onSelectSession={setActiveId}
-					onCreateWorkspaceSession={handleCreateWorkspaceSession}
-					onRenameSession={renameSession}
-					onDeleteSession={deleteSession}
-				/>
-				<div ref={contentRef} className="flex flex-1 overflow-hidden">
-					{activeSession ? (
-						<SessionChat
-							key={activeId}
-							session={activeSession}
-							showInspector={showInspector}
-							initialMessage={activeId ? sessionInitials[activeId] : undefined}
-							onInitialMessageSent={() =>
-								setSessionInitials((prev) => {
-									const next = { ...prev };
-									if (activeId) delete next[activeId];
-									return next;
-								})
-							}
-						/>
-					) : (
-						<NewChat onStart={handleNewSession} recentSessions={sessions} providers={providers} />
-					)}
-				</div>
-			</div>
+			<ResizablePanelGroup
+				orientation="horizontal"
+				{...shellLayout}
+				className="flex-1 overflow-hidden"
+			>
+				<ResizablePanel
+					id="sidebar"
+					defaultSize="18%"
+					minSize="14%"
+					maxSize="34%"
+					style={{ overflow: "hidden" }}
+				>
+					<SessionSidebar
+						sessions={sessions}
+						activeSessionId={activeId}
+						onSelectSession={setActiveId}
+						onOpenSearch={() => setPaletteOpen(true)}
+						onCreateWorkspaceSession={handleCreateWorkspaceSession}
+						onRenameSession={renameSession}
+						onDeleteSession={deleteSession}
+					/>
+				</ResizablePanel>
+
+				<ResizableHandle />
+
+				<ResizablePanel id="content" minSize="40%" style={{ overflow: "hidden" }}>
+					<div ref={contentRef} className="flex h-full overflow-hidden">
+						{activeSession ? (
+							<SessionChat
+								key={activeId}
+								session={activeSession}
+								showInspector={showInspector}
+								initialMessage={activeId ? sessionInitials[activeId] : undefined}
+								onInitialMessageSent={() =>
+									setSessionInitials((prev) => {
+										const next = { ...prev };
+										if (activeId) delete next[activeId];
+										return next;
+									})
+								}
+							/>
+						) : (
+							<NewChat onStart={handleNewSession} recentSessions={sessions} providers={providers} />
+						)}
+					</div>
+				</ResizablePanel>
+			</ResizablePanelGroup>
+
+			<CommandPalette
+				open={paletteOpen}
+				onOpenChange={setPaletteOpen}
+				sessions={sessions}
+				onSelectSession={setActiveId}
+				onToggleInspector={() => setShowInspector((v) => !v)}
+				onToggleTheme={() => setIsDark((v) => !v)}
+				isDark={isDark}
+			/>
+
+			<Toaster
+				theme="dark"
+				position="bottom-right"
+				toastOptions={{
+					classNames: {
+						toast:
+							"!bg-[var(--surface-raised)] !border-white/[9%] !rounded-lg !py-2.5 !px-3 !gap-2",
+						title: "!text-[10.5px] !font-normal !text-white/62",
+						description: "!text-[10px] !font-normal !text-white/35 !mt-0.5",
+						icon: "!w-3 !h-3 [&>svg]:!w-3 [&>svg]:!h-3",
+					},
+				}}
+			/>
 		</div>
 	);
 }

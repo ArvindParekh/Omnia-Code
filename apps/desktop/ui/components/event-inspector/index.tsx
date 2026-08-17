@@ -15,7 +15,7 @@ export function EventInspector({ session, turns, items }: EventInspectorProps) {
 	const totalEvents = turns.reduce((n, t) => n + t.events.length, 0);
 
 	return (
-		<div className="flex flex-col w-[256px] shrink-0 overflow-hidden bg-background">
+		<div className="flex h-full flex-col overflow-hidden bg-background">
 			<div className="flex items-center justify-between px-4 py-3 border-b border-white/[6%] shrink-0">
 				<span className="text-[9px] font-semibold uppercase tracking-[0.1em] text-white/25">
 					Inspector
@@ -24,9 +24,13 @@ export function EventInspector({ session, turns, items }: EventInspectorProps) {
 			</div>
 
 			<Tabs defaultValue="activity" className="flex flex-1 flex-col overflow-hidden gap-0">
-				<TabsList className="mx-3 mt-2 shrink-0">
-					<TabsTrigger value="activity">Activity</TabsTrigger>
-					<TabsTrigger value="summary">Summary</TabsTrigger>
+				<TabsList className="mx-3 mt-2 h-7 shrink-0">
+					<TabsTrigger value="activity" className="text-[10px]">
+						Activity
+					</TabsTrigger>
+					<TabsTrigger value="summary" className="text-[10px]">
+						Summary
+					</TabsTrigger>
 				</TabsList>
 
 				<TabsContent value="activity" className="flex-1 overflow-y-auto py-1">

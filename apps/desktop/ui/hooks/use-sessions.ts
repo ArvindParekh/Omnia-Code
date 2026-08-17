@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { toast } from "sonner";
 import type { Session } from "@omnia/contracts";
 import type { Provider } from "../lib/types";
 import { ipcInvoke, useIpcEvent } from "./use-ipc";
@@ -45,11 +46,24 @@ export function useSessions() {
 	);
 
 	const renameSession = useCallback(async (sessionId: string, title: string): Promise<void> => {
-		await ipcInvoke("session.renameRequested", { sessionId, customTitle: title });
+		try {
+			await ipcInvoke("session.renameRequested", { sessionId, customTitle: title });
+		} catch (error) {
+			toast.error("Could not rename chat", {
+				description: error instanceof Error ? error.message : String(error),
+			});
+		}
 	}, []);
 
 	const deleteSession = useCallback(async (sessionId: string): Promise<void> => {
-		await ipcInvoke("session.deleteRequested", { sessionId });
+		try {
+			await ipcInvoke("session.deleteRequested", { sessionId });
+			toast.success("Chat deleted");
+		} catch (error) {
+			toast.error("Could not delete chat", {
+				description: error instanceof Error ? error.message : String(error),
+			});
+		}
 	}, []);
 
 	return { sessions, createSession, renameSession, deleteSession, loading };
