@@ -18,13 +18,13 @@ function Stat({ label, value, tone }: { label: string; value: string; tone?: "wa
 		<div className="flex flex-col gap-0.5">
 			<span
 				className={cn(
-					"text-[13px] font-medium tabular-nums",
+					"text-[12px] font-medium tabular-nums",
 					tone === "warn" ? "text-[var(--warn)]" : "text-white/70",
 				)}
 			>
 				{value}
 			</span>
-			<span className="text-[10px] uppercase tracking-[0.08em] text-white/22">{label}</span>
+			<span className="text-[9px] uppercase tracking-[0.08em] text-white/22">{label}</span>
 		</div>
 	);
 }
@@ -43,10 +43,10 @@ function Section({
 	return (
 		<div className="flex flex-col gap-1">
 			<div className="flex items-baseline justify-between px-4">
-				<span className="text-[10px] font-semibold uppercase tracking-[0.1em] text-white/22">
+				<span className="text-[9px] font-semibold uppercase tracking-[0.1em] text-white/22">
 					{title}
 				</span>
-				<span className="text-[10px] font-mono tabular-nums text-white/18">{count}</span>
+				<span className="text-[9px] font-mono tabular-nums text-white/18">{count}</span>
 			</div>
 			<div className="flex flex-col">{children}</div>
 		</div>
@@ -59,7 +59,7 @@ export function SummaryTab({ items }: { items: SessionViewItem[] }) {
 	if (items.length === 0) {
 		return (
 			<div className="flex items-center justify-center py-10">
-				<p className="text-[11px] text-white/20">Nothing yet</p>
+				<p className="text-[10px] text-white/20">Nothing yet</p>
 			</div>
 		);
 	}
@@ -90,16 +90,16 @@ export function SummaryTab({ items }: { items: SessionViewItem[] }) {
 						title={file.path}
 						className="flex items-center gap-2 px-4 py-[3px] hover:bg-white/[3%] transition-colors"
 					>
-						<span className="min-w-0 flex-1 truncate font-mono text-[11px]">
+						<span className="min-w-0 flex-1 truncate font-mono text-[10px]">
 							<span className="text-white/22">{file.directory}</span>
 							<span className="text-white/55">{file.name}</span>
 						</span>
 						{file.edits > 1 && (
-							<span className="shrink-0 font-mono text-[10px] text-white/20 tabular-nums">
+							<span className="shrink-0 font-mono text-[9px] text-white/20 tabular-nums">
 								×{file.edits}
 							</span>
 						)}
-						<span className="shrink-0 font-mono text-[10px] tabular-nums">
+						<span className="shrink-0 font-mono text-[9px] tabular-nums">
 							{file.added > 0 && <span className="text-[var(--diff-add)]">+{file.added}</span>}
 							{file.added > 0 && file.removed > 0 && <span className="text-white/15"> </span>}
 							{file.removed > 0 && (
@@ -127,7 +127,7 @@ export function SummaryTab({ items }: { items: SessionViewItem[] }) {
 						/>
 						<span
 							className={cn(
-								"min-w-0 flex-1 truncate font-mono text-[11px]",
+								"min-w-0 flex-1 truncate font-mono text-[10px]",
 								command.status === "error" ? "text-[var(--warn)]/75" : "text-white/48",
 							)}
 						>
@@ -158,7 +158,7 @@ export function SummaryTab({ items }: { items: SessionViewItem[] }) {
 			<Section title="Errors" count={summary.errors.length}>
 				{summary.errors.map((error) => (
 					<div key={error.id} className="px-4 py-[3px]">
-						<span className="block font-mono text-[10.5px] leading-relaxed text-[var(--warn)]/70">
+						<span className="block font-mono text-[10px] leading-relaxed text-[var(--warn)]/70">
 							{error.message.split("\n")[0]}
 						</span>
 					</div>

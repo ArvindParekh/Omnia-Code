@@ -22,7 +22,7 @@ export function ReasoningTrigger({
 		<CollapsibleTrigger asChild>
 			<button
 				className={cn(
-					"flex items-center gap-1.5 text-[11px] text-white/35 hover:text-white/55 transition-colors",
+					"flex items-center gap-1.5 text-[10px] text-white/35 hover:text-white/55 transition-colors",
 					className,
 				)}
 			>

@@ -16,32 +16,32 @@ const components = memoizeMarkdownComponents({
 
 	h1: ({ className, ...p }: ComponentPropsWithoutRef<"h1">) => (
 		<h1
-			className={cn("mb-3 mt-5 text-[15px] font-semibold text-white/88 first:mt-0", className)}
+			className={cn("mb-3 mt-5 text-[14px] font-semibold text-white/88 first:mt-0", className)}
 			{...p}
 		/>
 	),
 	h2: ({ className, ...p }: ComponentPropsWithoutRef<"h2">) => (
 		<h2
-			className={cn("mb-2 mt-4 text-[14px] font-semibold text-white/85 first:mt-0", className)}
+			className={cn("mb-2 mt-4 text-[13px] font-semibold text-white/85 first:mt-0", className)}
 			{...p}
 		/>
 	),
 	h3: ({ className, ...p }: ComponentPropsWithoutRef<"h3">) => (
 		<h3
-			className={cn("mb-1.5 mt-3 text-[13px] font-semibold text-white/82 first:mt-0", className)}
+			className={cn("mb-1.5 mt-3 text-[12px] font-semibold text-white/82 first:mt-0", className)}
 			{...p}
 		/>
 	),
 	p: ({ className, ...p }: ComponentPropsWithoutRef<"p">) => (
 		<p
-			className={cn("mb-3 text-[13px] leading-[1.65] text-white/75 last:mb-0", className)}
+			className={cn("mb-3 text-[12px] leading-[1.65] text-white/75 last:mb-0", className)}
 			{...p}
 		/>
 	),
 	ul: ({ className, ...p }: ComponentPropsWithoutRef<"ul">) => (
 		<ul
 			className={cn(
-				"mb-3 list-disc pl-5 text-[13px] text-white/75 last:mb-0 [&>li]:mt-1",
+				"mb-3 list-disc pl-5 text-[12px] text-white/75 last:mb-0 [&>li]:mt-1",
 				className,
 			)}
 			{...p}
@@ -50,7 +50,7 @@ const components = memoizeMarkdownComponents({
 	ol: ({ className, ...p }: ComponentPropsWithoutRef<"ol">) => (
 		<ol
 			className={cn(
-				"mb-3 list-decimal pl-5 text-[13px] text-white/75 last:mb-0 [&>li]:mt-1",
+				"mb-3 list-decimal pl-5 text-[12px] text-white/75 last:mb-0 [&>li]:mt-1",
 				className,
 			)}
 			{...p}
@@ -62,7 +62,7 @@ const components = memoizeMarkdownComponents({
 	blockquote: ({ className, ...p }: ComponentPropsWithoutRef<"blockquote">) => (
 		<blockquote
 			className={cn(
-				"mb-3 border-l-2 border-white/20 pl-4 text-[13px] text-white/45 italic last:mb-0",
+				"mb-3 border-l-2 border-white/20 pl-4 text-[12px] text-white/45 italic last:mb-0",
 				className,
 			)}
 			{...p}
@@ -79,7 +79,7 @@ const components = memoizeMarkdownComponents({
 	),
 	table: ({ className, ...p }: ComponentPropsWithoutRef<"table">) => (
 		<div className="mb-3 overflow-x-auto last:mb-0">
-			<table className={cn("w-full text-[13px] border-collapse", className)} {...p} />
+			<table className={cn("w-full text-[12px] border-collapse", className)} {...p} />
 		</div>
 	),
 	th: ({ className, ...p }: ComponentPropsWithoutRef<"th">) => (

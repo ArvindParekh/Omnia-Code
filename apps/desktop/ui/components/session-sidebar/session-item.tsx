@@ -74,7 +74,7 @@ function RenameInput({
 					onCancel();
 				}
 			}}
-			className="w-full bg-white/[6%] rounded-sm px-1.5 py-0.5 text-[13px] font-medium text-white/85 outline-none border border-white/[12%] select-text"
+			className="w-full bg-white/[6%] rounded-sm px-1.5 py-0.5 text-[12px] font-medium text-white/85 outline-none border border-white/[12%] select-text"
 		/>
 	);
 }
@@ -124,7 +124,7 @@ export function SessionItem({
 			<button
 				type="button"
 				onClick={onClick}
-				className={cn("w-full text-left px-2.5 py-0.5", indented && "text-[12px]")}
+				className={cn("w-full text-left px-2.5 py-0.5", indented && "text-[11px]")}
 			>
 				<div className="flex items-center gap-1.5 min-w-0">
 					<StatusDot status={session.status} />
@@ -132,7 +132,7 @@ export function SessionItem({
 						title={session.title}
 						className={cn(
 							"truncate min-w-0 leading-[1.4] transition-colors font-medium",
-							indented ? "text-[12px]" : "text-[13px]",
+							indented ? "text-[11px]" : "text-[12px]",
 							isActive ? "text-white/85" : "text-white/50 group-hover:text-white/70",
 						)}
 					>
@@ -140,7 +140,7 @@ export function SessionItem({
 					</span>
 					<span
 						className={cn(
-							"ml-auto text-[10px] text-white/18 shrink-0 tabular-nums transition-opacity",
+							"ml-auto text-[9px] text-white/18 shrink-0 tabular-nums transition-opacity",
 							"group-hover:opacity-0",
 							menuOpen && "opacity-0",
 						)}
@@ -151,7 +151,7 @@ export function SessionItem({
 				{!indented && (
 					<div className="flex items-center gap-1 mt-0.5 pl-[13px]">
 						<ChatTeardropText size={10} weight="light" className="text-white/18 shrink-0" />
-						<span className="text-[11px] text-white/22 truncate">{label}</span>
+						<span className="text-[10px] text-white/22 truncate">{label}</span>
 					</div>
 				)}
 			</button>

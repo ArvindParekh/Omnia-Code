@@ -12,3 +12,20 @@ export function timeAgo(date: Date | number): string {
 	if (hours < 24) return `${hours}h`;
 	return `${Math.floor(hours / 24)}d`;
 }
+
+export function clockTime(date: Date | number): string {
+	const value = typeof date === "number" ? new Date(date) : date;
+	return value.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" });
+}
+
+export function elapsed(from: Date | number, to: Date | number): string | null {
+	const start = typeof from === "number" ? from : from.getTime();
+	const end = typeof to === "number" ? to : to.getTime();
+	const ms = end - start;
+	if (ms < 1000) return null;
+	if (ms < 60_000) return `${(ms / 1000).toFixed(1)}s`;
+
+	const minutes = Math.floor(ms / 60_000);
+	const seconds = Math.round((ms % 60_000) / 1000);
+	return seconds > 0 ? `${minutes}m ${seconds}s` : `${minutes}m`;
+}

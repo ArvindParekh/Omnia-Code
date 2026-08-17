@@ -52,7 +52,7 @@ export function ToolCard({
 	return (
 		<div
 			className={cn(
-				"rounded-xl border overflow-hidden text-[12px]",
+				"rounded-xl border overflow-hidden text-[11px]",
 				status === "error"
 					? "border-[var(--warn)]/25 bg-[var(--warn)]/[3%]"
 					: "border-white/[8%] bg-white/[2%]",

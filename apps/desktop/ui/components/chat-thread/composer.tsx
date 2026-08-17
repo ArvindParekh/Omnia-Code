@@ -23,7 +23,7 @@ export function Composer({ label, workspaceId, provider, isCanceling }: Composer
 			<ComposerPrimitive.Quote className="flex items-start gap-2 px-4 pt-3 pb-0">
 				<div className="flex-1 flex items-start gap-2 rounded-lg border border-white/[8%] bg-white/[3%] px-3 py-2">
 					<Quotes size={11} weight="fill" className="text-white/30 shrink-0 mt-0.5" />
-					<ComposerPrimitive.QuoteText className="flex-1 text-[12px] text-white/45 font-mono leading-relaxed line-clamp-2" />
+					<ComposerPrimitive.QuoteText className="flex-1 text-[11px] text-white/45 font-mono leading-relaxed line-clamp-2" />
 				</div>
 				<ComposerPrimitive.QuoteDismiss asChild>
 					<button className="mt-2 p-0.5 text-white/30 hover:text-white/55 transition-colors shrink-0">
@@ -35,7 +35,7 @@ export function Composer({ label, workspaceId, provider, isCanceling }: Composer
 			<div className="flex flex-wrap gap-1.5 px-4 pt-2 empty:hidden">
 				<ComposerPrimitive.Attachments>
 					{({ attachment }) => (
-						<div className="flex items-center gap-1.5 px-2 py-1 rounded-full border border-white/[8%] bg-white/[3%] text-[11px] text-white/45">
+						<div className="flex items-center gap-1.5 px-2 py-1 rounded-full border border-white/[8%] bg-white/[3%] text-[10px] text-white/45">
 							<Paperclip size={10} weight="light" />
 							<span className="max-w-[120px] truncate">{attachment.name}</span>
 						</div>
@@ -47,7 +47,7 @@ export function Composer({ label, workspaceId, provider, isCanceling }: Composer
 				<ComposerPrimitive.Input
 					placeholder={`Ask ${label}...`}
 					rows={1}
-					className="w-full bg-transparent text-[13px] text-white/80 placeholder:text-white/25
+					className="w-full bg-transparent text-[12px] text-white/80 placeholder:text-white/25
 						resize-none outline-none leading-[1.6] select-text"
 				/>
 			</div>
@@ -59,13 +59,13 @@ export function Composer({ label, workspaceId, provider, isCanceling }: Composer
 					</button>
 				</ComposerPrimitive.AddAttachment>
 
-				<span className="text-[11px] px-2 py-0.5 rounded-md bg-white/[6%] text-white/40 font-mono">
+				<span className="text-[10px] px-2 py-0.5 rounded-md bg-white/[6%] text-white/40 font-mono">
 					{providerLabel(provider)}
 				</span>
 
 				<div className="flex items-center gap-1 text-white/22">
 					<FolderSimple size={12} weight="light" />
-					<span className="text-[11px] font-mono">{workspaceBase}</span>
+					<span className="text-[10px] font-mono">{workspaceBase}</span>
 				</div>
 
 				<div className="ml-auto">

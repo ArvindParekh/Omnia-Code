@@ -26,6 +26,7 @@ export function convertToThreadMessages(msgs: SessionViewItem[]): ThreadMessageL
 		content: MutableContent;
 		isRunning: boolean;
 		requiresAction: boolean;
+		completedAt: number;
 	} | null = null;
 
 	function flushAssistant() {
@@ -36,6 +37,7 @@ export function convertToThreadMessages(msgs: SessionViewItem[]): ThreadMessageL
 				id: assemblingAssistant.id,
 				createdAt: assemblingAssistant.createdAt,
 				content: assemblingAssistant.content as unknown as ThreadMessageLike["content"],
+				metadata: { custom: { completedAt: assemblingAssistant.completedAt } },
 				status: assemblingAssistant.requiresAction
 					? { type: "requires-action", reason: "tool-calls" }
 					: assemblingAssistant.isRunning
@@ -54,8 +56,10 @@ export function convertToThreadMessages(msgs: SessionViewItem[]): ThreadMessageL
 				content: [],
 				isRunning: false,
 				requiresAction: false,
+				completedAt: date.getTime(),
 			};
 		}
+		assemblingAssistant.completedAt = Math.max(assemblingAssistant.completedAt, date.getTime());
 	}
 
 	for (const msg of msgs) {

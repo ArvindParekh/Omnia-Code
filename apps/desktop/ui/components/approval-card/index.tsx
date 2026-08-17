@@ -36,14 +36,14 @@ export function ApprovalCard({
 					) : (
 						<X size={12} weight="bold" className="text-white/30 shrink-0" />
 					)}
-					<span className="text-[12px] font-mono text-white/28">{toolName}</span>
-					<span className="text-[11px] font-mono text-white/22 truncate flex-1">{command}</span>
-					<span className="text-[11px] text-white/22 shrink-0">
+					<span className="text-[11px] font-mono text-white/28">{toolName}</span>
+					<span className="text-[10px] font-mono text-white/22 truncate flex-1">{command}</span>
+					<span className="text-[10px] text-white/22 shrink-0">
 						{__approved ? "approved" : "denied"}
 					</span>
 				</div>
 				{!__approved && __note ? (
-					<p className="text-[11px] text-white/28 leading-relaxed pl-[22px]">{__note}</p>
+					<p className="text-[10px] text-white/28 leading-relaxed pl-[22px]">{__note}</p>
 				) : null}
 			</div>
 		);
@@ -64,12 +64,12 @@ export function ApprovalCard({
 			>
 				<div className="flex items-center gap-2">
 					<Warning size={12} weight="fill" style={{ color: "var(--warn)" }} />
-					<span className="text-[11px] font-medium" style={{ color: "var(--warn)" }}>
+					<span className="text-[10px] font-medium" style={{ color: "var(--warn)" }}>
 						Approval required
 					</span>
 				</div>
 				<span
-					className="text-[10px] font-mono uppercase tracking-wider"
+					className="text-[9px] font-mono uppercase tracking-wider"
 					style={{ color: "var(--warn)", opacity: 0.6 }}
 				>
 					{toolName}
@@ -77,7 +77,7 @@ export function ApprovalCard({
 			</div>
 
 			<div className="px-3.5 py-3 flex flex-col gap-3">
-				<code className="text-[12px] font-mono text-white/60 select-text block break-all">
+				<code className="text-[11px] font-mono text-white/60 select-text block break-all">
 					{command}
 				</code>
 				{denying ? (
@@ -98,7 +98,7 @@ export function ApprovalCard({
 						placeholder="Tell the agent why (optional)"
 						rows={2}
 						className="w-full rounded-lg border border-white/[8%] bg-white/[3%] px-2.5 py-2
-							text-[12px] text-white/70 placeholder:text-white/25 resize-none outline-none
+							text-[11px] text-white/70 placeholder:text-white/25 resize-none outline-none
 							leading-[1.5] select-text focus:border-white/[16%]"
 					/>
 				) : null}
@@ -111,7 +111,7 @@ export function ApprovalCard({
 				{denying ? (
 					<button
 						onClick={() => setDenying(false)}
-						className="px-3 py-1.5 text-[12px] rounded-lg text-white/35
+						className="px-3 py-1.5 text-[11px] rounded-lg text-white/35
 							hover:bg-white/[5%] hover:text-white/55 transition-colors"
 					>
 						Cancel
@@ -119,14 +119,14 @@ export function ApprovalCard({
 				) : null}
 				<button
 					onClick={() => (denying ? confirmDeny() : setDenying(true))}
-					className="px-3 py-1.5 text-[12px] rounded-lg border border-white/[10%] text-white/45
+					className="px-3 py-1.5 text-[11px] rounded-lg border border-white/[10%] text-white/45
 						hover:bg-white/[5%] hover:text-white/65 transition-colors"
 				>
 					Deny
 				</button>
 				<button
 					onClick={() => onApprove(__approvalId, true)}
-					className="px-3 py-1.5 text-[12px] rounded-lg bg-primary text-primary-foreground font-medium
+					className="px-3 py-1.5 text-[11px] rounded-lg bg-primary text-primary-foreground font-medium
 						hover:opacity-85 transition-all"
 				>
 					Approve

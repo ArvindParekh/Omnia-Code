@@ -61,7 +61,7 @@ export function Titlebar({
 
 			{/* App name */}
 			<div className="flex-1 flex justify-center pointer-events-none select-none">
-				<span className="text-[12px] font-medium text-white/30 tracking-[0.05em]">Omnia</span>
+				<span className="text-[11px] font-medium text-white/30 tracking-[0.05em]">Omnia</span>
 			</div>
 
 			{/* Controls */}

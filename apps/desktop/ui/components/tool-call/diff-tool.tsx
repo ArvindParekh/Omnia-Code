@@ -91,14 +91,14 @@ export function DiffTool({
 				</span>
 			}
 			meta={
-				<span className="font-mono text-[11px] tabular-nums">
+				<span className="font-mono text-[10px] tabular-nums">
 					{diff.added > 0 && <span className="text-[var(--diff-add)]">+{diff.added}</span>}
 					{diff.added > 0 && diff.removed > 0 && <span className="text-white/20"> </span>}
 					{diff.removed > 0 && <span className="text-[var(--diff-remove)]">−{diff.removed}</span>}
 				</span>
 			}
 		>
-			<div className="font-mono text-[11.5px] overflow-x-auto py-1.5 max-h-[420px] overflow-y-auto">
+			<div className="font-mono text-[11px] overflow-x-auto py-1.5 max-h-[420px] overflow-y-auto">
 				{diff.hunks.map((hunk, hunkIndex) => (
 					<div key={hunk.key}>
 						{hunkIndex > 0 && <div className="my-1.5 border-t border-dashed border-white/[7%]" />}

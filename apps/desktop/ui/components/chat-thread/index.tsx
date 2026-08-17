@@ -16,18 +16,18 @@ export function ChatThread({ session, isCanceling }: { session: Session; isCance
 	return (
 		<ThreadPrimitive.Root className="flex flex-col flex-1 overflow-hidden">
 			<div className="flex items-center gap-3 px-5 py-3 border-b border-white/[6%] shrink-0">
-				<span className="text-[13px] font-medium text-white/80 truncate">{session.title}</span>
-				<span className="text-[11px] text-white/25 shrink-0 hidden sm:block">
+				<span className="text-[12px] font-medium text-white/80 truncate">{session.title}</span>
+				<span className="text-[10px] text-white/25 shrink-0 hidden sm:block">
 					{label} &middot; {workspaceBase}
 				</span>
 				{session.status === "running" && (
 					<div className="ml-auto flex items-center gap-1.5 text-white/30">
 						<SpinnerGap size={13} weight="bold" className="animate-spin shrink-0" />
-						{isCanceling && <span className="text-[11px]">canceling</span>}
+						{isCanceling && <span className="text-[10px]">canceling</span>}
 					</div>
 				)}
 				{session.status === "error" && (
-					<span className="ml-auto text-[11px] text-red-400/50 shrink-0">failed</span>
+					<span className="ml-auto text-[10px] text-red-400/50 shrink-0">failed</span>
 				)}
 			</div>
 
@@ -35,7 +35,7 @@ export function ChatThread({ session, isCanceling }: { session: Session; isCance
 				<div className="flex flex-col min-h-full">
 					<ThreadPrimitive.Empty>
 						<div className="flex flex-col items-center justify-center flex-1 gap-2 py-20">
-							<p className="text-[13px] text-white/25">Ask {label} anything</p>
+							<p className="text-[12px] text-white/25">Ask {label} anything</p>
 						</div>
 					</ThreadPrimitive.Empty>
 
@@ -52,9 +52,9 @@ export function ChatThread({ session, isCanceling }: { session: Session; isCance
 								<button
 									className="absolute -top-10 left-1/2 -translate-x-1/2 flex items-center gap-1.5
 										px-3 py-1.5 rounded-full bg-[var(--surface)] border border-white/[10%]
-										text-[11px] text-white/45 hover:text-white/65 hover:bg-[var(--surface-raised)]
+										text-[10px] text-white/45 hover:text-white/65 hover:bg-[var(--surface-raised)]
 										transition-all shadow-lg
-										data-[visible=false]:opacity-0 data-[visible=false]:pointer-events-none"
+										disabled:opacity-0 disabled:pointer-events-none"
 								>
 									<ArrowDown size={11} weight="bold" />
 									Latest
@@ -74,7 +74,7 @@ export function ChatThread({ session, isCanceling }: { session: Session; isCance
 
 			<SelectionToolbarPrimitive.Root className="z-50 flex items-center gap-1 rounded-lg border border-white/[10%] bg-[var(--surface-raised)] px-2 py-1.5 shadow-xl">
 				<SelectionToolbarPrimitive.Quote asChild>
-					<button className="flex items-center gap-1.5 px-2 py-1 rounded-md text-[11px] text-white/50 hover:text-white/75 hover:bg-white/[5%] transition-colors">
+					<button className="flex items-center gap-1.5 px-2 py-1 rounded-md text-[10px] text-white/50 hover:text-white/75 hover:bg-white/[5%] transition-colors">
 						<Quotes size={12} weight="light" />
 						Quote
 					</button>

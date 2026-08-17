@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { MagnifyingGlass, PlusCircle, GearSix } from "@phosphor-icons/react";
 import type { Session } from "../../lib/types";
@@ -26,11 +26,16 @@ export function SessionSidebar({
 	const [query, setQuery] = useState("");
 	const [listRef] = useAutoAnimate<HTMLDivElement>();
 
-	const filtered = query
-		? sessions.filter((s) => s.title.toLowerCase().includes(query.toLowerCase()))
-		: sessions;
+	const ordered = useMemo(
+		() => [...sessions].sort((a, b) => b.updatedAt - a.updatedAt),
+		[sessions],
+	);
 
-	const workspaces = Array.from(new Set(sessions.map((s) => s.workspaceId)));
+	const filtered = query
+		? ordered.filter((s) => s.title.toLowerCase().includes(query.toLowerCase()))
+		: ordered;
+
+	const workspaces = Array.from(new Set(ordered.map((s) => s.workspaceId)));
 
 	return (
 		<div className="flex flex-col w-[240px] shrink-0 overflow-hidden">
@@ -54,12 +59,12 @@ export function SessionSidebar({
 								: "text-white/35 group-hover:text-white/55",
 						)}
 					/>
-					<span className="text-[13px] font-medium">New chat</span>
+					<span className="text-[12px] font-medium">New chat</span>
 				</button>
 
 				<button className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-white/40 hover:text-white/65 hover:bg-white/[4%] transition-colors w-full text-left">
 					<MagnifyingGlass size={15} weight="light" className="shrink-0" />
-					<span className="text-[13px]">Search</span>
+					<span className="text-[12px]">Search</span>
 				</button>
 			</div>
 
@@ -71,7 +76,7 @@ export function SessionSidebar({
 						value={query}
 						onChange={(e) => setQuery(e.target.value)}
 						placeholder="Search sessions..."
-						className="flex-1 bg-transparent text-[12px] text-white/60 outline-none placeholder:text-white/22 min-w-0 select-text"
+						className="flex-1 bg-transparent text-[11px] text-white/60 outline-none placeholder:text-white/22 min-w-0 select-text"
 					/>
 				</div>
 			</div>
@@ -80,7 +85,7 @@ export function SessionSidebar({
 				{query ? (
 					<div ref={listRef} className="flex flex-col gap-px">
 						{filtered.length === 0 ? (
-							<p className="text-[12px] text-white/25 px-2 py-3 text-center">No results</p>
+							<p className="text-[11px] text-white/25 px-2 py-3 text-center">No results</p>
 						) : (
 							filtered.map((s) => (
 								<SessionItem
@@ -98,13 +103,13 @@ export function SessionSidebar({
 				) : (
 					<div ref={listRef} className="flex flex-col gap-1 pt-1">
 						<div className="flex items-center justify-between px-2 pb-1">
-							<span className="text-[10px] font-semibold uppercase tracking-[0.1em] text-white/22">
+							<span className="text-[9px] font-semibold uppercase tracking-[0.1em] text-white/22">
 								Projects
 							</span>
 						</div>
 
 						{workspaces.map((ws) => {
-							const wsSessions = sessions.filter((s) => s.workspaceId === ws);
+							const wsSessions = ordered.filter((s) => s.workspaceId === ws);
 							const wsName = ws.replace(/^.*\//, "") || ws;
 							return (
 								<WorkspaceGroup
@@ -126,7 +131,7 @@ export function SessionSidebar({
 			</div>
 
 			<div className="px-3 py-3 border-t border-white/[6%] flex items-center">
-				<button className="flex items-center gap-2 text-[12px] text-white/28 hover:text-white/50 transition-colors">
+				<button className="flex items-center gap-2 text-[11px] text-white/28 hover:text-white/50 transition-colors">
 					<GearSix size={14} weight="light" />
 					Settings
 				</button>

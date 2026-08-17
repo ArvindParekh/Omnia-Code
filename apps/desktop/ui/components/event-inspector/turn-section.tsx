@@ -37,17 +37,17 @@ export function TurnSection({ turn }: { turn: TurnGroup }) {
 					weight="bold"
 					className={cn("text-white/22 transition-transform shrink-0", !collapsed && "rotate-90")}
 				/>
-				<span className="text-[10px] font-mono tabular-nums text-white/20 shrink-0">
+				<span className="text-[9px] font-mono tabular-nums text-white/20 shrink-0">
 					{turn.index}
 				</span>
-				<span className="text-[11px] font-medium text-white/45 truncate min-w-0" title={turn.title}>
+				<span className="text-[10px] font-medium text-white/45 truncate min-w-0" title={turn.title}>
 					{turn.title}
 				</span>
-				<span className={cn("text-[10px] font-mono shrink-0", STATUS_COLORS[turn.status])}>
+				<span className={cn("text-[9px] font-mono shrink-0", STATUS_COLORS[turn.status])}>
 					{STATUS_GLYPH[turn.status]}
 				</span>
 				{turn.durationMs != null && (
-					<span className="text-[10px] font-mono text-white/18 ml-auto">
+					<span className="text-[9px] font-mono text-white/18 ml-auto">
 						{formatDuration(turn.durationMs)}
 					</span>
 				)}

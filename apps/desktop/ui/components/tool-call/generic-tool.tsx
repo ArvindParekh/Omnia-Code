@@ -27,7 +27,7 @@ export function GenericTool({
 			}
 		>
 			{output.length > 0 ? (
-				<code className="block px-3.5 py-2.5 font-mono text-[11.5px] leading-relaxed text-white/38 whitespace-pre-wrap break-all select-text max-h-[320px] overflow-y-auto">
+				<code className="block px-3.5 py-2.5 font-mono text-[11px] leading-relaxed text-white/38 whitespace-pre-wrap break-all select-text max-h-[320px] overflow-y-auto">
 					{output}
 				</code>
 			) : undefined}

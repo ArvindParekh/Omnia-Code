@@ -13,7 +13,7 @@ export function ToolEventDetail({ event }: { event: InspectorEvent }) {
 			<div className="flex items-center justify-between gap-2 px-2.5 py-1.5 border-b border-white/[5%]">
 				<div className="flex items-center gap-1.5 min-w-0">
 					<Terminal size={10} weight="light" className="text-white/28 shrink-0" />
-					<span className="font-mono text-[10px] text-white/40 truncate">{event.toolName}</span>
+					<span className="font-mono text-[9px] text-white/40 truncate">{event.toolName}</span>
 				</div>
 				{event.status === "running" ? (
 					<SpinnerGap size={9} weight="bold" className="text-white/25 animate-spin shrink-0" />
@@ -24,11 +24,11 @@ export function ToolEventDetail({ event }: { event: InspectorEvent }) {
 				)}
 			</div>
 			<div className="px-2.5 py-2 space-y-1.5">
-				<code className="block font-mono text-[10px] text-white/48 leading-relaxed whitespace-pre-wrap break-all select-text">
+				<code className="block font-mono text-[9px] text-white/48 leading-relaxed whitespace-pre-wrap break-all select-text">
 					{primaryArg}
 				</code>
 				{output && (
-					<code className="block font-mono text-[10px] text-white/24 leading-relaxed whitespace-pre-wrap break-all select-text">
+					<code className="block font-mono text-[9px] text-white/24 leading-relaxed whitespace-pre-wrap break-all select-text">
 						{output}
 					</code>
 				)}

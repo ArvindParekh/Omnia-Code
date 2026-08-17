@@ -28,7 +28,7 @@ export function BashTool({
 			}
 			meta={
 				shell.description ? (
-					<span className="text-[11px] text-white/25 truncate max-w-[14rem]">
+					<span className="text-[10px] text-white/25 truncate max-w-[14rem]">
 						{shell.description}
 					</span>
 				) : undefined
@@ -37,14 +37,14 @@ export function BashTool({
 			{hasBody ? (
 				<div className="px-3.5 py-2.5 space-y-2">
 					{isMultiline && (
-						<code className="block font-mono text-[11.5px] leading-relaxed text-white/50 whitespace-pre-wrap break-all select-text">
+						<code className="block font-mono text-[11px] leading-relaxed text-white/50 whitespace-pre-wrap break-all select-text">
 							{shell.command}
 						</code>
 					)}
 					{output.length > 0 && (
 						<code
 							className={cn(
-								"block font-mono text-[11.5px] leading-relaxed whitespace-pre-wrap break-all select-text",
+								"block font-mono text-[11px] leading-relaxed whitespace-pre-wrap break-all select-text",
 								"max-h-[320px] overflow-y-auto",
 								status === "error" ? "text-[var(--warn)]/80" : "text-white/38",
 							)}

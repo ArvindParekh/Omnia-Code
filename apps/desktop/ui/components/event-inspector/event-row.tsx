@@ -36,7 +36,7 @@ export function EventRow({ event, isLast }: { event: InspectorEvent; isLast: boo
 				</span>
 
 				<span
-					className="text-[11px] font-mono truncate flex-1 min-w-0 text-foreground"
+					className="text-[10px] font-mono truncate flex-1 min-w-0 text-foreground"
 					style={{ opacity }}
 				>
 					{event.summary}
@@ -59,7 +59,7 @@ export function EventRow({ event, isLast }: { event: InspectorEvent; isLast: boo
 
 			{expanded && !isTool && event.detail && (
 				<div className="pl-14 pr-4 py-1.5">
-					<code className="block text-[10px] font-mono text-white/22 leading-relaxed whitespace-pre-wrap break-all select-text">
+					<code className="block text-[9px] font-mono text-white/22 leading-relaxed whitespace-pre-wrap break-all select-text">
 						{event.detail}
 					</code>
 				</div>

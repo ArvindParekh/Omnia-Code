@@ -82,7 +82,7 @@ export function CodeBlock({ children }: ComponentPropsWithoutRef<"pre">) {
 				defaultColor="dark"
 				addDefaultStyles={true}
 				showLanguage={false}
-				className="overflow-x-auto rounded-b-lg border border-t-0 border-white/[8%] p-4 text-[12px] leading-relaxed"
+				className="overflow-x-auto rounded-b-lg border border-t-0 border-white/[8%] p-4 text-[11px] leading-relaxed"
 			>
 				{code || " "}
 			</ShikiHighlighter>

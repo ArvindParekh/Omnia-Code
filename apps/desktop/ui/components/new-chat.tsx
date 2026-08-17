@@ -72,7 +72,7 @@ export function NewChat({ onStart, recentSessions, providers }: NewChatProps) {
 							onKeyDown={handleKeyDown}
 							placeholder={`Ask ${providerLabel(provider)} anything...`}
 							rows={3}
-							className="w-full bg-transparent text-[14px] text-white/80 placeholder:text-white/25 resize-none outline-none leading-[1.6] select-text"
+							className="w-full bg-transparent text-[13px] text-white/80 placeholder:text-white/25 resize-none outline-none leading-[1.6] select-text"
 						/>
 					</div>
 
@@ -85,7 +85,7 @@ export function NewChat({ onStart, recentSessions, providers }: NewChatProps) {
 									key={p}
 									onClick={() => setProvider(p)}
 									className={cn(
-										"px-2.5 py-1 rounded-lg text-[11px] font-medium transition-colors",
+										"px-2.5 py-1 rounded-lg text-[10px] font-medium transition-colors",
 										provider === p
 											? "bg-white/[10%] text-white/75"
 											: "text-white/30 hover:text-white/50 hover:bg-white/[5%]",
@@ -99,7 +99,7 @@ export function NewChat({ onStart, recentSessions, providers }: NewChatProps) {
 						{/* Workspace picker */}
 						<div className="ml-auto flex items-center gap-1.5 text-white/30 hover:text-white/50 transition-colors cursor-pointer">
 							<FolderSimple size={13} weight="light" />
-							<span className="text-[11px]">{workspace.replace(/^.*\//, "") || workspace}</span>
+							<span className="text-[10px]">{workspace.replace(/^.*\//, "") || workspace}</span>
 						</div>
 
 						{/* Send button */}
@@ -118,13 +118,13 @@ export function NewChat({ onStart, recentSessions, providers }: NewChatProps) {
 				{/* Workspace selector pills */}
 				{workspaces.length > 1 && (
 					<div className="flex items-center gap-2 flex-wrap px-1">
-						<span className="text-[11px] text-white/25">Project:</span>
+						<span className="text-[10px] text-white/25">Project:</span>
 						{workspaces.map((ws) => (
 							<button
 								key={ws}
 								onClick={() => setWorkspace(ws)}
 								className={cn(
-									"flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] transition-colors border",
+									"flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] transition-colors border",
 									workspace === ws
 										? "border-white/[14%] bg-white/[5%] text-white/65"
 										: "border-white/[7%] text-white/30 hover:text-white/50 hover:bg-white/[3%]",
@@ -157,7 +157,7 @@ export function NewChat({ onStart, recentSessions, providers }: NewChatProps) {
 								weight="light"
 								className="text-white/22 shrink-0 group-hover:text-white/40 transition-colors"
 							/>
-							<span className="text-[13px]">{label}</span>
+							<span className="text-[12px]">{label}</span>
 						</button>
 					))}
 				</div>
