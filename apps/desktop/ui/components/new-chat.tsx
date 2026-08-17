@@ -3,6 +3,7 @@ import { ArrowUp, FolderSimple, Lightning, Bug, GitBranch, Sparkle } from "@phos
 import type { EffortLevel, Provider, Session } from "../lib/types";
 import { useProviderModels } from "../hooks/use-provider-models";
 import { ModelPicker } from "./model-picker";
+import { ProviderIcon } from "./provider-icon";
 import { providerLabel } from "../lib/provider";
 import { cn } from "../lib/utils";
 
@@ -68,7 +69,8 @@ export function NewChat({ onStart, recentSessions, providers }: NewChatProps) {
 		<div className="flex-1 border-l border-l-white/10 rounded-l-lg flex flex-col items-center justify-center px-6 overflow-y-auto">
 			<div className="w-full max-w-[640px] flex flex-col gap-5">
 				{/* Heading */}
-				<div className="text-center mb-2">
+				<div className="mb-2 flex flex-col items-center gap-3">
+					<ProviderIcon provider={provider} size={30} />
 					<h1 className="text-2xl font-medium text-white/85">What should we work on?</h1>
 				</div>
 
@@ -89,23 +91,29 @@ export function NewChat({ onStart, recentSessions, providers }: NewChatProps) {
 
 					{/* Action bar */}
 					<div className="flex items-center gap-2 px-3.5 pb-3 pt-1">
-						{/* Provider picker — only when there is a real choice */}
-						{providers.length > 1 && (
+						{/* Provider */}
+						{providers.length > 1 ? (
 							<div className="flex items-center gap-1">
 								{providers.map((p) => (
 									<button
 										key={p}
 										onClick={() => setProvider(p)}
 										className={cn(
-											"px-2.5 py-1 rounded-lg text-[10px] font-medium transition-colors",
+											"flex items-center gap-1.5 rounded-lg px-2 py-1 text-[10px] font-medium transition-colors",
 											provider === p
 												? "bg-white/[10%] text-white/75"
-												: "text-white/30 hover:text-white/50 hover:bg-white/[5%]",
+												: "text-white/30 hover:bg-white/[5%] hover:text-white/50",
 										)}
 									>
+										<ProviderIcon provider={p} size={12} muted={provider !== p} />
 										{providerLabel(p)}
 									</button>
 								))}
+							</div>
+						) : (
+							<div className="flex items-center gap-1.5 px-1 py-1 text-[10px] font-medium text-white/45">
+								<ProviderIcon provider={provider} size={12} />
+								{providerLabel(provider)}
 							</div>
 						)}
 

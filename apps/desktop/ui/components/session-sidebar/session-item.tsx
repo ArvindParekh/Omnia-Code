@@ -1,6 +1,7 @@
-import { ChatTeardropText, DotsThree, PencilSimple, Trash } from "@phosphor-icons/react";
+import { DotsThree, PencilSimple, Trash } from "@phosphor-icons/react";
 import { useEffect, useRef, useState } from "react";
 import { providerLabel } from "../../lib/provider";
+import { ProviderIcon } from "../provider-icon";
 import { timeAgo } from "../../lib/time";
 import type { Session } from "../../lib/types";
 import { cn } from "../../lib/utils";
@@ -150,7 +151,7 @@ export function SessionItem({
 				</div>
 				{!indented && (
 					<div className="flex items-center gap-1 mt-0.5 pl-[13px]">
-						<ChatTeardropText size={10} weight="light" className="text-white/18 shrink-0" />
+						<ProviderIcon provider={session.provider} size={10} />
 						<span className="text-[10px] text-white/22 truncate">{label}</span>
 					</div>
 				)}
