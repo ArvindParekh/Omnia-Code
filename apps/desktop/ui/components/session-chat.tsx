@@ -1,7 +1,7 @@
-import { useCallback, useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AssistantRuntimeProvider, useExternalStoreRuntime } from "@assistant-ui/react";
 import type { AppendMessage, ThreadMessageLike } from "@assistant-ui/react";
-import type { CompleteAttachment, QuoteRef, Session } from "../lib/types";
+import type { CompleteAttachment, EffortLevel, QuoteRef, Session } from "../lib/types";
 import { AnyFileAttachmentAdapter } from "../lib/attachment-adapter";
 import { convertToThreadMessages } from "../lib/convert-messages";
 import { ApprovalContext } from "./approval-card";
@@ -31,6 +31,8 @@ export function SessionChat({
 	// Fire the initial message once on mount (only when creating a new session
 	// from the NewChat screen — the ref guards against double-sends on StrictMode).
 	const sessionLayout = usePanelLayout("session");
+	const [modelId, setModelId] = useState<string | null>(null);
+	const [effort, setEffort] = useState<EffortLevel | null>(null);
 
 	const initialSent = useRef(false);
 	useEffect(() => {
@@ -77,7 +79,14 @@ export function SessionChat({
 					className="flex-1 overflow-hidden rounded-l-lg border-l border-l-white/10 shadow-2xl"
 				>
 					<ResizablePanel id="thread" minSize="40%" style={{ overflow: "hidden" }}>
-						<ChatThread session={session} isCanceling={isCanceling} />
+						<ChatThread
+							session={session}
+							isCanceling={isCanceling}
+							modelId={modelId}
+							onModelChange={setModelId}
+							effort={effort}
+							onEffortChange={setEffort}
+						/>
 					</ResizablePanel>
 
 					{showInspector && (

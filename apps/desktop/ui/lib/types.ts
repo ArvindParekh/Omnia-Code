@@ -7,6 +7,7 @@ export type { CompleteAttachment };
 // Re-export shared contract types so component imports stay stable if the
 // contracts package structure changes — update this file, not every component.
 export type {
+	EffortLevel,
 	MessageAttachment,
 	Provider,
 	QuoteRef,

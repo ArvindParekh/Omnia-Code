@@ -1,17 +1,48 @@
 type Provider = "gemini" | "claude" | "codex" | "opencode" | "cursor" | "fake";
 
+type EffortLevel = "low" | "medium" | "high" | "xhigh" | "max";
+
 type ModelSelection = { mode: "provider_default" } | { mode: "explicit"; modelId: string };
 
-type ModelDescriptor = {
-	id: string;
-	label: string;
-	description?: string;
+type ModelInfo = {
+	/**
+	 * Model identifier to use in API calls
+	 */
+	value: string;
+	/**
+	 * Human-readable display name
+	 */
+	displayName: string;
+	/**
+	 * Description of the model's capabilities
+	 */
+	description: string;
+	/**
+	 * Whether this model supports effort levels
+	 */
+	supportsEffort?: boolean;
+	/**
+	 * Available effort levels for this model
+	 */
+	supportedEffortLevels?: ("low" | "medium" | "high" | "xhigh" | "max")[];
+	/**
+	 * Whether this model supports adaptive thinking (Claude decides when and how much to think)
+	 */
+	supportsAdaptiveThinking?: boolean;
+	/**
+	 * Whether this model supports fast mode
+	 */
+	supportsFastMode?: boolean;
+	/**
+	 * Whether this model supports auto mode
+	 */
+	supportsAutoMode?: boolean;
 };
 
 type ProviderModelCapabilities = {
 	provider: Provider;
 	selectionSupported: boolean;
-	discoveredModels: ModelDescriptor[];
+	discoveredModels: ModelInfo[];
 	discoveredAt: number;
 };
 
@@ -105,8 +136,9 @@ type Approval = {
 export type {
 	Approval,
 	Capability,
+	EffortLevel,
 	MessageAttachment,
-	ModelDescriptor,
+	ModelInfo,
 	ModelSelection,
 	Provider,
 	ProviderAvailability,

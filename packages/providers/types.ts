@@ -8,6 +8,7 @@ import type {
 	SessionPolicy,
 	ToolRisk,
 	ProviderSessionRef,
+	ProviderModelCapabilities,
 } from "@omnia/contracts";
 
 type ProviderAdapter = {
@@ -27,6 +28,9 @@ type ProviderAdapter = {
 
 	// delete an existing session with the provider
 	deleteSession(input: DeleteProviderSessionInput): Promise<void>;
+
+	// lists all available provider models
+	listModels(): Promise<ProviderModelCapabilities>;
 
 	// sends a turn to the provider
 	sendTurn(input: SendProviderTurnInput): AsyncIterable<ProviderRuntimeEvent>;

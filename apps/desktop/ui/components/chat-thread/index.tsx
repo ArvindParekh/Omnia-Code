@@ -1,14 +1,28 @@
 import { SelectionToolbarPrimitive, ThreadPrimitive } from "@assistant-ui/react";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { ArrowDown, Quotes } from "@phosphor-icons/react";
-import type { Session } from "../../lib/types";
+import type { EffortLevel, Session } from "../../lib/types";
 import { providerLabel } from "../../lib/provider";
 import { SpinnerGap } from "@phosphor-icons/react";
 import { Composer } from "./composer";
 import { UserMessage } from "./user-message";
 import { AssistantMessage } from "./assistant-message";
 
-export function ChatThread({ session, isCanceling }: { session: Session; isCanceling: boolean }) {
+export function ChatThread({
+	session,
+	isCanceling,
+	modelId,
+	onModelChange,
+	effort,
+	onEffortChange,
+}: {
+	session: Session;
+	isCanceling: boolean;
+	modelId: string | null;
+	onModelChange: (modelId: string) => void;
+	effort: EffortLevel | null;
+	onEffortChange: (effort: EffortLevel | null) => void;
+}) {
 	const label = providerLabel(session.provider);
 	const workspaceBase = session.workspaceId.replace(/^.*\//, "") || session.workspaceId;
 	const [messagesRef] = useAutoAnimate<HTMLDivElement>();
@@ -66,6 +80,10 @@ export function ChatThread({ session, isCanceling }: { session: Session; isCance
 								workspaceId={session.workspaceId}
 								provider={session.provider}
 								isCanceling={isCanceling}
+								modelId={modelId}
+								onModelChange={onModelChange}
+								effort={effort}
+								onEffortChange={onEffortChange}
 							/>
 						</div>
 					</ThreadPrimitive.ViewportFooter>

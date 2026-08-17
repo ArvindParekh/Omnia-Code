@@ -1,5 +1,10 @@
 import type { AllEvents, EventType } from "./events.js";
-import type { MessageAttachment, Provider, QuoteRef } from "./provider.js";
+import type {
+	MessageAttachment,
+	Provider,
+	ProviderModelCapabilities,
+	QuoteRef,
+} from "./provider.js";
 import type { Session } from "./session.js";
 import type { SessionView } from "./session-view.js";
 
@@ -66,9 +71,21 @@ export type IpcChannels = {
 		};
 		result: SessionView;
 	};
+	"app:detectProviderModels": {
+		args: {
+			provider: Provider;
+		};
+		result: ProviderModelCapabilities;
+	};
 	"app:detectProviders": {
 		args: Record<string, never>;
 		result: Provider[];
+	};
+	"app.detectProviderModels": {
+		args: {
+			provider: Provider;
+		};
+		result: ProviderModelCapabilities;
 	};
 	"window:minimize": {
 		args: Record<string, never>;

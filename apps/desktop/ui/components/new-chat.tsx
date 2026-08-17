@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { ArrowUp, FolderSimple, Lightning, Bug, GitBranch, Sparkle } from "@phosphor-icons/react";
-import type { Provider, Session } from "../lib/types";
+import type { EffortLevel, Provider, Session } from "../lib/types";
+import { useProviderModels } from "../hooks/use-provider-models";
+import { ModelPicker } from "./model-picker";
 import { providerLabel } from "../lib/provider";
 import { cn } from "../lib/utils";
 
@@ -21,6 +23,9 @@ export function NewChat({ onStart, recentSessions, providers }: NewChatProps) {
 	const [text, setText] = useState("");
 	const [provider, setProvider] = useState<Provider>(providers[0] ?? "claude");
 	const [workspace, setWorkspace] = useState(recentSessions[0]?.workspaceId ?? ".");
+	const [modelId, setModelId] = useState<string | null>(null);
+	const [effort, setEffort] = useState<EffortLevel | null>(null);
+	const { models, selectionSupported } = useProviderModels(provider);
 
 	// When the detected provider list resolves and the current selection is no
 	// longer in it, reset to the first available provider.
@@ -29,6 +34,12 @@ export function NewChat({ onStart, recentSessions, providers }: NewChatProps) {
 			setProvider(providers[0]);
 		}
 	}, [providers]); // provider intentionally omitted — only reset when the list itself changes
+
+	// Model ids are provider-scoped, so a provider switch invalidates the choice.
+	useEffect(() => {
+		setModelId(null);
+		setEffort(null);
+	}, [provider]);
 	const textareaRef = useRef<HTMLTextAreaElement>(null);
 
 	const handleSubmit = () => {
@@ -78,23 +89,36 @@ export function NewChat({ onStart, recentSessions, providers }: NewChatProps) {
 
 					{/* Action bar */}
 					<div className="flex items-center gap-2 px-3.5 pb-3 pt-1">
-						{/* Provider picker */}
-						<div className="flex items-center gap-1">
-							{providers.map((p) => (
-								<button
-									key={p}
-									onClick={() => setProvider(p)}
-									className={cn(
-										"px-2.5 py-1 rounded-lg text-[10px] font-medium transition-colors",
-										provider === p
-											? "bg-white/[10%] text-white/75"
-											: "text-white/30 hover:text-white/50 hover:bg-white/[5%]",
-									)}
-								>
-									{providerLabel(p)}
-								</button>
-							))}
-						</div>
+						{/* Provider picker — only when there is a real choice */}
+						{providers.length > 1 && (
+							<div className="flex items-center gap-1">
+								{providers.map((p) => (
+									<button
+										key={p}
+										onClick={() => setProvider(p)}
+										className={cn(
+											"px-2.5 py-1 rounded-lg text-[10px] font-medium transition-colors",
+											provider === p
+												? "bg-white/[10%] text-white/75"
+												: "text-white/30 hover:text-white/50 hover:bg-white/[5%]",
+										)}
+									>
+										{providerLabel(p)}
+									</button>
+								))}
+							</div>
+						)}
+
+						{selectionSupported && (
+							<ModelPicker
+								models={models}
+								modelId={modelId}
+								effort={effort}
+								onModelChange={setModelId}
+								onEffortChange={setEffort}
+								side="bottom"
+							/>
+						)}
 
 						{/* Workspace picker */}
 						<div className="ml-auto flex items-center gap-1.5 text-white/30 hover:text-white/50 transition-colors cursor-pointer">

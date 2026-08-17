@@ -11,7 +11,13 @@ import {
 	type PermissionResult,
 } from "@anthropic-ai/claude-agent-sdk";
 import { ToolRisk } from "@omnia/contracts";
-import type { Provider, ProviderAvailability, ProviderRuntimeEvent } from "@omnia/contracts";
+import type {
+	ModelInfo,
+	Provider,
+	ProviderAvailability,
+	ProviderModelCapabilities,
+	ProviderRuntimeEvent,
+} from "@omnia/contracts";
 import type {
 	CancelProviderTurnInput,
 	CreateProviderSessionInput,
@@ -26,6 +32,37 @@ import type {
 import type { ProviderSessionRef } from "@omnia/contracts";
 
 const HIGH_RISK_TOOLS = new Set(["Bash", "Write", "Edit", "NotebookEdit", "KillShell"]);
+
+// Shown until the first turn, because supportedModels() only exists on a live
+// Query. Aliases rather than pinned ids so the list cannot go stale.
+const CLAUDE_FALLBACK_MODELS: ModelInfo[] = [
+	{
+		value: "default",
+		displayName: "Default",
+		description: "Whatever the Claude Code CLI is configured to use",
+	},
+	{
+		value: "opus",
+		displayName: "Opus",
+		description: "Most capable, slowest",
+		supportsEffort: true,
+		supportedEffortLevels: ["low", "medium", "high", "xhigh", "max"],
+		supportsAdaptiveThinking: true,
+	},
+	{
+		value: "sonnet",
+		displayName: "Sonnet",
+		description: "Balanced capability and speed",
+		supportsEffort: true,
+		supportedEffortLevels: ["low", "medium", "high", "max"],
+		supportsAdaptiveThinking: true,
+	},
+	{
+		value: "haiku",
+		displayName: "Haiku",
+		description: "Fastest, best for simple edits",
+	},
+];
 
 function classifyToolRisk(toolName: string): ToolRisk {
 	return HIGH_RISK_TOOLS.has(toolName) ? ToolRisk.HIGH : ToolRisk.MEDIUM;
@@ -71,6 +108,7 @@ export class ClaudeProvider implements ProviderAdapter {
 	readonly provider: Provider = "claude";
 
 	private lastTitle = new Map<string, string>(); // sessionId -> title
+	private providerModels: ModelInfo[] = [];
 	private activeTurns = new Map<
 		string,
 		{
@@ -172,6 +210,10 @@ export class ClaudeProvider implements ProviderAdapter {
 			},
 		});
 
+		if (this.providerModels.length === 0) {
+			this.providerModels = await stream.supportedModels();
+		}
+
 		this.activeTurns.set(input.turnId, {
 			sessionId: input.sessionId,
 			stream,
@@ -218,6 +260,16 @@ export class ClaudeProvider implements ProviderAdapter {
 		const { sessionId, providerSessionRef } = input;
 		this.lastTitle.delete(sessionId);
 		await deleteSession(providerSessionRef.externalId ?? sessionId);
+	}
+
+	async listModels(): Promise<ProviderModelCapabilities> {
+		return {
+			provider: this.provider,
+			selectionSupported: true,
+			discoveredAt: Date.now(),
+			discoveredModels:
+				this.providerModels.length > 0 ? this.providerModels : CLAUDE_FALLBACK_MODELS,
+		};
 	}
 
 	async cancelTurn(input: CancelProviderTurnInput): Promise<void> {

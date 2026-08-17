@@ -33,6 +33,13 @@ export const fakeProviderAdapter: ProviderAdapter = {
 		};
 	},
 
+	listModels: async () => ({
+		provider: "fake" as const,
+		selectionSupported: false,
+		discoveredModels: [],
+		discoveredAt: Date.now(),
+	}),
+
 	renameSession: async (_input: RenameProviderSessionInput) => {
 		return;
 	},

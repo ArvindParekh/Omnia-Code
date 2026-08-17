@@ -140,10 +140,24 @@ ipcMainHandle<"app:getEvents">("app:getEvents", (event, { sessionId }) => {
 	return appServer.eventStore.getEvents(sessionId);
 });
 
+ipcMainHandle<"app:detectProviderModels">(
+	"app:detectProviderModels",
+	async (event, { provider }) => {
+		return appServer.registry.get(provider).listModels();
+	},
+);
+
 ipcMainHandle<"app:detectProviders">("app:detectProviders", async () => {
 	const available = await appServer.registry.detectAvailable();
 	return available.map((a) => a.provider);
 });
+
+ipcMainHandle<"app.detectProviderModels">(
+	"app.detectProviderModels",
+	async (event, { provider }) => {
+		return appServer.registry.get(provider).listModels();
+	},
+);
 
 // Broadcast domain events to the renderer
 appServer.eventStore.subscribe((domainEvent) => {

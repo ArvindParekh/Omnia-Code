@@ -1,7 +1,9 @@
 import { ComposerPrimitive, useThread } from "@assistant-ui/react";
 import { ArrowUp, FolderSimple, Paperclip, SpinnerGap, X } from "@phosphor-icons/react";
-import type { Provider } from "../../lib/types";
+import type { EffortLevel, Provider } from "../../lib/types";
 import { providerLabel } from "../../lib/provider";
+import { useProviderModels } from "../../hooks/use-provider-models";
+import { ModelPicker } from "../model-picker";
 import { Quotes } from "@phosphor-icons/react";
 
 type ComposerProps = {
@@ -9,11 +11,25 @@ type ComposerProps = {
 	workspaceId: string;
 	provider: Provider;
 	isCanceling: boolean;
+	modelId: string | null;
+	onModelChange: (modelId: string) => void;
+	effort: EffortLevel | null;
+	onEffortChange: (effort: EffortLevel | null) => void;
 };
 
-export function Composer({ label, workspaceId, provider, isCanceling }: ComposerProps) {
+export function Composer({
+	label,
+	workspaceId,
+	provider,
+	isCanceling,
+	modelId,
+	onModelChange,
+	effort,
+	onEffortChange,
+}: ComposerProps) {
 	const isRunning = useThread((thread) => thread.isRunning);
 	const workspaceBase = workspaceId.replace(/^.*\//, "") || workspaceId;
+	const { models, selectionSupported } = useProviderModels(provider);
 
 	return (
 		<ComposerPrimitive.Root
@@ -59,9 +75,19 @@ export function Composer({ label, workspaceId, provider, isCanceling }: Composer
 					</button>
 				</ComposerPrimitive.AddAttachment>
 
-				<span className="text-[10px] px-2 py-0.5 rounded-md bg-white/[6%] text-white/40 font-mono">
-					{providerLabel(provider)}
-				</span>
+				{selectionSupported ? (
+					<ModelPicker
+						models={models}
+						modelId={modelId}
+						effort={effort}
+						onModelChange={onModelChange}
+						onEffortChange={onEffortChange}
+					/>
+				) : (
+					<span className="text-[10px] px-2 py-0.5 rounded-md bg-white/[6%] text-white/40 font-mono">
+						{providerLabel(provider)}
+					</span>
+				)}
 
 				<div className="flex items-center gap-1 text-white/22">
 					<FolderSimple size={12} weight="light" />
