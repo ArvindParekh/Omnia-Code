@@ -74,7 +74,7 @@ export function SessionChat({
 							<div className="shrink-0 self-stretch py-3 flex">
 								<div className="w-px bg-white/[7%] rounded-full" />
 							</div>
-							<EventInspector session={session} turns={turns} />
+							<EventInspector session={session} turns={turns} items={messages} />
 						</>
 					)}
 				</div>
