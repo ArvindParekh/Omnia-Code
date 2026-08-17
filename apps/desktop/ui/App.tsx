@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import type { EffortLevel } from "./lib/types";
+import type { InitialTurn } from "./components/session-chat";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import type { Provider } from "./lib/types";
 import { Titlebar } from "./components/titlebar";
@@ -24,7 +26,7 @@ export default function App() {
 	// Tracks the initial message to send when a new session is created from
 	// NewChat. Keyed by session ID so switching to an existing session never
 	// accidentally fires the wrong pending message.
-	const [sessionInitials, setSessionInitials] = useState<Record<string, string>>({});
+	const [sessionInitials, setSessionInitials] = useState<Record<string, InitialTurn>>({});
 
 	const [contentRef] = useAutoAnimate<HTMLDivElement>((el, action) => {
 		if (action === "remain") return new KeyframeEffect(el, [], { duration: 0 });
@@ -47,9 +49,14 @@ export default function App() {
 		if (activeId && !sessions.some((s) => s.id === activeId)) setActiveId(null);
 	}, [sessions, activeId]);
 
-	const handleNewSession = async (text: string, provider: Provider, workspacePath: string) => {
+	const handleNewSession = async (
+		text: string,
+		provider: Provider,
+		workspacePath: string,
+		selection: { modelId: string | null; effort: EffortLevel | null },
+	) => {
 		const session = await createSession(provider, workspacePath);
-		setSessionInitials((prev) => ({ ...prev, [session.id]: text }));
+		setSessionInitials((prev) => ({ ...prev, [session.id]: { text, ...selection } }));
 		setActiveId(session.id);
 	};
 
@@ -100,8 +107,8 @@ export default function App() {
 								key={activeId}
 								session={activeSession}
 								showInspector={showInspector}
-								initialMessage={activeId ? sessionInitials[activeId] : undefined}
-								onInitialMessageSent={() =>
+								initialTurn={activeId ? sessionInitials[activeId] : undefined}
+								onInitialTurnSent={() =>
 									setSessionInitials((prev) => {
 										const next = { ...prev };
 										if (activeId) delete next[activeId];

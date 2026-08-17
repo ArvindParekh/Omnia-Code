@@ -15,7 +15,12 @@ const SUGGESTIONS = [
 ];
 
 type NewChatProps = {
-	onStart: (text: string, provider: Provider, workspacePath: string) => void;
+	onStart: (
+		text: string,
+		provider: Provider,
+		workspacePath: string,
+		selection: { modelId: string | null; effort: EffortLevel | null },
+	) => void;
 	recentSessions: Session[];
 	providers: Provider[];
 };
@@ -45,7 +50,7 @@ export function NewChat({ onStart, recentSessions, providers }: NewChatProps) {
 	const handleSubmit = () => {
 		const trimmed = text.trim();
 		if (!trimmed) return;
-		onStart(trimmed, provider, workspace);
+		onStart(trimmed, provider, workspace, { modelId, effort });
 	};
 
 	const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {

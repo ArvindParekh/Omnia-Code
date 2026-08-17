@@ -11,18 +11,24 @@ import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "./ui/resiz
 import { useMessages } from "../hooks/use-messages";
 import { usePanelLayout } from "../hooks/use-panel-layout";
 
+export type InitialTurn = {
+	text: string;
+	modelId: string | null;
+	effort: EffortLevel | null;
+};
+
 type SessionChatProps = {
 	session: Session;
 	showInspector: boolean;
-	initialMessage?: string;
-	onInitialMessageSent?: () => void;
+	initialTurn?: InitialTurn;
+	onInitialTurnSent?: () => void;
 };
 
 export function SessionChat({
 	session,
 	showInspector,
-	initialMessage,
-	onInitialMessageSent,
+	initialTurn,
+	onInitialTurnSent,
 }: SessionChatProps) {
 	const { messages, turns, send, approve, isRunning, isCanceling, cancel } = useMessages(
 		session.id,
@@ -32,19 +38,21 @@ export function SessionChat({
 	// from the NewChat screen — the ref guards against double-sends on StrictMode).
 	const sessionLayout = usePanelLayout("session");
 	const [modelId, setModelId] = useState<string | null>(
-		session.model?.mode === "explicit" ? session.model.modelId : null,
+		initialTurn?.modelId ?? (session.model?.mode === "explicit" ? session.model.modelId : null),
 	);
-	const [effort, setEffort] = useState<EffortLevel | null>(session.effort ?? null);
+	const [effort, setEffort] = useState<EffortLevel | null>(
+		initialTurn?.effort ?? session.effort ?? null,
+	);
 
 	const initialSent = useRef(false);
 	useEffect(() => {
-		if (initialMessage?.trim() && !initialSent.current) {
+		if (initialTurn?.text.trim() && !initialSent.current) {
 			initialSent.current = true;
-			send(initialMessage.trim(), undefined, undefined, {
-				model: modelId ? { mode: "explicit", modelId } : undefined,
-				effort: effort ?? undefined,
+			send(initialTurn.text.trim(), undefined, undefined, {
+				model: initialTurn.modelId ? { mode: "explicit", modelId: initialTurn.modelId } : undefined,
+				effort: initialTurn.effort ?? undefined,
 			});
-			onInitialMessageSent?.();
+			onInitialTurnSent?.();
 		}
 	}, []); // eslint-disable-line react-hooks/exhaustive-deps
 
