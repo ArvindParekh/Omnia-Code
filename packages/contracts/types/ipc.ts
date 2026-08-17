@@ -1,6 +1,8 @@
 import type { AllEvents, EventType } from "./events.js";
 import type {
+	EffortLevel,
 	MessageAttachment,
+	ModelSelection,
 	Provider,
 	ProviderModelCapabilities,
 	QuoteRef,
@@ -36,6 +38,8 @@ export type IpcChannels = {
 			text: string;
 			attachments?: MessageAttachment[];
 			quote?: QuoteRef;
+			model?: ModelSelection;
+			effort?: EffortLevel;
 		};
 		result: string;
 	};

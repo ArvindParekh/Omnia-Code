@@ -113,6 +113,19 @@ export function convertToThreadMessages(msgs: SessionViewItem[]): ThreadMessageL
 				result: msg.resolved ? (msg.approved ? "approved" : "denied") : undefined,
 			});
 			if (!msg.resolved) assemblingAssistant!.requiresAction = true;
+		} else if (msg.kind === "model") {
+			flushAssistant();
+			result.push({
+				role: "system",
+				id: `model-${msg.id}`,
+				createdAt: new Date(msg.createdAt),
+				content: [
+					{
+						type: "text",
+						text: `Switched to ${msg.modelId}${msg.effort ? ` · ${msg.effort} effort` : ""}`,
+					},
+				],
+			} as ThreadMessageLike);
 		} else if (msg.kind === "error") {
 			flushAssistant();
 			result.push({

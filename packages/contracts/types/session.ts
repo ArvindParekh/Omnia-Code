@@ -1,10 +1,12 @@
-import type { Capability, Provider } from "./provider.ts";
+import type { Capability, EffortLevel, ModelSelection, Provider } from "./provider.ts";
 
 export type Session = {
 	id: string;
 	provider: Provider;
 	title: string;
 	titleSource?: "provider" | "user";
+	model?: ModelSelection;
+	effort?: EffortLevel;
 	status: SessionStatus;
 	workspaceId: string;
 	metadata?: Record<string, unknown>;

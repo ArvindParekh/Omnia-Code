@@ -31,14 +31,19 @@ export function SessionChat({
 	// Fire the initial message once on mount (only when creating a new session
 	// from the NewChat screen — the ref guards against double-sends on StrictMode).
 	const sessionLayout = usePanelLayout("session");
-	const [modelId, setModelId] = useState<string | null>(null);
-	const [effort, setEffort] = useState<EffortLevel | null>(null);
+	const [modelId, setModelId] = useState<string | null>(
+		session.model?.mode === "explicit" ? session.model.modelId : null,
+	);
+	const [effort, setEffort] = useState<EffortLevel | null>(session.effort ?? null);
 
 	const initialSent = useRef(false);
 	useEffect(() => {
 		if (initialMessage?.trim() && !initialSent.current) {
 			initialSent.current = true;
-			send(initialMessage.trim());
+			send(initialMessage.trim(), undefined, undefined, {
+				model: modelId ? { mode: "explicit", modelId } : undefined,
+				effort: effort ?? undefined,
+			});
 			onInitialMessageSent?.();
 		}
 	}, []); // eslint-disable-line react-hooks/exhaustive-deps
@@ -52,9 +57,14 @@ export function SessionChat({
 			const attachments = msg.attachments?.length
 				? ([...msg.attachments] as CompleteAttachment[])
 				: undefined;
-			if (first?.type === "text") send(first.text, quote, attachments);
+			if (first?.type === "text") {
+				send(first.text, quote, attachments, {
+					model: modelId ? { mode: "explicit", modelId } : undefined,
+					effort: effort ?? undefined,
+				});
+			}
 		},
-		[send],
+		[send, modelId, effort],
 	);
 
 	const onCancel = useCallback(async () => {

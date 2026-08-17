@@ -29,12 +29,10 @@ import type {
 	ResumeProviderSessionInput,
 	SendProviderTurnInput,
 } from "../types.js";
-import type { ProviderSessionRef } from "@omnia/contracts";
+import type { ModelSelection, ProviderSessionRef } from "@omnia/contracts";
 
 const HIGH_RISK_TOOLS = new Set(["Bash", "Write", "Edit", "NotebookEdit", "KillShell"]);
 
-// Shown until the first turn, because supportedModels() only exists on a live
-// Query. Aliases rather than pinned ids so the list cannot go stale.
 const CLAUDE_FALLBACK_MODELS: ModelInfo[] = [
 	{
 		value: "default",
@@ -205,6 +203,8 @@ export class ClaudeProvider implements ProviderAdapter {
 				includePartialMessages: true,
 				permissionMode: "default",
 				thinking: { type: "adaptive" },
+				model: resolveModelId(input.model),
+				effort: input.effort,
 				canUseTool: this.createCanUseTool(input.turnId, events),
 				...(input.resume ? { resume: externalId } : { sessionId: externalId }),
 			},
@@ -480,6 +480,11 @@ export class ClaudeProvider implements ProviderAdapter {
 			this.activeTurns.delete(turnId);
 		}
 	}
+}
+
+function resolveModelId(selection: ModelSelection | undefined): string | undefined {
+	if (!selection || selection.mode === "provider_default") return undefined;
+	return selection.modelId;
 }
 
 function buildPrompt(input: SendProviderTurnInput): string {

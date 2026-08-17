@@ -24,9 +24,7 @@ export function usePanelLayout(key: string): {
 			frame.current = requestAnimationFrame(() => {
 				try {
 					localStorage.setItem(storageKey, JSON.stringify(layout));
-				} catch {
-					// Storage unavailable or full — layout just won't persist.
-				}
+				} catch {}
 			});
 		},
 		[storageKey],

@@ -82,6 +82,13 @@ function toInspectorEvent(item: SessionViewItem): InspectorEvent {
 				input,
 			};
 		}
+		case "model":
+			return {
+				id: item.id,
+				type: "model",
+				summary: `Model → ${item.modelId}${item.effort ? ` · ${item.effort}` : ""}`,
+				status: "done",
+			};
 		case "error":
 			return {
 				id: item.id,

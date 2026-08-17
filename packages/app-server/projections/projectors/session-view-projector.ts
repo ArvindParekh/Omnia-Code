@@ -72,6 +72,29 @@ export class SessionViewProjector implements Projector<Map<string, SessionView>>
 
 	private nextItems(items: SessionViewItem[], event: AllEvents<EventType>): SessionViewItem[] {
 		switch (event.type) {
+			case "turn.started": {
+				const selection = event.payload.model;
+				if (!selection || selection.mode !== "explicit") return items;
+
+				const previous = [...items].reverse().find((item) => item.kind === "model");
+				const unchanged =
+					previous?.kind === "model" &&
+					previous.modelId === selection.modelId &&
+					previous.effort === event.payload.effort;
+				if (unchanged) return items;
+
+				return [
+					...items,
+					{
+						kind: "model",
+						id: `model-${event.id}`,
+						turnId: event.payload.turnId,
+						modelId: selection.modelId,
+						effort: event.payload.effort,
+						createdAt: event.occurredAt,
+					},
+				];
+			}
 			case "message.userCreated":
 				return [
 					...items,

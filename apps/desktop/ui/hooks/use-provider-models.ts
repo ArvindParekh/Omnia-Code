@@ -29,7 +29,6 @@ export function useProviderModels(provider: Provider): {
 
 	useEffect(() => refresh(), [refresh]);
 
-	// The real list only exists once a turn has run, so re-read when one lands.
 	useIpcEvent("app:event", ({ event }) => {
 		if (event.type === "turn.completed") refresh();
 	});

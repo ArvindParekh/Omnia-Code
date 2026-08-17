@@ -41,6 +41,8 @@ export class SessionProjector implements Projector<Map<string, Session>> {
 					this.state.set(session.id, {
 						...session,
 						status: "running",
+						model: event.payload.model ?? session.model,
+						effort: event.payload.effort ?? session.effort,
 						updatedAt: event.occurredAt,
 					});
 				}

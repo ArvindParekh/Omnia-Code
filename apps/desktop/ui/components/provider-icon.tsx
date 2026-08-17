@@ -2,8 +2,6 @@ import { CircleDashed, Cube, Sparkle, Terminal } from "@phosphor-icons/react";
 import type { Provider } from "../lib/types";
 import { cn } from "../lib/utils";
 
-// Arm angles (degrees) and outer radii for Claude's burst mark. The uneven
-// lengths are what make it read as the logo rather than a generic asterisk.
 const CLAUDE_ARMS: [number, number][] = [
 	[0, 9.6],
 	[31, 8.2],

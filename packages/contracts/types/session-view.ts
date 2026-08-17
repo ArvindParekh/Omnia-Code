@@ -1,4 +1,4 @@
-import type { MessageAttachment, QuoteRef, ToolRisk } from "./provider.ts";
+import type { EffortLevel, MessageAttachment, QuoteRef, ToolRisk } from "./provider.ts";
 
 export type SessionViewItem =
 	| {
@@ -47,6 +47,14 @@ export type SessionViewItem =
 			resolved: boolean;
 			approved?: boolean;
 			note?: string;
+			createdAt: number;
+	  }
+	| {
+			kind: "model";
+			id: string;
+			turnId: string;
+			modelId: string;
+			effort?: EffortLevel;
 			createdAt: number;
 	  }
 	| {

@@ -95,6 +95,8 @@ export function createAppServer(deps: { eventStore: EventStore }): {
 				createEvent("turn.started", {
 					sessionId: envelope.payload.sessionId,
 					provider: session.provider,
+					model: envelope.payload.model ?? session.model,
+					effort: envelope.payload.effort ?? session.effort,
 					startedAt: Date.now(),
 					turnId: envelope.payload.turnId,
 				}),
@@ -111,7 +113,14 @@ export function createAppServer(deps: { eventStore: EventStore }): {
 				}),
 			);
 
-			await turnService.start(envelope);
+			await turnService.start({
+				...envelope,
+				payload: {
+					...envelope.payload,
+					model: envelope.payload.model ?? session.model,
+					effort: envelope.payload.effort ?? session.effort,
+				},
+			});
 		})
 		.on("turn.cancelRequested", async (envelope) => {
 			await turnService.cancel(envelope);

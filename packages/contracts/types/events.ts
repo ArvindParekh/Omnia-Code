@@ -1,4 +1,11 @@
-import type { MessageAttachment, Provider, QuoteRef, ToolRisk } from "./provider.ts";
+import type {
+	EffortLevel,
+	MessageAttachment,
+	ModelSelection,
+	Provider,
+	QuoteRef,
+	ToolRisk,
+} from "./provider.ts";
 import type { ProviderSessionRef, SessionPolicy } from "./session.ts";
 
 export type EventPayloadMap = {
@@ -23,6 +30,8 @@ export type EventPayloadMap = {
 		sessionId: string;
 		turnId: string;
 		provider: Provider;
+		model?: ModelSelection;
+		effort?: EffortLevel;
 		startedAt: number;
 	};
 	"message.userCreated": {

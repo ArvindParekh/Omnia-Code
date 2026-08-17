@@ -64,7 +64,7 @@ ipcMainHandle<"session.deleteRequested">(
 
 ipcMainHandle<"turn.startRequested">(
 	"turn.startRequested",
-	async (event, { sessionId, text, attachments, quote }) => {
+	async (event, { sessionId, text, attachments, quote, model, effort }) => {
 		const commandId = crypto.randomUUID();
 		const turnId = crypto.randomUUID();
 		await appServer.router.dispatch({
@@ -75,6 +75,8 @@ ipcMainHandle<"turn.startRequested">(
 				text,
 				attachments: attachments ?? [],
 				quote,
+				model,
+				effort,
 				turnId,
 			},
 			requestedAt: Date.now(),

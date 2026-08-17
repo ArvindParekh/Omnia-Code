@@ -1,7 +1,9 @@
 import type {
 	CommandEnvelopeFor,
+	EffortLevel,
 	EventStore,
 	MessageAttachment,
+	ModelSelection,
 	ProviderRuntimeEvent,
 	QuoteRef,
 } from "@omnia/contracts";
@@ -26,7 +28,7 @@ export class TurnService {
 	) {}
 
 	async start(envelope: CommandEnvelopeFor<"turn.startRequested">): Promise<void> {
-		const { sessionId, text, attachments, quote } = envelope.payload;
+		const { sessionId, text, attachments, quote, model, effort } = envelope.payload;
 		const turnId = envelope.payload.turnId;
 		const {
 			ref: providerRef,
@@ -62,6 +64,8 @@ export class TurnService {
 			text,
 			attachments: attachments ?? [],
 			quote,
+			model,
+			effort,
 			workspacePath,
 			policy,
 			resume,
@@ -89,6 +93,8 @@ export class TurnService {
 		text: string;
 		attachments: MessageAttachment[];
 		quote?: QuoteRef;
+		model?: ModelSelection;
+		effort?: EffortLevel;
 		workspacePath: string;
 		policy: SessionPolicy;
 		resume: boolean;
@@ -103,6 +109,8 @@ export class TurnService {
 				text,
 				attachments,
 				quote,
+				model,
+				effort,
 				workspacePath,
 				policy,
 				resume,
@@ -128,6 +136,8 @@ export class TurnService {
 				text,
 				attachments,
 				quote,
+				model,
+				effort,
 				providerSessionRef: providerRef,
 				workspacePath,
 				policy,

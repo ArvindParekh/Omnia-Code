@@ -1,5 +1,5 @@
 import { SessionViewProjector } from "@omnia/app-server/projections";
-import type { AllEvents, EventType } from "@omnia/contracts";
+import type { AllEvents, EffortLevel, EventType, ModelSelection } from "@omnia/contracts";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { takeAttachments } from "../lib/attachment-adapter";
 import { groupIntoTurns } from "../lib/turns";
@@ -80,7 +80,12 @@ export function useMessages(sessionId: string) {
 	});
 
 	const send = useCallback(
-		(text: string, quote?: QuoteRef, attachments?: CompleteAttachment[]) => {
+		(
+			text: string,
+			quote?: QuoteRef,
+			attachments?: CompleteAttachment[],
+			selection?: { model?: ModelSelection; effort?: EffortLevel },
+		) => {
 			if (!text.trim()) return;
 
 			setLocalErrors([]);
@@ -93,6 +98,8 @@ export function useMessages(sessionId: string) {
 				text: text.trim(),
 				attachments: takeAttachments((attachments ?? []).map((a) => a.id)),
 				quote,
+				model: selection?.model,
+				effort: selection?.effort,
 			});
 			pendingStart.current = start;
 

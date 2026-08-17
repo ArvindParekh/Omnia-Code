@@ -9,6 +9,8 @@ import type {
 	ToolRisk,
 	ProviderSessionRef,
 	ProviderModelCapabilities,
+	ModelSelection,
+	EffortLevel,
 } from "@omnia/contracts";
 
 type ProviderAdapter = {
@@ -76,6 +78,8 @@ type SendProviderTurnInput = {
 	text: string;
 	attachments: MessageAttachment[];
 	quote?: QuoteRef;
+	model?: ModelSelection;
+	effort?: EffortLevel;
 	workspacePath: string;
 	policy: SessionPolicy;
 	resume: boolean;

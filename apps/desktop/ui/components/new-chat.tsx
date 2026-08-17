@@ -36,7 +36,6 @@ export function NewChat({ onStart, recentSessions, providers }: NewChatProps) {
 		}
 	}, [providers]); // provider intentionally omitted — only reset when the list itself changes
 
-	// Model ids are provider-scoped, so a provider switch invalidates the choice.
 	useEffect(() => {
 		setModelId(null);
 		setEffort(null);

@@ -1,5 +1,11 @@
 // these commands do not mirror @omnia/providers/types.ts exactly, and that is intentional. app-server sits between the UI and the providerAdapter, and it will load all the missing fields to the command intent before forwarding it to the providerAdapter.
-import type { MessageAttachment, Provider, QuoteRef } from "./provider.ts";
+import type {
+	EffortLevel,
+	MessageAttachment,
+	ModelSelection,
+	Provider,
+	QuoteRef,
+} from "./provider.ts";
 
 type CommandPayloadMap = {
 	"session.createRequested": {
@@ -19,6 +25,8 @@ type CommandPayloadMap = {
 		text: string;
 		attachments?: MessageAttachment[];
 		quote?: QuoteRef;
+		model?: ModelSelection;
+		effort?: EffortLevel;
 		turnId: string;
 	};
 	"turn.cancelRequested": {
