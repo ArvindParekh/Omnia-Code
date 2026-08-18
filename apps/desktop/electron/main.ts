@@ -3,7 +3,9 @@ import { isDev } from "./util.js";
 import { getPreloadPath, getUIPath, getIconPath } from "./pathResolver.js";
 import { appServer } from "./app-server.js";
 import "./ipc/ai.js";
+import "./ipc/electron-store.js";
 import "./ipc/window.js";
+import "./ipc/workspace.js";
 import dotenv from "dotenv";
 
 dotenv.config();

@@ -3,6 +3,7 @@ import { appServer } from "../app-server.js";
 import { BrowserWindow } from "electron";
 import crypto from "node:crypto";
 import { resolveWorkspacePath } from "../workspacePath.js";
+import { rememberWorkspace } from "./electron-store.js";
 
 ipcMainHandle<"session.createRequested">(
 	"session.createRequested",
@@ -20,6 +21,8 @@ ipcMainHandle<"session.createRequested">(
 			requestedAt: Date.now(),
 			requestedBy: "user",
 		});
+
+		rememberWorkspace(resolvedWorkspacePath);
 
 		const session = appServer.sessionProjector.state.get(commandId);
 		if (!session) throw new Error("Session creation failed to project.");

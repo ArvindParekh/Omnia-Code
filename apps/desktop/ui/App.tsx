@@ -117,7 +117,7 @@ export default function App() {
 								}
 							/>
 						) : (
-							<NewChat onStart={handleNewSession} recentSessions={sessions} providers={providers} />
+							<NewChat onStart={handleNewSession} providers={providers} />
 						)}
 					</div>
 				</ResizablePanel>

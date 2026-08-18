@@ -1,11 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 import { ArrowUp, FolderSimple, Lightning, Bug, GitBranch, Sparkle } from "@phosphor-icons/react";
-import type { EffortLevel, Provider, Session } from "../lib/types";
+import type { EffortLevel, Provider } from "../lib/types";
 import { useProviderModels } from "../hooks/use-provider-models";
+import { usePreferences } from "../hooks/use-preferences";
 import { ModelPicker } from "./model-picker";
 import { ProviderIcon } from "./provider-icon";
 import { providerLabel } from "../lib/provider";
+import { workspaceName } from "../lib/workspace";
 import { cn } from "../lib/utils";
+import { ipcInvoke } from "../hooks/use-ipc";
 
 const SUGGESTIONS = [
 	{ icon: Bug, label: "Debug an issue in the codebase" },
@@ -21,14 +24,14 @@ type NewChatProps = {
 		workspacePath: string,
 		selection: { modelId: string | null; effort: EffortLevel | null },
 	) => void;
-	recentSessions: Session[];
 	providers: Provider[];
 };
 
-export function NewChat({ onStart, recentSessions, providers }: NewChatProps) {
+export function NewChat({ onStart, providers }: NewChatProps) {
 	const [text, setText] = useState("");
 	const [provider, setProvider] = useState<Provider>(providers[0] ?? "claude");
-	const [workspace, setWorkspace] = useState(recentSessions[0]?.workspaceId ?? ".");
+	const { preferences } = usePreferences();
+	const [workspace, setWorkspace] = useState<string | null>(null);
 	const [modelId, setModelId] = useState<string | null>(null);
 	const [effort, setEffort] = useState<EffortLevel | null>(null);
 	const { models, selectionSupported } = useProviderModels(provider);
@@ -45,11 +48,23 @@ export function NewChat({ onStart, recentSessions, providers }: NewChatProps) {
 		setModelId(null);
 		setEffort(null);
 	}, [provider]);
+
+	// Seed from the most recent workspace once preferences arrive, but never
+	// clobber a directory the user has already picked in this session.
+	useEffect(() => {
+		setWorkspace((current) => current ?? preferences.recentWorkspaces[0] ?? null);
+	}, [preferences.recentWorkspaces]);
+
 	const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+	const pickWorkspace = async () => {
+		const picked = await ipcInvoke("app:pickWorkspace", {});
+		if (picked) setWorkspace(picked);
+	};
 
 	const handleSubmit = () => {
 		const trimmed = text.trim();
-		if (!trimmed) return;
+		if (!trimmed || !workspace) return;
 		onStart(trimmed, provider, workspace, { modelId, effort });
 	};
 
@@ -67,7 +82,7 @@ export function NewChat({ onStart, recentSessions, providers }: NewChatProps) {
 		el.style.height = `${Math.min(el.scrollHeight, 200)}px`;
 	};
 
-	const workspaces = Array.from(new Set(recentSessions.map((s) => s.workspaceId)));
+	const workspaces = preferences.recentWorkspaces;
 
 	return (
 		<div className="flex-1 border-l border-l-white/10 rounded-l-lg flex flex-col items-center justify-center px-6 overflow-y-auto">
@@ -133,15 +148,22 @@ export function NewChat({ onStart, recentSessions, providers }: NewChatProps) {
 						)}
 
 						{/* Workspace picker */}
-						<div className="ml-auto flex items-center gap-1.5 text-white/30 hover:text-white/50 transition-colors cursor-pointer">
+						<button
+							type="button"
+							onClick={pickWorkspace}
+							title={workspace ?? "Choose a folder for this chat"}
+							className="ml-auto flex items-center gap-1.5 text-white/30 hover:text-white/50 transition-colors"
+						>
 							<FolderSimple size={13} weight="light" />
-							<span className="text-[10px]">{workspace.replace(/^.*\//, "") || workspace}</span>
-						</div>
+							<span className="text-[10px]">
+								{workspace ? workspaceName(workspace) : "Choose folder"}
+							</span>
+						</button>
 
 						{/* Send button */}
 						<button
 							onClick={handleSubmit}
-							disabled={!text.trim()}
+							disabled={!text.trim() || !workspace}
 							className="ml-1 w-8 h-8 rounded-full bg-primary flex items-center justify-center
 								disabled:opacity-20 disabled:cursor-not-allowed
 								hover:opacity-85 transition-all shrink-0"
@@ -167,7 +189,7 @@ export function NewChat({ onStart, recentSessions, providers }: NewChatProps) {
 								)}
 							>
 								<FolderSimple size={11} weight="light" />
-								{ws.replace(/^.*\//, "") || ws}
+								{workspaceName(ws)}
 							</button>
 						))}
 					</div>
