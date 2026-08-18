@@ -7,6 +7,7 @@ import type {
 	ToolRisk,
 } from "./provider.ts";
 import type { ProviderSessionRef, SessionPolicy } from "./session.ts";
+import type { ModelUsage, TokenUsage } from "./usage.ts";
 
 export type EventPayloadMap = {
 	"session.created": {
@@ -105,6 +106,15 @@ export type EventPayloadMap = {
 		sessionId: string;
 		turnId: string;
 		canceledAt: number;
+	};
+	"cost.metered": {
+		sessionId: string;
+		turnId: string;
+		requestId?: string; // set for scope: "step"
+		scope: "step" | "turn";
+		usage: TokenUsage;
+		totalCostUsd?: number;
+		modelUsage?: Record<string, ModelUsage>;
 	};
 };
 

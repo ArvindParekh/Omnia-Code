@@ -272,6 +272,19 @@ export class TurnService {
 					}),
 				);
 				break;
+			case "usage.metered":
+				this.eventStore.addEvent(
+					createEvent("cost.metered", {
+						sessionId,
+						turnId,
+						requestId: event.blockId ?? undefined,
+						scope: event.scope,
+						usage: event.usage,
+						modelUsage: event.modelUsage,
+						totalCostUsd: event.totalCostUsd,
+					}),
+				);
+				break;
 		}
 	}
 }

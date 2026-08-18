@@ -10,6 +10,7 @@ import type {
 import type { Session } from "./session.js";
 import type { SessionView } from "./session-view.js";
 import type { Preferences } from "./preferences.js";
+import type { CostSummary } from "./usage.js";
 
 export type IpcChannels = {
 	"session.createRequested": {
@@ -75,6 +76,12 @@ export type IpcChannels = {
 			sessionId: string;
 		};
 		result: SessionView;
+	};
+	"app:getCostSummary": {
+		args: {
+			sessionId: string;
+		};
+		result: CostSummary;
 	};
 	"app:detectProviderModels": {
 		args: {

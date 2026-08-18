@@ -142,6 +142,23 @@ ipcMainHandle<"app:getSessionView">("app:getSessionView", async (event, { sessio
 	);
 });
 
+ipcMainHandle<"app:getCostSummary">("app:getCostSummary", (event, { sessionId }) => {
+	return (
+		appServer.costProjector.state.get(sessionId) ?? {
+			sessionId,
+			totalCostUsd: 0,
+			usage: {
+				input_tokens: 0,
+				output_tokens: 0,
+				cache_read_input_tokens: 0,
+				cache_creation_input_tokens: 0,
+			},
+			perModel: {},
+			perTurn: {},
+		}
+	);
+});
+
 ipcMainHandle<"app:getEvents">("app:getEvents", (event, { sessionId }) => {
 	return appServer.eventStore.getEvents(sessionId);
 });

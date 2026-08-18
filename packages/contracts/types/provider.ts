@@ -1,3 +1,5 @@
+import type { ModelUsage, TokenUsage } from "./usage";
+
 type Provider = "gemini" | "claude" | "codex" | "opencode" | "cursor" | "fake";
 
 type EffortLevel = "low" | "medium" | "high" | "xhigh" | "max";
@@ -96,6 +98,14 @@ type ProviderRuntimeEvent =
 			message: string;
 			retryable: boolean;
 			providerCorrelationId?: string;
+	  }
+	| {
+			type: "usage.metered";
+			scope: "step" | "turn";
+			blockId?: string; // set on scope: "step"
+			usage: TokenUsage;
+			totalCostUsd?: number; // set on scope: "turn"
+			modelUsage?: Record<string, ModelUsage>; // set on scope: "turn"
 	  };
 
 enum ToolRisk {

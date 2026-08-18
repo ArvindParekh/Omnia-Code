@@ -3,6 +3,7 @@ import { ProjectionPipeline } from "./projection-pipeline.js";
 import { SessionProjector } from "./projectors/session-projector.js";
 import { TurnProjector } from "./projectors/turn-projector.js";
 import { SessionViewProjector } from "./projectors/session-view-projector.js";
+import { CostProjector } from "./projectors/cost-projector.js";
 
 // registering a projector replays the store's existing events into it, so
 // we call this during boot to restore projections from the persisted log.
@@ -12,6 +13,7 @@ export function createProjections(eventStore: EventStore) {
 		sessionProjector: pipeline.register(new SessionProjector()),
 		turnProjector: pipeline.register(new TurnProjector()),
 		sessionViewProjector: pipeline.register(new SessionViewProjector()),
+		costProjector: pipeline.register(new CostProjector()),
 	};
 }
 

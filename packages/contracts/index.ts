@@ -7,3 +7,4 @@ export * from "./types/session-view.js";
 export * from "./types/workspace.js";
 export * from "./types/event-store.js";
 export * from "./types/preferences.js";
+export * from "./types/usage.js";

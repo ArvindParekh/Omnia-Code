@@ -9,10 +9,13 @@ import {
 	renameSession,
 	type CanUseTool,
 	type PermissionResult,
+	type ModelUsage as SdkModelUsage,
 } from "@anthropic-ai/claude-agent-sdk";
 import { ToolRisk } from "@omnia/contracts";
 import type {
 	ModelInfo,
+	ModelUsage,
+	TokenUsage,
 	Provider,
 	ProviderAvailability,
 	ProviderModelCapabilities,
@@ -404,6 +407,12 @@ export class ClaudeProvider implements ProviderAdapter {
 							risk: classifyToolRisk(block.name),
 						});
 					}
+					events.push({
+						type: "usage.metered",
+						scope: "step",
+						blockId: message.message.id,
+						usage: toContractUsage(message.message.usage),
+					});
 				}
 
 				if (message.type === "user") {
@@ -421,6 +430,15 @@ export class ClaudeProvider implements ProviderAdapter {
 				}
 
 				if (message.type !== "result") continue;
+
+				// when message type is result, emit the "turn" usage.metered event
+				events.push({
+					type: "usage.metered",
+					scope: "turn",
+					usage: toContractUsage(message.usage),
+					modelUsage: toContractModelUsage(message.modelUsage),
+					totalCostUsd: message.total_cost_usd,
+				});
 
 				if (message.subtype !== "success") {
 					events.push({
@@ -501,6 +519,35 @@ function buildPrompt(input: SendProviderTurnInput): string {
 	}
 
 	return sections.join("\n\n");
+}
+
+function toContractUsage(usage: {
+	input_tokens: number;
+	output_tokens: number;
+	cache_read_input_tokens?: number | null;
+	cache_creation_input_tokens?: number | null;
+}): TokenUsage {
+	return {
+		input_tokens: usage.input_tokens,
+		output_tokens: usage.output_tokens,
+		cache_read_input_tokens: usage.cache_read_input_tokens ?? 0,
+		cache_creation_input_tokens: usage.cache_creation_input_tokens ?? 0,
+	};
+}
+
+function toContractModelUsage(sdk: Record<string, SdkModelUsage>): Record<string, ModelUsage> {
+	return Object.fromEntries(
+		Object.entries(sdk).map(([model, usage]) => [
+			model,
+			{
+				input_tokens: usage.inputTokens,
+				output_tokens: usage.outputTokens,
+				cache_read_input_tokens: usage.cacheReadInputTokens,
+				cache_creation_input_tokens: usage.cacheCreationInputTokens,
+				costUsd: usage.costUSD,
+			} satisfies ModelUsage,
+		]),
+	);
 }
 
 function isTransientError(error: unknown): boolean {
