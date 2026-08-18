@@ -241,10 +241,11 @@ export class ClaudeProvider implements ProviderAdapter {
 	): Promise<string | null> {
 		try {
 			const info = await getSessionInfo(externalId, { dir: workspacePath });
-			if (!info?.summary || info.summary === this.lastTitle.get(sessionId)) return null;
+			const title = info?.customTitle?.trim();
+			if (!title || title === this.lastTitle.get(sessionId)) return null;
 
-			this.lastTitle.set(sessionId, info.summary);
-			return info.summary;
+			this.lastTitle.set(sessionId, title);
+			return title;
 		} catch {
 			return null;
 		}
