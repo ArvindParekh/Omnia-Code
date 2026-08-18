@@ -1,5 +1,5 @@
 import type { AllEvents, EventType, SessionView, SessionViewItem } from "@omnia/contracts";
-import type { Projector } from "./types";
+import type { Projector } from "./types.js";
 
 type ItemOfKind<K extends SessionViewItem["kind"]> = Extract<SessionViewItem, { kind: K }>;
 

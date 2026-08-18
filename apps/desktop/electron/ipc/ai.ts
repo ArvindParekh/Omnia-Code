@@ -1,3 +1,4 @@
+import type { Session } from "@omnia/contracts";
 import { ipcMainHandle, ipcWebContentsSend } from "../util.js";
 import { appServer } from "../app-server.js";
 import { BrowserWindow } from "electron";
@@ -164,33 +165,37 @@ ipcMainHandle<"app.detectProviderModels">(
 	},
 );
 
+const lastBroadcastSession = new Map<string, Session>();
+
 // Broadcast domain events to the renderer
 appServer.eventStore.subscribe((domainEvent) => {
-	const windows = BrowserWindow.getAllWindows();
-	for (const win of windows) {
-		const sessionId =
-			"sessionId" in domainEvent.payload ? (domainEvent.payload as any).sessionId : "";
+	const sessionId =
+		"sessionId" in domainEvent.payload ? (domainEvent.payload as any).sessionId : "";
 
+	const deleted = domainEvent.type === "session.deleted";
+	if (deleted) lastBroadcastSession.delete(sessionId);
+
+	const session = deleted ? undefined : appServer.sessionProjector.state.get(sessionId);
+	const changed = session !== undefined && session !== lastBroadcastSession.get(sessionId);
+	if (session && changed) lastBroadcastSession.set(sessionId, session);
+
+	for (const win of BrowserWindow.getAllWindows()) {
 		ipcWebContentsSend<"app:event">("app:event", win.webContents, {
 			sessionId,
 			event: domainEvent,
 		});
 
-		if (domainEvent.type === "session.deleted") {
+		if (deleted) {
 			ipcWebContentsSend<"app:sessionDeleted">("app:sessionDeleted", win.webContents, {
 				sessionId,
 			});
 			continue;
 		}
 
-		// Emulate the old "agent:sessionUpdated" behavior for the renderer's session list
-		if (domainEvent.type.startsWith("session.")) {
-			const session = appServer.sessionProjector.state.get(sessionId);
-			if (session) {
-				ipcWebContentsSend<"app:sessionUpdated">("app:sessionUpdated", win.webContents, {
-					session,
-				});
-			}
+		if (session && changed) {
+			ipcWebContentsSend<"app:sessionUpdated">("app:sessionUpdated", win.webContents, {
+				session,
+			});
 		}
 	}
 });

@@ -30,7 +30,7 @@ type NewChatProps = {
 export function NewChat({ onStart, providers }: NewChatProps) {
 	const [text, setText] = useState("");
 	const [provider, setProvider] = useState<Provider>(providers[0] ?? "claude");
-	const { preferences } = usePreferences();
+	const { preferences, update } = usePreferences();
 	const [workspace, setWorkspace] = useState<string | null>(null);
 	const [modelId, setModelId] = useState<string | null>(null);
 	const [effort, setEffort] = useState<EffortLevel | null>(null);
@@ -45,9 +45,11 @@ export function NewChat({ onStart, providers }: NewChatProps) {
 	}, [providers]); // provider intentionally omitted — only reset when the list itself changes
 
 	useEffect(() => {
-		setModelId(null);
-		setEffort(null);
-	}, [provider]);
+		setModelId(preferences.modelId);
+		setEffort(preferences.effort);
+	}, [provider, preferences.modelId, preferences.effort]);
+
+	const activeModelId = modelId && models.some((m) => m.value === modelId) ? modelId : null;
 
 	// Seed from the most recent workspace once preferences arrive, but never
 	// clobber a directory the user has already picked in this session.
@@ -65,7 +67,7 @@ export function NewChat({ onStart, providers }: NewChatProps) {
 	const handleSubmit = () => {
 		const trimmed = text.trim();
 		if (!trimmed || !workspace) return;
-		onStart(trimmed, provider, workspace, { modelId, effort });
+		onStart(trimmed, provider, workspace, { modelId: activeModelId, effort });
 	};
 
 	const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -139,10 +141,10 @@ export function NewChat({ onStart, providers }: NewChatProps) {
 						{selectionSupported && (
 							<ModelPicker
 								models={models}
-								modelId={modelId}
+								modelId={activeModelId}
 								effort={effort}
-								onModelChange={setModelId}
-								onEffortChange={setEffort}
+								onModelChange={(value) => update({ modelId: value })}
+								onEffortChange={(value) => update({ effort: value })}
 								side="bottom"
 							/>
 						)}

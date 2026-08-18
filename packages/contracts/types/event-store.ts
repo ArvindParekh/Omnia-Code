@@ -1,4 +1,4 @@
-import type { AllDraftEvents, AllEvents, DomainEventFor, EventType } from "./events";
+import type { AllDraftEvents, AllEvents, DomainEventFor, EventType } from "./events.js";
 
 export interface EventStore {
 	addEvent(draft: AllDraftEvents<EventType>): AllEvents<EventType>;
