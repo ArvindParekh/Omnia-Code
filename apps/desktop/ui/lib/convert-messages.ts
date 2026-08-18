@@ -1,5 +1,5 @@
 import type { ThreadMessageLike } from "@assistant-ui/react";
-import type { ApprovalArgs, MessageAttachment, SessionViewItem } from "./types";
+import type { ApprovalArgs, GateInfo, MessageAttachment, SessionViewItem } from "./types";
 
 type MutableContent = Array<{
 	type: string;
@@ -19,6 +19,22 @@ function toUiAttachment(attachment: MessageAttachment) {
 
 export function convertToThreadMessages(msgs: SessionViewItem[]): ThreadMessageLike[] {
 	const result: ThreadMessageLike[] = [];
+
+	const gates = new Map<string, GateInfo>();
+	const startedToolCalls = new Set(msgs.filter((m) => m.kind === "tool").map((m) => m.id));
+	const mergedApprovals = new Set<string>();
+
+	for (const msg of msgs) {
+		if (msg.kind !== "approval") continue;
+		if (!msg.resolved || !msg.approved) continue;
+		if (!startedToolCalls.has(msg.toolCallId)) continue;
+
+		gates.set(msg.toolCallId, {
+			approvalId: msg.id,
+			approvedAt: msg.resolvedAt ?? msg.createdAt,
+		});
+		mergedApprovals.add(msg.id);
+	}
 
 	let assemblingAssistant: {
 		id: string;
@@ -87,16 +103,20 @@ export function convertToThreadMessages(msgs: SessionViewItem[]): ThreadMessageL
 			if (msg.streaming) assemblingAssistant!.isRunning = true;
 		} else if (msg.kind === "tool") {
 			ensureAssistant(`toolmsg-${msg.id}`, new Date(msg.createdAt));
+			const gate = gates.get(msg.id);
 			assemblingAssistant!.content.push({
 				type: "tool-call",
 				toolCallId: msg.id,
 				toolName: msg.name,
-				args: msg.input as Record<string, unknown>,
+				args: gate
+					? { ...(msg.input as Record<string, unknown>), __gate: gate }
+					: (msg.input as Record<string, unknown>),
 				result: msg.output != null ? { output: msg.output } : undefined,
 				isError: msg.status === "error",
 			});
 			if (msg.status === "running") assemblingAssistant!.isRunning = true;
 		} else if (msg.kind === "approval") {
+			if (mergedApprovals.has(msg.id)) continue;
 			ensureAssistant(`approvalmsg-${msg.id}`, new Date(msg.createdAt));
 			const approvalMeta: ApprovalArgs = {
 				__isApproval: true,

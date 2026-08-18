@@ -1,6 +1,7 @@
 import { CaretRight, SpinnerGap, Warning } from "@phosphor-icons/react";
 import { type ReactNode, useState } from "react";
 import { cn } from "../../lib/utils";
+import { GateHeader, useGate } from "./gate";
 
 export type ToolStatus = "running" | "done" | "error";
 
@@ -23,6 +24,7 @@ export function ToolCard({
 }: ToolCardProps) {
 	const [open, setOpen] = useState(defaultOpen);
 	const collapsible = children != null;
+	const gate = useGate();
 
 	const header = (
 		<>
@@ -55,9 +57,12 @@ export function ToolCard({
 				"rounded-xl border overflow-hidden text-[11px]",
 				status === "error"
 					? "border-[var(--warn)]/25 bg-[var(--warn)]/[3%]"
-					: "border-white/[8%] bg-white/[2%]",
+					: gate
+						? "border-[var(--warn-border)] bg-white/[2%]"
+						: "border-white/[8%] bg-white/[2%]",
 			)}
 		>
+			{gate && <GateHeader gate={gate} />}
 			{collapsible ? (
 				<button
 					type="button"

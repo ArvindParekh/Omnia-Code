@@ -158,6 +158,7 @@ export class SessionViewProjector implements Projector<Map<string, SessionView>>
 						kind: "approval",
 						id: event.payload.approvalId,
 						turnId: event.payload.turnId,
+						toolCallId: event.payload.toolCallId,
 						toolName: event.payload.toolName,
 						input: event.payload.input,
 						risk: event.payload.risk,
@@ -171,6 +172,7 @@ export class SessionViewProjector implements Projector<Map<string, SessionView>>
 					resolved: true,
 					approved: event.payload.approved,
 					note: event.payload.note,
+					resolvedAt: event.occurredAt,
 				}));
 			case "turn.completed":
 			case "turn.canceled":

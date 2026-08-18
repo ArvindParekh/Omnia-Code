@@ -39,7 +39,7 @@ export function ApprovalCard({
 					<span className="text-[11px] font-mono text-white/28">{toolName}</span>
 					<span className="text-[10px] font-mono text-white/22 truncate flex-1">{command}</span>
 					<span className="text-[10px] text-white/22 shrink-0">
-						{__approved ? "approved" : "denied"}
+						{__approved ? "approved" : "denied · never ran"}
 					</span>
 				</div>
 				{!__approved && __note ? (

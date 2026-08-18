@@ -40,6 +40,11 @@ export type TurnGroup = {
 // Approval metadata injected into a tool-call's `args` by convert-messages.ts.
 // ToolCallBlock reads these keys to detect and route approval messages.
 // Both files share this type — changing the encoding means changing it once here.
+export type GateInfo = {
+	approvalId: string;
+	approvedAt: number;
+};
+
 export type ApprovalArgs = {
 	__isApproval: true;
 	__approvalId: string;

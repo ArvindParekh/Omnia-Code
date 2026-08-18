@@ -5,11 +5,12 @@ import {
 	parseShellCommand,
 	stringifyToolOutput,
 } from "../../lib/tools";
-import type { ApprovalArgs } from "../../lib/types";
+import type { ApprovalArgs, GateInfo } from "../../lib/types";
 import { ApprovalCard } from "../approval-card";
 import { BashTool } from "./bash-tool";
 import { CompactTool } from "./compact-tool";
 import { DiffTool } from "./diff-tool";
+import { GateProvider } from "./gate";
 import { GenericTool } from "./generic-tool";
 import type { ToolStatus } from "./tool-card";
 
@@ -24,7 +25,7 @@ function resolveStatus(props: ToolCallMessagePartProps): ToolStatus {
 }
 
 export function ToolCallBlock(props: ToolCallMessagePartProps) {
-	const { toolName, args, result } = props;
+	const { toolName, args } = props;
 	const typedArgs = args as Record<string, unknown>;
 
 	if (typedArgs.__isApproval === true) {
@@ -34,6 +35,12 @@ export function ToolCallBlock(props: ToolCallMessagePartProps) {
 		return <ApprovalCard {...meta} toolName={toolName} command={command} />;
 	}
 
+	const gate = (typedArgs.__gate as GateInfo | undefined) ?? null;
+	return <GateProvider value={gate}>{renderTool(props, typedArgs)}</GateProvider>;
+}
+
+function renderTool(props: ToolCallMessagePartProps, typedArgs: Record<string, unknown>) {
+	const { toolName, result } = props;
 	const status = resolveStatus(props);
 	const output = stringifyToolOutput(result);
 

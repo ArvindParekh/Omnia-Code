@@ -41,6 +41,7 @@ export type SessionViewItem =
 			kind: "approval";
 			id: string;
 			turnId: string;
+			toolCallId: string;
 			toolName: string;
 			input: unknown;
 			risk: ToolRisk;
@@ -48,6 +49,7 @@ export type SessionViewItem =
 			approved?: boolean;
 			note?: string;
 			createdAt: number;
+			resolvedAt?: number;
 	  }
 	| {
 			kind: "model";
