@@ -1,9 +1,10 @@
-import { ToolRisk } from "@omnia/contracts";
+import { type CostSummary, ToolRisk } from "@omnia/contracts";
 import { Terminal, Warning } from "@phosphor-icons/react";
 import { useMemo } from "react";
 import { computeSessionSummary } from "../../lib/session-summary";
-import type { SessionViewItem } from "../../lib/types";
+import type { SessionViewItem, TurnGroup } from "../../lib/types";
 import { cn } from "../../lib/utils";
+import { CostPanel } from "./cost-panel";
 
 function formatDuration(ms: number): string {
 	if (ms < 1000) return `${ms}ms`;
@@ -53,7 +54,15 @@ function Section({
 	);
 }
 
-export function SummaryTab({ items }: { items: SessionViewItem[] }) {
+export function SummaryTab({
+	items,
+	cost,
+	turns,
+}: {
+	items: SessionViewItem[];
+	cost: CostSummary;
+	turns: TurnGroup[];
+}) {
 	const summary = useMemo(() => computeSessionSummary(items), [items]);
 
 	if (items.length === 0) {
@@ -66,6 +75,10 @@ export function SummaryTab({ items }: { items: SessionViewItem[] }) {
 
 	return (
 		<div className="flex flex-col gap-5 py-3">
+			<CostPanel cost={cost} turns={turns} />
+
+			<div className="border-t border-white/[6%]" />
+
 			<div className="grid grid-cols-3 gap-y-3 px-4">
 				<Stat label="Turns" value={String(summary.turns)} />
 				<Stat label="Elapsed" value={formatDuration(summary.durationMs)} />
