@@ -1,9 +1,12 @@
 {
 	"name": "omnia-code",
 	"private": true,
-	"version": "0.1.1",
+	"version": "0.1.2",
 	"description": "A desktop GUI for AI coding agent CLIs (Claude Code, Gemini CLI, OpenCode, Codex).",
-	"author": "Arvind Parekh",
+	"author": {
+		"name": "Arvind Parekh",
+		"email": "71211731+ArvindParekh@users.noreply.github.com"
+	},
 	"type": "module",
 	"main": "dist-electron/apps/desktop/electron/main.js",
 	"workspaces": [
