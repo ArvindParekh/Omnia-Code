@@ -1,6 +1,7 @@
 {
 	"appId": "arvindparekh.me.omnia-code",
 	"productName": "Omnia Code",
+	"publish": null,
 	"files": ["dist-electron", "dist-react", "templateIcon.png"],
 	"icon": "./templateIcon.png",
 	"mac": {
