@@ -1,13 +1,11 @@
-import { isDev } from "./util.js";
 import path from "path";
 import { app } from "electron";
 
+// dist-electron/dist-react/templateIcon.png are packed inside app.asar
+// alongside package.json (see electron-builder.json "files"), so both dev
+// and packaged builds resolve them the same way, relative to the app root.
 export function getPreloadPath() {
-	return path.join(
-		app.getAppPath(),
-		isDev() ? "./" : "../",
-		"/dist-electron/apps/desktop/preload/preload.cjs",
-	);
+	return path.join(app.getAppPath(), "dist-electron/apps/desktop/preload/preload.cjs");
 }
 
 export function getUIPath() {
@@ -15,5 +13,5 @@ export function getUIPath() {
 }
 
 export function getIconPath() {
-	return path.join(app.getAppPath(), isDev() ? "./" : "../", "/templateIcon.png");
+	return path.join(app.getAppPath(), "templateIcon.png");
 }

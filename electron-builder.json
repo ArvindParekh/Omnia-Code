@@ -1,7 +1,7 @@
 {
-	"appId": "com.georgimy.electron-template",
-	"files": ["dist-electron", "dist-react"],
-	"extraResources": ["dist-electron/preload.cjs"],
+	"appId": "arvindparekh.me.omnia-code",
+	"productName": "Omnia Code",
+	"files": ["dist-electron", "dist-react", "templateIcon.png"],
 	"icon": "./templateIcon.png",
 	"mac": {
 		"target": "dmg"

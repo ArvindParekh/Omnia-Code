@@ -25,3 +25,6 @@ dist-electron
 *.sw?
 
 .env
+
+# tool-local state (contains machine-specific absolute paths)
+.antigravitycli/

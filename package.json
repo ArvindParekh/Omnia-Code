@@ -1,7 +1,9 @@
 {
-	"name": "electron-vite-template",
+	"name": "omnia-code",
 	"private": true,
-	"version": "0.0.0",
+	"version": "0.1.0",
+	"description": "A desktop GUI for AI coding agent CLIs (Claude Code, Gemini CLI, OpenCode, Codex).",
+	"author": "Arvind Parekh",
 	"type": "module",
 	"main": "dist-electron/apps/desktop/electron/main.js",
 	"workspaces": [
@@ -48,7 +50,6 @@
 		"cmdk": "^1.1.1",
 		"diff": "^9.0.0",
 		"electron-store": "^11.0.2",
-		"electron-vite-template": ".",
 		"lexical": "^0.49.0",
 		"sonner": "^2.0.8"
 	}
