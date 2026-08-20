@@ -3,8 +3,8 @@
 	"productName": "Omnia Code",
 	"publish": null,
 	"afterPack": "scripts/afterPack.cjs",
-	"files": ["dist-electron", "dist-react", "templateIcon.png"],
-	"icon": "./templateIcon.png",
+	"files": ["dist-electron", "dist-react", "build/icon.png"],
+	"icon": "build/icon.png",
 	"mac": {
 		"target": "dmg"
 	},
