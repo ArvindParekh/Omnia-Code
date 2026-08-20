@@ -44,6 +44,16 @@ Build for production:
 
 ---
 
+## Download
+
+Pre-built releases are on the [Releases page](https://github.com/ArvindParekh/Omnia-Code/releases). Builds are unsigned, so:
+
+- **macOS**: right-click the app → "Open" the first time to get past Gatekeeper.
+- **Windows**: click "More info" → "Run anyway" on the SmartScreen prompt.
+- **Linux**: prefer the **`.deb`** — it configures the sandbox correctly on install. The **`.AppImage`** only gets a working sandbox when launched via desktop integration (double-click in a file manager, or after "Integrate and run" in AppImageLauncher); running it directly from a terminal or via AppImageLauncher's binfmt shortcut will crash with a sandbox error unless you add the flag yourself: `./Omnia\ Code.AppImage --no-sandbox`. This is a known Chromium/AppImage limitation on modern distros (AppArmor restricts the unprivileged sandbox fallback), not specific to this app.
+
+---
+
 ## Core features
 
 - Single window for multiple agents — pick any installed provider per session.
