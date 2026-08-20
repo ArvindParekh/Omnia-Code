@@ -50,7 +50,7 @@ Pre-built releases are on the [Releases page](https://github.com/ArvindParekh/Om
 
 - **macOS**: right-click the app → "Open" the first time to get past Gatekeeper.
 - **Windows**: click "More info" → "Run anyway" on the SmartScreen prompt.
-- **Linux**: prefer the **`.deb`** — it configures the sandbox correctly on install. The **`.AppImage`** only gets a working sandbox when launched via desktop integration (double-click in a file manager, or after "Integrate and run" in AppImageLauncher); running it directly from a terminal or via AppImageLauncher's binfmt shortcut will crash with a sandbox error unless you add the flag yourself: `./Omnia\ Code.AppImage --no-sandbox`. This is a known Chromium/AppImage limitation on modern distros (AppArmor restricts the unprivileged sandbox fallback), not specific to this app.
+- **Linux**: both `.deb` and `.AppImage` run the app with Chromium's sandbox disabled (`--no-sandbox`), since `chrome-sandbox` can't reliably be configured as a working setuid-root helper across install methods and distros. This is a common trade-off for portable Linux Electron builds; it doesn't affect the app's own approval/permission model for agent tool calls.
 
 ---
 
