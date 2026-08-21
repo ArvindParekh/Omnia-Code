@@ -2,7 +2,6 @@ import type { EventStore } from "@omnia/contracts";
 import { ClaudeProvider, fakeProviderAdapter, ProviderRegistry } from "@omnia/providers";
 import { CommandRouter } from "./command-router.js";
 import { createEvent } from "./create-event.js";
-import { findCorrelationId } from "./correlation.js";
 import { createProjections } from "./projections/index.js";
 import { ApprovalService } from "./services/approval-service.js";
 import { SessionService } from "./services/session-service.js";
@@ -61,7 +60,7 @@ export function createAppServer(deps: { eventStore: EventStore }): {
 						title: envelope.payload.title ?? "",
 						createdAt: Date.now(),
 					},
-					{ causationId: envelope.id, correlationId: envelope.id },
+					{ causationId: undefined, correlationId: envelope.id },
 				),
 			);
 		})
@@ -74,7 +73,7 @@ export function createAppServer(deps: { eventStore: EventStore }): {
 						source: "user",
 						title: envelope.payload.customTitle,
 					},
-					{ causationId: envelope.id, correlationId: envelope.id },
+					{ causationId: undefined, correlationId: envelope.id },
 				),
 			);
 
@@ -91,7 +90,7 @@ export function createAppServer(deps: { eventStore: EventStore }): {
 					{
 						sessionId: envelope.payload.sessionId,
 					},
-					{ causationId: envelope.id, correlationId: envelope.id },
+					{ causationId: undefined, correlationId: envelope.id },
 				),
 			);
 
@@ -106,34 +105,36 @@ export function createAppServer(deps: { eventStore: EventStore }): {
 			if (!session)
 				throw new Error(`Cannot start turn: session ${envelope.payload.sessionId} not found`);
 
+			const turnStartedEvent = createEvent(
+				"turn.started",
+				{
+					sessionId: envelope.payload.sessionId,
+					provider: session.provider,
+					model: envelope.payload.model ?? session.model,
+					effort: envelope.payload.effort ?? session.effort,
+					startedAt: Date.now(),
+					turnId: envelope.payload.turnId,
+				},
+				{ causationId: undefined, correlationId: envelope.id },
+			);
 			eventStore.addEvent(
-				createEvent(
-					"turn.started",
-					{
-						sessionId: envelope.payload.sessionId,
-						provider: session.provider,
-						model: envelope.payload.model ?? session.model,
-						effort: envelope.payload.effort ?? session.effort,
-						startedAt: Date.now(),
-						turnId: envelope.payload.turnId,
-					},
-					{ causationId: envelope.id, correlationId: envelope.id },
-				),
+				turnStartedEvent,
 			);
 
+			const userMessageEvent = createEvent(
+				"message.userCreated",
+				{
+					sessionId: envelope.payload.sessionId,
+					turnId: envelope.payload.turnId,
+					messageId: crypto.randomUUID(),
+					text: envelope.payload.text,
+					attachments: envelope.payload.attachments ?? [],
+					quote: envelope.payload.quote,
+				},
+				{ causationId: turnStartedEvent.id, correlationId: envelope.id },
+			);
 			eventStore.addEvent(
-				createEvent(
-					"message.userCreated",
-					{
-						sessionId: envelope.payload.sessionId,
-						turnId: envelope.payload.turnId,
-						messageId: crypto.randomUUID(),
-						text: envelope.payload.text,
-						attachments: envelope.payload.attachments ?? [],
-						quote: envelope.payload.quote,
-					},
-					{ causationId: envelope.id, correlationId: envelope.id },
-				),
+				userMessageEvent,
 			);
 
 			await turnService.start({
@@ -143,17 +144,10 @@ export function createAppServer(deps: { eventStore: EventStore }): {
 					model: envelope.payload.model ?? session.model,
 					effort: envelope.payload.effort ?? session.effort,
 				},
-			});
+			}, userMessageEvent.id);
 		})
 		.on("turn.cancelRequested", async (envelope) => {
 			await turnService.cancel(envelope);
-			const correlationId =
-				findCorrelationId(
-					eventStore,
-					envelope.payload.sessionId,
-					(event) =>
-						event.type === "turn.started" && event.payload.turnId === envelope.payload.turnId,
-				) ?? envelope.id;
 			eventStore.addEvent(
 				createEvent(
 					"turn.canceled",
@@ -162,19 +156,12 @@ export function createAppServer(deps: { eventStore: EventStore }): {
 						turnId: envelope.payload.turnId,
 						canceledAt: Date.now(),
 					},
-					{ causationId: envelope.id, correlationId },
+					{ causationId: undefined, correlationId: envelope.payload.turnId },
 				),
 			);
 		})
 		.on("approval.resolveRequested", async (envelope) => {
-			const correlationId =
-				findCorrelationId(
-					eventStore,
-					envelope.payload.sessionId,
-					(event) =>
-						event.type === "approval.requested" &&
-						event.payload.approvalId === envelope.payload.approvalId,
-				) ?? envelope.id;
+			const approvalRequestedEvent = eventStore.getEventsByType("approval.requested").find(event => event.payload.approvalId === envelope.payload.approvalId);
 			eventStore.addEvent(
 				createEvent(
 					"approval.resolved",
@@ -184,7 +171,7 @@ export function createAppServer(deps: { eventStore: EventStore }): {
 						approved: envelope.payload.approved,
 						note: envelope.payload.note,
 					},
-					{ causationId: envelope.id, correlationId },
+					{ causationId: approvalRequestedEvent?.id, correlationId: approvalRequestedEvent?.payload.turnId },
 				),
 			);
 			await approvalService.resolve(envelope);
