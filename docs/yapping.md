@@ -18,3 +18,7 @@ another approach is to maintain a preceding mutable pointer. it walks forward th
 - or read it's value: on structural events like tool.callStarted, approval.resolveRequested, etc.
 
 this is much better and is just reading or updating - all O(1). love it!
+
+correlationId should always point to what is this event correlating with, and it's always the turnId. turn is defined as the user message + assistant response. the codebase incorrect had this as (command) envelope.id, which makes no sense. fixing this.
+
+also incorrectly identified the cause of a usermessage to be turn.started. but that's incorrect. a usermessage comes after a turn is started. user message causes the entire assistant response block to occur. but it consists of a bunch of assistantDeltas. so we store a map of messageId -> eventId (userMessage event). so every incoming delta reads the userMessage's event id from it's messageId and sets that as the causationId. problem solved.
