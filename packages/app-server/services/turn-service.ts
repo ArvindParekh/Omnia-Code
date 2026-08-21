@@ -70,6 +70,7 @@ export class TurnService {
 			policy,
 			resume,
 			signal: abortController.signal,
+			causationId: envelope.id,
 		});
 	}
 
@@ -99,6 +100,7 @@ export class TurnService {
 		policy: SessionPolicy;
 		resume: boolean;
 		signal: AbortSignal;
+		causationId: string;
 	}): Promise<void> {
 		try {
 			const {
@@ -115,6 +117,7 @@ export class TurnService {
 				policy,
 				resume,
 				signal,
+				causationId,
 			} = opts;
 			// One assistant/reasoning message per provider content block. A single
 			// id per turn would merge text emitted after a tool call back into the
@@ -148,16 +151,20 @@ export class TurnService {
 			for await (const runtimeEvent of stream) {
 				if (signal.aborted) break;
 				if (runtimeEvent.type === "runtime.failed") failed = true;
-				this.mapAndAppend(runtimeEvent, { sessionId, turnId, messageIdFor });
+				this.mapAndAppend(runtimeEvent, { sessionId, turnId, causationId, messageIdFor });
 			}
 
 			if (!signal.aborted && !failed) {
 				this.eventStore.addEvent(
-					createEvent("turn.completed", {
-						sessionId,
-						turnId,
-						completedAt: Date.now(),
-					}),
+					createEvent(
+						"turn.completed",
+						{
+							sessionId,
+							turnId,
+							completedAt: Date.now(),
+						},
+						{ causationId, correlationId: causationId },
+					),
 				);
 			}
 		} catch (error) {
@@ -167,13 +174,17 @@ export class TurnService {
 			console.error(`[turn:${opts.turnId}]`, error, correlationId);
 
 			this.eventStore.addEvent(
-				createEvent("turn.failed", {
-					sessionId: opts.sessionId,
-					turnId: opts.turnId,
-					message: `Turn failed. Ref: ${correlationId}`,
-					retryable: true,
-					correlationId,
-				}),
+				createEvent(
+					"turn.failed",
+					{
+						sessionId: opts.sessionId,
+						turnId: opts.turnId,
+						message: `Turn failed. Ref: ${correlationId}`,
+						retryable: true,
+						correlationId,
+					},
+					{ causationId: opts.causationId, correlationId: opts.causationId },
+				),
 			);
 		} finally {
 			this.activeTurns.delete(opts.turnId);
@@ -182,107 +193,149 @@ export class TurnService {
 
 	private mapAndAppend(
 		event: ProviderRuntimeEvent,
-		ctx: { sessionId: string; turnId: string; messageIdFor: (blockId: string) => string },
+		ctx: {
+			sessionId: string;
+			turnId: string;
+			causationId: string;
+			messageIdFor: (blockId: string) => string;
+		},
 	) {
-		const { sessionId, turnId, messageIdFor } = ctx;
+		const { sessionId, turnId, causationId, messageIdFor } = ctx;
+		const meta = { causationId, correlationId: causationId };
 
 		switch (event.type) {
 			case "assistant.delta":
 				this.eventStore.addEvent(
-					createEvent("message.assistantDeltaReceived", {
-						sessionId,
-						turnId,
-						messageId: messageIdFor(event.blockId),
-						text: event.text,
-					}),
+					createEvent(
+						"message.assistantDeltaReceived",
+						{
+							sessionId,
+							turnId,
+							messageId: messageIdFor(event.blockId),
+							text: event.text,
+						},
+						meta,
+					),
 				);
 				break;
 			case "session.titleSuggested":
 				this.eventStore.addEvent(
-					createEvent("session.renamed", {
-						sessionId,
-						title: event.title,
-						source: "provider",
-					}),
+					createEvent(
+						"session.renamed",
+						{
+							sessionId,
+							title: event.title,
+							source: "provider",
+						},
+						meta,
+					),
 				);
 				break;
 			case "assistant.completed":
 				this.eventStore.addEvent(
-					createEvent("message.assistantCompleted", {
-						sessionId,
-						turnId,
-						messageId: messageIdFor(event.blockId),
-					}),
+					createEvent(
+						"message.assistantCompleted",
+						{
+							sessionId,
+							turnId,
+							messageId: messageIdFor(event.blockId),
+						},
+						meta,
+					),
 				);
 				break;
 			case "reasoning.delta":
 				this.eventStore.addEvent(
-					createEvent("message.reasoningDeltaReceived", {
-						sessionId,
-						turnId,
-						messageId: messageIdFor(event.blockId),
-						text: event.text,
-					}),
+					createEvent(
+						"message.reasoningDeltaReceived",
+						{
+							sessionId,
+							turnId,
+							messageId: messageIdFor(event.blockId),
+							text: event.text,
+						},
+						meta,
+					),
 				);
 				break;
 			case "tool.started":
 				this.eventStore.addEvent(
-					createEvent("tool.callStarted", {
-						sessionId,
-						turnId,
-						toolCallId: event.toolCallId,
-						toolName: event.toolName,
-						input: event.input,
-						risk: event.risk,
-					}),
+					createEvent(
+						"tool.callStarted",
+						{
+							sessionId,
+							turnId,
+							toolCallId: event.toolCallId,
+							toolName: event.toolName,
+							input: event.input,
+							risk: event.risk,
+						},
+						meta,
+					),
 				);
 				break;
 			case "tool.completed":
 				this.eventStore.addEvent(
-					createEvent("tool.callCompleted", {
-						sessionId,
-						turnId,
-						toolCallId: event.toolCallId,
-						output: event.output,
-						isError: event.isError,
-					}),
+					createEvent(
+						"tool.callCompleted",
+						{
+							sessionId,
+							turnId,
+							toolCallId: event.toolCallId,
+							output: event.output,
+							isError: event.isError,
+						},
+						meta,
+					),
 				);
 				break;
 			case "approval.requested":
 				this.eventStore.addEvent(
-					createEvent("approval.requested", {
-						approvalId: event.approvalId,
-						sessionId,
-						turnId,
-						toolCallId: event.toolCallId,
-						toolName: event.toolName,
-						input: event.input,
-						risk: event.risk,
-					}),
+					createEvent(
+						"approval.requested",
+						{
+							approvalId: event.approvalId,
+							sessionId,
+							turnId,
+							toolCallId: event.toolCallId,
+							toolName: event.toolName,
+							input: event.input,
+							risk: event.risk,
+						},
+						meta,
+					),
 				);
 				break;
 			case "runtime.failed":
 				this.eventStore.addEvent(
-					createEvent("turn.failed", {
-						sessionId,
-						turnId,
-						message: event.message,
-						retryable: event.retryable,
-						correlationId: event.providerCorrelationId,
-					}),
+					createEvent(
+						"turn.failed",
+						{
+							sessionId,
+							turnId,
+							message: event.message,
+							retryable: event.retryable,
+							correlationId: event.providerCorrelationId,
+						},
+						meta,
+					),
 				);
 				break;
 			case "usage.metered":
 				this.eventStore.addEvent(
-					createEvent("cost.metered", {
-						sessionId,
-						turnId,
-						requestId: event.blockId ?? undefined,
-						scope: event.scope,
-						usage: event.usage,
-						modelUsage: event.modelUsage,
-						totalCostUsd: event.totalCostUsd,
-					}),
+					createEvent(
+						"cost.metered",
+						{
+							sessionId,
+							turnId,
+							requestId: event.blockId ?? undefined,
+							scope: event.scope,
+							usage: event.usage,
+							modelUsage: event.modelUsage,
+							totalCostUsd: event.totalCostUsd,
+						},
+						meta,
+					),
 				);
 				break;
 		}
