@@ -60,7 +60,7 @@ export function createAppServer(deps: { eventStore: EventStore }): {
 						title: envelope.payload.title ?? "",
 						createdAt: Date.now(),
 					},
-					{ causationId: undefined, correlationId: envelope.id },
+					{ causationId: undefined, correlationId: ref.sessionId },
 				),
 			);
 		})
@@ -73,7 +73,7 @@ export function createAppServer(deps: { eventStore: EventStore }): {
 						source: "user",
 						title: envelope.payload.customTitle,
 					},
-					{ causationId: undefined, correlationId: envelope.id },
+					{ causationId: undefined, correlationId: envelope.payload.sessionId },
 				),
 			);
 
@@ -90,7 +90,7 @@ export function createAppServer(deps: { eventStore: EventStore }): {
 					{
 						sessionId: envelope.payload.sessionId,
 					},
-					{ causationId: undefined, correlationId: envelope.id },
+					{ causationId: undefined, correlationId: envelope.payload.sessionId },
 				),
 			);
 
@@ -115,11 +115,9 @@ export function createAppServer(deps: { eventStore: EventStore }): {
 					startedAt: Date.now(),
 					turnId: envelope.payload.turnId,
 				},
-				{ causationId: undefined, correlationId: envelope.id },
+				{ causationId: undefined, correlationId: envelope.payload.turnId },
 			);
-			eventStore.addEvent(
-				turnStartedEvent,
-			);
+			eventStore.addEvent(turnStartedEvent);
 
 			const userMessageEvent = createEvent(
 				"message.userCreated",
@@ -131,20 +129,21 @@ export function createAppServer(deps: { eventStore: EventStore }): {
 					attachments: envelope.payload.attachments ?? [],
 					quote: envelope.payload.quote,
 				},
-				{ causationId: turnStartedEvent.id, correlationId: envelope.id },
+				{ causationId: turnStartedEvent.id, correlationId: envelope.payload.turnId },
 			);
-			eventStore.addEvent(
-				userMessageEvent,
-			);
+			eventStore.addEvent(userMessageEvent);
 
-			await turnService.start({
-				...envelope,
-				payload: {
-					...envelope.payload,
-					model: envelope.payload.model ?? session.model,
-					effort: envelope.payload.effort ?? session.effort,
+			await turnService.start(
+				{
+					...envelope,
+					payload: {
+						...envelope.payload,
+						model: envelope.payload.model ?? session.model,
+						effort: envelope.payload.effort ?? session.effort,
+					},
 				},
-			}, userMessageEvent.id);
+				userMessageEvent.id,
+			);
 		})
 		.on("turn.cancelRequested", async (envelope) => {
 			await turnService.cancel(envelope);
@@ -161,7 +160,9 @@ export function createAppServer(deps: { eventStore: EventStore }): {
 			);
 		})
 		.on("approval.resolveRequested", async (envelope) => {
-			const approvalRequestedEvent = eventStore.getEventsByType("approval.requested").find(event => event.payload.approvalId === envelope.payload.approvalId);
+			const approvalRequestedEvent = eventStore
+				.getEventsByType("approval.requested")
+				.find((event) => event.payload.approvalId === envelope.payload.approvalId);
 			eventStore.addEvent(
 				createEvent(
 					"approval.resolved",
@@ -171,7 +172,10 @@ export function createAppServer(deps: { eventStore: EventStore }): {
 						approved: envelope.payload.approved,
 						note: envelope.payload.note,
 					},
-					{ causationId: approvalRequestedEvent?.id, correlationId: approvalRequestedEvent?.payload.turnId },
+					{
+						causationId: approvalRequestedEvent?.id,
+						correlationId: approvalRequestedEvent?.payload.turnId,
+					},
 				),
 			);
 			await approvalService.resolve(envelope);

@@ -1,7 +1,6 @@
 import type {
 	AllDraftEvents,
 	CommandEnvelopeFor,
-	DraftEvent,
 	EffortLevel,
 	EventStore,
 	EventType,
@@ -30,7 +29,10 @@ export class TurnService {
 		private readonly eventStore: EventStore,
 	) { }
 
-	async start(envelope: CommandEnvelopeFor<"turn.startRequested">, causationIdSeed: string): Promise<void> {
+	async start(
+		envelope: CommandEnvelopeFor<"turn.startRequested">,
+		causationIdSeed: string,
+	): Promise<void> {
 		const { sessionId, text, attachments, quote, model, effort } = envelope.payload;
 		const turnId = envelope.payload.turnId;
 		const {
@@ -73,7 +75,7 @@ export class TurnService {
 			policy,
 			resume,
 			signal: abortController.signal,
-			causationIdSeed
+			causationIdSeed,
 		});
 	}
 
@@ -124,8 +126,8 @@ export class TurnService {
 		const cursor = {
 			lastEventId: causationIdSeed,
 		};
-		const toolCauseId: Map<string, string> = new Map(); // toolCallId -> eventId
-		const blockCauseId: Map<string, string> = new Map(); // messageId -> userMessage eventId
+		const toolCauseId: Map<string, string> = new Map(); // toolCallId -> the tool.callStarted event that opened it
+		const blockCauseId: Map<string, string> = new Map(); // blockId -> the event that caused the block to open
 		try {
 			// One assistant/reasoning message per provider content block. A single
 			// id per turn would merge text emitted after a tool call back into the
@@ -159,7 +161,14 @@ export class TurnService {
 			for await (const runtimeEvent of stream) {
 				if (signal.aborted) break;
 				if (runtimeEvent.type === "runtime.failed") failed = true;
-				this.mapAndAppend(runtimeEvent, { sessionId, turnId, cursor, toolCauseId, blockCauseId, messageIdFor });
+				this.mapAndAppend(runtimeEvent, {
+					sessionId,
+					turnId,
+					cursor,
+					toolCauseId,
+					blockCauseId,
+					messageIdFor,
+				});
 			}
 
 			if (!signal.aborted && !failed) {
@@ -177,6 +186,8 @@ export class TurnService {
 			}
 		} catch (error) {
 			if (opts.signal.aborted) return;
+
+			console.error(`[turn:${opts.turnId}]`, error);
 
 			this.eventStore.addEvent(
 				createEvent(
@@ -208,11 +219,9 @@ export class TurnService {
 		},
 	) {
 		const { sessionId, turnId, cursor, toolCauseId, blockCauseId, messageIdFor } = ctx;
-		const meta = { causationId: cursor.lastEventId, correlationId: turnId };
-
+		const meta = { correlationId: turnId }; // causationId is per-case, correlationId is fixed to turnId for all events
 
 		let newEvent: AllDraftEvents<EventType> | undefined = undefined;
-
 
 		switch (event.type) {
 			case "assistant.delta":
@@ -229,8 +238,8 @@ export class TurnService {
 						{
 							...meta,
 							causationId: blockCauseId.get(event.blockId),
-						}
-					)
+						},
+					);
 				} else {
 					// first block
 					newEvent = createEvent(
@@ -244,14 +253,12 @@ export class TurnService {
 						{
 							...meta,
 							causationId: cursor.lastEventId,
-						}
-					)
+						},
+					);
 					blockCauseId.set(event.blockId, cursor.lastEventId);
 					cursor.lastEventId = newEvent.id;
 				}
-				this.eventStore.addEvent(
-					newEvent,
-				);
+				this.eventStore.addEvent(newEvent);
 				break;
 			case "session.titleSuggested":
 				this.eventStore.addEvent(
@@ -262,7 +269,10 @@ export class TurnService {
 							title: event.title,
 							source: "provider",
 						},
-						meta,
+						{
+							...meta,
+							causationId: cursor.lastEventId,
+						},
 					),
 				);
 				break;
@@ -276,12 +286,10 @@ export class TurnService {
 					},
 					{
 						...meta,
-						causationId: blockCauseId.get(event.blockId)
-					}
+						causationId: blockCauseId.get(event.blockId) ?? cursor.lastEventId,
+					},
 				);
-				this.eventStore.addEvent(
-					newEvent,
-				);
+				this.eventStore.addEvent(newEvent);
 				break;
 			case "reasoning.delta":
 				if (blockCauseId.has(event.blockId)) {
@@ -296,9 +304,9 @@ export class TurnService {
 						},
 						{
 							...meta,
-							causationId: blockCauseId.get(event.blockId)
-						}
-					)
+							causationId: blockCauseId.get(event.blockId),
+						},
+					);
 				} else {
 					// new block
 					newEvent = createEvent(
@@ -312,14 +320,12 @@ export class TurnService {
 						{
 							...meta,
 							causationId: cursor.lastEventId,
-						}
-					)
-					cursor.lastEventId = newEvent.id;
+						},
+					);
 					blockCauseId.set(event.blockId, cursor.lastEventId);
-				};
-				this.eventStore.addEvent(
-					newEvent,
-				);
+					cursor.lastEventId = newEvent.id;
+				}
+				this.eventStore.addEvent(newEvent);
 				break;
 			case "tool.started":
 				newEvent = createEvent(
@@ -335,11 +341,9 @@ export class TurnService {
 					{
 						...meta,
 						causationId: cursor.lastEventId,
-					}
-				)
-				this.eventStore.addEvent(
-					newEvent,
+					},
 				);
+				this.eventStore.addEvent(newEvent);
 				toolCauseId.set(event.toolCallId, newEvent.id);
 				break;
 			case "tool.completed":
@@ -354,12 +358,10 @@ export class TurnService {
 					},
 					{
 						...meta,
-						causationId: toolCauseId.get(event.toolCallId),
-					}
-				)
-				this.eventStore.addEvent(
-					newEvent,
+						causationId: toolCauseId.get(event.toolCallId) ?? cursor.lastEventId,
+					},
 				);
+				this.eventStore.addEvent(newEvent);
 				toolCauseId.delete(event.toolCallId);
 				cursor.lastEventId = newEvent.id;
 				break;
@@ -377,12 +379,10 @@ export class TurnService {
 					},
 					{
 						...meta,
-						causationId: toolCauseId.get(event.toolCallId),
-					}
-				)
-				this.eventStore.addEvent(
-					newEvent,
+						causationId: toolCauseId.get(event.toolCallId) ?? cursor.lastEventId,
+					},
 				);
+				this.eventStore.addEvent(newEvent);
 				break;
 			case "runtime.failed":
 				newEvent = createEvent(
@@ -397,11 +397,9 @@ export class TurnService {
 					{
 						...meta,
 						causationId: cursor.lastEventId,
-					}
-				)
-				this.eventStore.addEvent(
-					newEvent,
+					},
 				);
+				this.eventStore.addEvent(newEvent);
 				break;
 			case "usage.metered":
 				newEvent = createEvent(
@@ -418,11 +416,9 @@ export class TurnService {
 					{
 						...meta,
 						causationId: cursor.lastEventId,
-					}
-				)
-				this.eventStore.addEvent(
-					newEvent,
+					},
 				);
+				this.eventStore.addEvent(newEvent);
 				break;
 		}
 	}
